@@ -1,7 +1,14 @@
-IF DB_ID(N'fresh_food_store') IS NULL
+USE master;
+GO
+
+IF DB_ID(N'fresh_food_store') IS NOT NULL
 BEGIN
-    CREATE DATABASE fresh_food_store;
+    ALTER DATABASE fresh_food_store SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+    DROP DATABASE fresh_food_store;
 END
+GO
+
+CREATE DATABASE fresh_food_store;
 GO
 
 USE fresh_food_store;
@@ -12,6 +19,8 @@ GO
 
 SET QUOTED_IDENTIFIER ON;
 GO
+
+
 
 CREATE TABLE dbo.Roles
 (
@@ -623,15 +632,15 @@ CREATE INDEX IX_ChatConversations_AssignedStaff_Status ON dbo.ChatConversations(
 CREATE INDEX IX_ChatMessages_Conversation_SentAt ON dbo.ChatMessages(conversationId, sentAt);
 GO
 
-IF NOT EXISTS (SELECT 1 FROM dbo.Roles WHERE roleName = N'Admin')
-    INSERT INTO dbo.Roles (roleName) VALUES (N'Admin');
+DBCC CHECKIDENT ('dbo.Roles', RESEED, 0);
 
-IF NOT EXISTS (SELECT 1 FROM dbo.Roles WHERE roleName = N'Staff')
-    INSERT INTO dbo.Roles (roleName) VALUES (N'Staff');
+SET IDENTITY_INSERT dbo.Roles ON;
 
-IF NOT EXISTS (SELECT 1 FROM dbo.Roles WHERE roleName = N'Customer')
-    INSERT INTO dbo.Roles (roleName) VALUES (N'Customer');
+INSERT INTO dbo.Roles (roleId, roleName) VALUES (1, N'Admin');
+INSERT INTO dbo.Roles (roleId, roleName) VALUES (2, N'Manager');
+INSERT INTO dbo.Roles (roleId, roleName) VALUES (3, N'Staff');
+INSERT INTO dbo.Roles (roleId, roleName) VALUES (4, N'Shipper');
+INSERT INTO dbo.Roles (roleId, roleName) VALUES (5, N'Customer');
 
-IF NOT EXISTS (SELECT 1 FROM dbo.Roles WHERE roleName = N'Shipper')
-    INSERT INTO dbo.Roles (roleName) VALUES (N'Shipper');
+SET IDENTITY_INSERT dbo.Roles OFF;
 GO
