@@ -1,4 +1,4 @@
-package org.example;
+package org.example.controller;
 
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;

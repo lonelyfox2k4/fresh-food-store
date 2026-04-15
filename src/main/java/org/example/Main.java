@@ -1,5 +1,7 @@
 package org.example;
 
+import org.example.utils.DBConnection;
+
 import java.sql.Connection;
 
 public class Main {
