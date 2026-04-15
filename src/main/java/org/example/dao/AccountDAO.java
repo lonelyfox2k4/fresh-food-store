@@ -1,6 +1,6 @@
 package org.example.dao;
 
-import org.example.model.Account;
+import org.example.model.auth.Account;
 import org.example.utils.DBConnection;
 import java.sql.*;
 import java.util.ArrayList;
