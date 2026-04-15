@@ -1,7 +1,7 @@
 package org.example.controller;
 
 import org.example.dao.AccountDAO;
-import org.example.model.Account;
+import org.example.model.auth.Account;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
