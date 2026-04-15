@@ -5,8 +5,73 @@ import org.example.utils.DBConnection;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 public class AccountDAO {
+
+    // --- HÀM MÃ HÓA (GIỮ NGUYÊN) ---
+    public String encodePassword(String password) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            md.update(password.getBytes());
+            byte[] digest = md.digest();
+            StringBuilder sb = new StringBuilder();
+            for (byte b : digest) {
+                sb.append(String.format("%02x", b & 0xff));
+            }
+            return sb.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // --- CẬP NHẬT HÀM INSERT (Mã hóa trước khi lưu) ---
+    public boolean insertAccount(int roleId, String email, String password, String fullName, String phone) {
+        String sql = "INSERT INTO dbo.Accounts (roleId, email, passwordHash, fullName, phone, status) VALUES (?, ?, ?, ?, ?, 1)";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            // Mã hóa mật khẩu ở đây
+            String hashedPassword = encodePassword(password);
+
+            ps.setInt(1, roleId);
+            ps.setString(2, email);
+            ps.setString(3, hashedPassword); // Lưu bản đã mã hóa
+            ps.setString(4, fullName);
+            ps.setString(5, phone);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // --- CẬP NHẬT HÀM LOGIN (Mã hóa đầu vào để so sánh) ---
+    public Account login(String email, String password) {
+        String sql = "SELECT * FROM dbo.Accounts WHERE email = ? AND passwordHash = ? AND status = 1";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            // Mã hóa mật khẩu người dùng vừa gõ để so sánh với mã hash trong DB
+            String hashedPassword = encodePassword(password);
+
+            ps.setString(1, email);
+            ps.setString(2, hashedPassword);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new Account(
+                            rs.getLong("accountId"), rs.getInt("roleId"), rs.getString("email"),
+                            rs.getString("fullName"), rs.getString("phone"), rs.getBoolean("status"),
+                            rs.getTimestamp("createdAt")
+                    );
+                }
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return null;
+    }
+
+    // --- CÁC HÀM KHÁC GIỮ NGUYÊN ---
     public List<Account> getAllAccounts() {
         List<Account> list = new ArrayList<>();
         String sql = "SELECT accountId, roleId, email, fullName, phone, status, createdAt FROM dbo.Accounts ORDER BY createdAt DESC";
@@ -35,35 +100,20 @@ public class AccountDAO {
         return false;
     }
 
-
-    public boolean insertAccount(int roleId, String email, String password, String fullName, String phone) {
-        String sql = "INSERT INTO dbo.Accounts (roleId, email, passwordHash, fullName, phone, status) VALUES (?, ?, ?, ?, ?, 1)";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, roleId);
-            ps.setString(2, email);
-            ps.setString(3, password);
-            ps.setString(4, fullName);
-            ps.setString(5, phone);
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) {
-            // Nếu trùng Email, SQL Server sẽ ném Exception, hàm trả về false
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    public Account login(String email, String password) {
-        String sql = "SELECT * FROM dbo.Accounts WHERE email = ? AND passwordHash = ? AND status = 1";
+    public Account getAccountByEmail(String email) {
+        String sql = "SELECT accountId, roleId, email, fullName, phone, status, createdAt FROM dbo.Accounts WHERE email = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, email);
-            ps.setString(2, password);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return new Account(
-                            rs.getLong("accountId"), rs.getInt("roleId"), rs.getString("email"),
-                            rs.getString("fullName"), rs.getString("phone"), rs.getBoolean("status"),
+                            rs.getLong("accountId"),
+                            rs.getInt("roleId"),
+                            rs.getString("email"),
+                            rs.getString("fullName"),
+                            rs.getString("phone"),
+                            rs.getBoolean("status"),
                             rs.getTimestamp("createdAt")
                     );
                 }
