@@ -1,6 +1,8 @@
+package org.example.controller;
+
 import com.google.gson.JsonObject;
 import org.example.dao.AccountDAO;
-import org.example.model.Account;
+import org.example.model.auth.Account;
 import org.example.utils.GoogleUtils;
 
 import javax.servlet.ServletException;

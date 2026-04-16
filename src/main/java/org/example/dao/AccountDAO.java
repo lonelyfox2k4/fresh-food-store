@@ -10,7 +10,6 @@ import java.security.NoSuchAlgorithmException;
 
 public class AccountDAO {
 
-    // --- HÀM MÃ HÓA (GIỮ NGUYÊN) ---
     public String encodePassword(String password) {
         try {
             MessageDigest md = MessageDigest.getInstance("MD5");
@@ -26,18 +25,15 @@ public class AccountDAO {
         }
     }
 
-    // --- CẬP NHẬT HÀM INSERT (Mã hóa trước khi lưu) ---
     public boolean insertAccount(int roleId, String email, String password, String fullName, String phone) {
-        String sql = "INSERT INTO dbo.Accounts (roleId, email, passwordHash, fullName, phone, status) VALUES (?, ?, ?, ?, ?, 1)";
+        // Mặc định emailVerified là 0 khi đăng ký mới
+        String sql = "INSERT INTO dbo.Accounts (roleId, email, passwordHash, fullName, phone, status, emailVerified) VALUES (?, ?, ?, ?, ?, 1, 0)";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            // Mã hóa mật khẩu ở đây
             String hashedPassword = encodePassword(password);
-
             ps.setInt(1, roleId);
             ps.setString(2, email);
-            ps.setString(3, hashedPassword); // Lưu bản đã mã hóa
+            ps.setString(3, hashedPassword);
             ps.setString(4, fullName);
             ps.setString(5, phone);
             return ps.executeUpdate() > 0;
@@ -47,22 +43,25 @@ public class AccountDAO {
         }
     }
 
-    // --- CẬP NHẬT HÀM LOGIN (Mã hóa đầu vào để so sánh) ---
     public Account login(String email, String password) {
         String sql = "SELECT * FROM dbo.Accounts WHERE email = ? AND passwordHash = ? AND status = 1";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            // Mã hóa mật khẩu người dùng vừa gõ để so sánh với mã hash trong DB
             String hashedPassword = encodePassword(password);
-
             ps.setString(1, email);
             ps.setString(2, hashedPassword);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
+                    // Truyền đủ 9 tham số theo thứ tự trong Model Account
                     return new Account(
-                            rs.getLong("accountId"), rs.getInt("roleId"), rs.getString("email"),
-                            rs.getString("fullName"), rs.getString("phone"), rs.getBoolean("status"),
+                            rs.getLong("accountId"),
+                            rs.getInt("roleId"),
+                            rs.getString("email"),
+                            rs.getString("passwordHash"),
+                            rs.getString("fullName"),
+                            rs.getString("phone"),
+                            rs.getBoolean("status"),
+                            rs.getBoolean("emailVerified"),
                             rs.getTimestamp("createdAt")
                     );
                 }
@@ -71,22 +70,64 @@ public class AccountDAO {
         return null;
     }
 
-    // --- CÁC HÀM KHÁC GIỮ NGUYÊN ---
     public List<Account> getAllAccounts() {
         List<Account> list = new ArrayList<>();
-        String sql = "SELECT accountId, roleId, email, fullName, phone, status, createdAt FROM dbo.Accounts ORDER BY createdAt DESC";
+        // Phải SELECT thêm emailVerified
+        String sql = "SELECT * FROM dbo.Accounts ORDER BY createdAt DESC";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 list.add(new Account(
-                        rs.getLong("accountId"), rs.getInt("roleId"), rs.getString("email"),
-                        rs.getString("fullName"), rs.getString("phone"), rs.getBoolean("status"),
+                        rs.getLong("accountId"),
+                        rs.getInt("roleId"),
+                        rs.getString("email"),
+                        rs.getString("passwordHash"),
+                        rs.getString("fullName"),
+                        rs.getString("phone"),
+                        rs.getBoolean("status"),
+                        rs.getBoolean("emailVerified"),
                         rs.getTimestamp("createdAt")
                 ));
             }
         } catch (Exception e) { e.printStackTrace(); }
         return list;
+    }
+
+    public Account getAccountByEmail(String email) {
+        String sql = "SELECT * FROM dbo.Accounts WHERE email = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, email);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new Account(
+                            rs.getLong("accountId"),
+                            rs.getInt("roleId"),
+                            rs.getString("email"),
+                            rs.getString("passwordHash"),
+                            rs.getString("fullName"),
+                            rs.getString("phone"),
+                            rs.getBoolean("status"),
+                            rs.getBoolean("emailVerified"),
+                            rs.getTimestamp("createdAt")
+                    );
+                }
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return null;
+    }
+
+    public boolean verifyEmail(String email) {
+        String sql = "UPDATE dbo.Accounts SET emailVerified = 1 WHERE email = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, email);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     public boolean updateStatus(long id, boolean status) {
@@ -100,55 +141,16 @@ public class AccountDAO {
         return false;
     }
 
-    public Account getAccountByEmail(String email) {
-        String sql = "SELECT accountId, roleId, email, fullName, phone, status, createdAt FROM dbo.Accounts WHERE email = ?";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, email);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return new Account(
-                            rs.getLong("accountId"),
-                            rs.getInt("roleId"),
-                            rs.getString("email"),
-                            rs.getString("fullName"),
-                            rs.getString("phone"),
-                            rs.getBoolean("status"),
-                            rs.getTimestamp("createdAt")
-                    );
-                }
-            }
-        } catch (Exception e) { e.printStackTrace(); }
-        return null;
-    }
-
-    public boolean resetPassword(String email, String newPass) {
-        // Câu lệnh SQL cập nhật mật khẩu dựa trên email
+    public boolean resetPassword(String email, String encodedPass) {
         String sql = "UPDATE dbo.Accounts SET passwordHash = ? WHERE email = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, newPass); // Mật khẩu mới vừa tạo ngẫu nhiên
+            ps.setString(1, encodedPass);
             ps.setString(2, email);
-
-            return ps.executeUpdate() > 0; // Trả về true nếu update thành công
+            return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
             return false;
-        }
-    }
-
-    public String hashPassword(String password) {
-        try {
-            java.security.MessageDigest md = java.security.MessageDigest.getInstance("MD5");
-            byte[] array = md.digest(password.getBytes());
-            StringBuilder sb = new StringBuilder();
-            for (byte b : array) {
-                sb.append(Integer.toHexString((b & 0xFF) | 0x100).substring(1, 3));
-            }
-            return sb.toString();
-        } catch (java.security.NoSuchAlgorithmException e) {
-            return null;
         }
     }
 }
