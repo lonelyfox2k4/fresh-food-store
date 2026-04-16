@@ -1,0 +1,89 @@
+
+:root {
+    --brand-color: #E3000F;
+    --brand-hover: #b8000c;
+}
+
+.bg-brand { background-color: var(--brand-color) !important; }
+.text-brand { color: var(--brand-color) !important; }
+
+
+/* Navbar */
+.nav-link { font-weight: 500; }
+.nav-link:hover { color: #f8d7da !important; }
+
+/* Product Card */
+.product-card {
+    transition: all 0.3s ease;
+    border: 1px solid #f0f0f0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(227, 0, 15, 0.1);
+    border-color: var(--brand-color);
+}
+.product-img {
+    height: 220px;
+    object-fit: cover;
+    width: 100%;
+}
+
+/* Typography */
+.old-price {
+    text-decoration: line-through;
+    color: #9e9e9e;
+    font-size: 0.9rem;
+}
+/* Navbar tổng */
+.navbar {
+    padding: 10px 0;
+}
+
+/* Item spacing */
+.nav-item {
+    margin: 0 10px;
+}
+
+/* Link style */
+.nav-link {
+    position: relative;
+    font-weight: 500;
+    font-size: 15px;
+    letter-spacing: 0.3px;
+    transition: all 0.3s ease;
+}
+
+/* Hover màu */
+.nav-link:hover {
+    color: #ffc107 !important;
+    transform: translateY(-2px);
+}
+
+/* Underline animation */
+.nav-link::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 0;
+    height: 2px;
+    background: #ffc107;
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+}
+
+.nav-link:hover::after {
+    width: 100%;
+}
+
+/* Active (đang chọn category) */
+.nav-link.active {
+    color: #ffc107 !important;
+    font-weight: 600;
+}
+
+.nav-link.active::after {
+    width: 100%;
+}
