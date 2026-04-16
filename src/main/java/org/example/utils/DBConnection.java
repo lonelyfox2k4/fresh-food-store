@@ -8,7 +8,7 @@ public class DBConnection {
         try {
             String url = "jdbc:sqlserver://localhost:1433;databaseName=fresh_food_store;encrypt=false";
             String user = "sa";
-            String password = "123";
+            String password = "123456Aa!";
 
             Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
             return DriverManager.getConnection(url, user, password);
@@ -24,7 +24,8 @@ public class DBConnection {
             System.out.println("Kết nối Database thành công!");
             try {
                 conn.close();
-            } catch (Exception e) {}
+            } catch (Exception e) {
+            }
         } else {
             System.out.println("Kết nối Database thất bại.");
         }
