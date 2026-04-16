@@ -14,6 +14,12 @@
         </div>
     </c:if>
 
+    <c:if test="${not empty successMsg}">
+        <div class="alert alert-success text-center p-2" style="font-size: 0.9rem;">
+                ${successMsg}
+        </div>
+    </c:if>
+
     <form action="login" method="post">
         <div class="mb-3">
             <input type="email" name="email" class="form-control" placeholder="Email"

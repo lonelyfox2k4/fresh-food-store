@@ -153,4 +153,148 @@ public class AccountDAO {
             return false;
         }
     }
+
+    public void linkGoogleAccount(long accountId, String googleId, String googleEmail) {
+        // Lệnh này check xem đã link chưa, chưa thì mới Insert
+        String sql = "IF NOT EXISTS (SELECT 1 FROM AccountGoogleLinks WHERE googleUserId = ?) " +
+                "INSERT INTO AccountGoogleLinks (accountId, googleUserId, googleEmail, linkedAt) VALUES (?, ?, ?, SYSUTCDATETIME())";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, googleId);
+            ps.setLong(2, accountId);
+            ps.setString(3, googleId);
+            ps.setString(4, googleEmail);
+            ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public int countUsers(String txtSearch, String roleId, String status) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM dbo.Accounts WHERE 1=1 ");
+
+        if (txtSearch != null && !txtSearch.trim().isEmpty()) {
+            sql.append(" AND (fullName LIKE ? OR email LIKE ?) ");
+        }
+        if (roleId != null && !roleId.trim().isEmpty()) {
+            sql.append(" AND roleId = ? ");
+        }
+        if (status != null && !status.trim().isEmpty()) {
+            sql.append(" AND status = ? ");
+        }
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+
+            int i = 1;
+            if (txtSearch != null && !txtSearch.trim().isEmpty()) {
+                ps.setString(i++, "%" + txtSearch + "%");
+                ps.setString(i++, "%" + txtSearch + "%");
+            }
+            if (roleId != null && !roleId.trim().isEmpty()) {
+                ps.setInt(i++, Integer.parseInt(roleId));
+            }
+            if (status != null && !status.trim().isEmpty()) {
+                ps.setBoolean(i++, Boolean.parseBoolean(status));
+            }
+
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return 0;
+    }
+
+    public List<Account> searchUsers(String txtSearch, String roleId, String status, String sortBy, String sortDir, int offset, int limit) {
+        List<Account> list = new ArrayList<>();
+        // Mẹo dùng 1=1 để nối AND liên tục mà không lo lỗi cú pháp
+        StringBuilder sql = new StringBuilder("SELECT * FROM dbo.Accounts WHERE 1=1 ");
+
+        if (txtSearch != null && !txtSearch.trim().isEmpty()) {
+            sql.append(" AND (fullName LIKE ? OR email LIKE ?) ");
+        }
+        if (roleId != null && !roleId.trim().isEmpty()) {
+            sql.append(" AND roleId = ? ");
+        }
+        if (status != null && !status.trim().isEmpty()) {
+            sql.append(" AND status = ? ");
+        }
+
+        // Ghép Sort (Nếu null hoặc rỗng thì mặc định theo ID)
+        String orderBy = (sortBy != null && !sortBy.trim().isEmpty()) ? sortBy : "accountId";
+        String orderDir = (sortDir != null && !sortDir.trim().isEmpty()) ? sortDir : "ASC";
+        sql.append(" ORDER BY ").append(orderBy).append(" ").append(orderDir);
+        
+        // Thêm Pagination cho SQL Server
+        sql.append(" OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+
+            int i = 1;
+            if (txtSearch != null && !txtSearch.trim().isEmpty()) {
+                ps.setString(i++, "%" + txtSearch + "%");
+                ps.setString(i++, "%" + txtSearch + "%");
+            }
+            if (roleId != null && !roleId.trim().isEmpty()) {
+                ps.setInt(i++, Integer.parseInt(roleId));
+            }
+            if (status != null && !status.trim().isEmpty()) {
+                ps.setBoolean(i++, Boolean.parseBoolean(status));
+            }
+            
+            // Set Offset và Limit
+            ps.setInt(i++, offset);
+            ps.setInt(i++, limit);
+
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                list.add(new Account(rs.getLong("accountId"), rs.getInt("roleId"), rs.getString("email"),
+                        rs.getString("passwordHash"), rs.getString("fullName"), rs.getString("phone"),
+                        rs.getBoolean("status"), rs.getBoolean("emailVerified"), rs.getTimestamp("createdAt")));
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return list;
+    }
+
+
+    public boolean updateAccountAdmin(long id, String name, String phone, int roleId, boolean status) {
+        String sql = "UPDATE dbo.Accounts SET fullName = ?, phone = ?, roleId = ?, status = ? WHERE accountId = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, name);
+            ps.setString(2, phone);
+            ps.setInt(3, roleId);
+            ps.setBoolean(4, status);
+            ps.setLong(5, id);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) { e.printStackTrace(); }
+        return false;
+    }
+
+    public Account getAccountById(long id) {
+        String sql = "SELECT * FROM dbo.Accounts WHERE accountId = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, id);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return new Account(
+                        rs.getLong("accountId"),
+                        rs.getInt("roleId"),
+                        rs.getString("email"),
+                        rs.getString("passwordHash"),
+                        rs.getString("fullName"),
+                        rs.getString("phone"),
+                        rs.getBoolean("status"),
+                        rs.getBoolean("emailVerified"),
+                        rs.getTimestamp("createdAt")
+                );
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }

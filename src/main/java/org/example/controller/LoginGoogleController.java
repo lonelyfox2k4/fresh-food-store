@@ -12,33 +12,50 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-
-
 @WebServlet("/login-google")
 public class LoginGoogleController extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String code = req.getParameter("code");
+
+        // 1. Kiểm tra code từ Google
         if (code == null || code.isEmpty()) {
             resp.sendRedirect("login");
-        } else {
-            String accessToken = GoogleUtils.getToken(code);
-            JsonObject googleUser = GoogleUtils.getUserInfo(accessToken);
+            return; // Dừng lại ở đây nếu không có code
+        }
 
-            String email = googleUser.get("email").getAsString();
-            String name = googleUser.get("name").getAsString();
+        // 2. Lấy thông tin user từ Google
+        String accessToken = GoogleUtils.getToken(code);
+        JsonObject googleUser = GoogleUtils.getUserInfo(accessToken);
 
-            // Kiểm tra email này trong DB của bạn
-            AccountDAO dao = new AccountDAO();
-            Account acc = dao.getAccountByEmail(email); // Bạn cần viết thêm hàm này trong DAO
+        String email = googleUser.get("email").getAsString();
+        String name = googleUser.get("name").getAsString();
+        String googleId = googleUser.get("id").getAsString();
 
-            if (acc == null) {
-                // Nếu chưa có thì tự tạo tài khoản mới cho họ
-                dao.insertAccount(5, email, "google_login_no_pass", name, "");
-                acc = dao.getAccountByEmail(email);
-            }
+        AccountDAO dao = new AccountDAO();
+        Account acc = dao.getAccountByEmail(email);
 
+        // 3. Xử lý logic Account
+        if (acc == null) {
+            // Nếu chưa có tài khoản, tạo mới (Role 5 là Customer)
+            dao.insertAccount(5, email, "google_login_no_pass", name, "");
+            acc = dao.getAccountByEmail(email);
+        }
+
+        // 4. LƯU LIÊN KẾT GOOGLE (Để bảng AccountGoogleLinks nảy số)
+        if (acc != null) {
+            dao.linkGoogleAccount(acc.getAccountId(), googleId, email);
+
+            // 5. Thiết lập session và chuyển trang
             req.getSession().setAttribute("user", acc);
-            resp.sendRedirect("home.jsp");
+            // Chỉ RoleId 1 (Admin) mới vào được dashboard
+            if (acc.getRoleId() == 1) {
+                resp.sendRedirect("admin/dashboard");
+            } else {
+                resp.sendRedirect("home");
+            }
+        } else {
+            // Trường hợp hy hữu không tạo được acc
+            resp.sendRedirect("login");
         }
     }
 }
