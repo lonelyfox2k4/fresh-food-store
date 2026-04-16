@@ -3,6 +3,8 @@ package org.example.controller;
 import org.example.dao.CategoryDAO;
 import org.example.dao.CartDAO;
 import org.example.dao.ProductDAO;
+import org.example.dao.WishlistDAO;
+import org.example.model.auth.Account;
 import org.example.model.catalog.Category;
 import org.example.model.catalog.Product;
 import javax.servlet.ServletException;
@@ -15,6 +17,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 
 @WebServlet(name = "HomeServlet", urlPatterns = {"/home"})
@@ -24,6 +27,7 @@ public class HomeController extends HttpServlet {
     private final ProductDAO productDAO = new ProductDAO();
     private final CategoryDAO categoryDAO = new CategoryDAO();
     private final CartDAO cartDAO = new CartDAO();
+    private final WishlistDAO wishlistDAO = new WishlistDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -46,13 +50,17 @@ public class HomeController extends HttpServlet {
             request.setAttribute("categories", categoryList);
 
             Object userObj = request.getSession().getAttribute("user");
-            if (userObj instanceof org.example.model.auth.Account) {
-                org.example.model.auth.Account acc = (org.example.model.auth.Account) userObj;
+            if (userObj instanceof Account) {
+                Account acc = (Account) userObj;
                 request.getSession().setAttribute("cartCount", cartDAO.countCartLines(acc.getAccountId()));
+                Set<Long> wishedIds = wishlistDAO.getWishlistedProductIds(acc.getAccountId());
+                request.setAttribute("wishedProductIds", wishedIds);
             }
 
             moveFlashToRequest(request, "cartSuccessMsg");
             moveFlashToRequest(request, "cartErrorMsg");
+            moveFlashToRequest(request, "wishlistSuccessMsg");
+            moveFlashToRequest(request, "wishlistErrorMsg");
             // 3. Forward sang trang home.jsp
             request.getRequestDispatcher("/home.jsp").forward(request, response);
 

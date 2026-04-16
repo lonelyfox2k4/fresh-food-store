@@ -45,6 +45,12 @@
     <c:if test="${not empty cartErrorMsg}">
         <div class="alert alert-danger mb-0">${cartErrorMsg}</div>
     </c:if>
+    <c:if test="${not empty wishlistSuccessMsg}">
+        <div class="alert alert-success mb-0 mt-2">${wishlistSuccessMsg}</div>
+    </c:if>
+    <c:if test="${not empty wishlistErrorMsg}">
+        <div class="alert alert-danger mb-0 mt-2">${wishlistErrorMsg}</div>
+    </c:if>
 </div>
 
 <%-- ══ Hero Banner ══════════════════════════════════════════════════════ --%>
@@ -175,6 +181,14 @@
                                                 <i class="fas fa-cart-plus me-1"></i>Thêm giỏ
                                             </button>
                                         </form>
+                                        <form method="post" action="${pageContext.request.contextPath}/wishlist/add">
+                                            <input type="hidden" name="productId" value="${p.productId}">
+                                            <input type="hidden" name="returnUrl" value="${pageContext.request.contextPath}/home">
+                                            <button type="submit" class="btn w-100 fw-bold ${not empty wishedProductIds and wishedProductIds.contains(p.productId) ? 'btn-danger' : 'btn-outline-danger'}">
+                                                <i class="fas fa-heart me-1"></i>
+                                                ${not empty wishedProductIds and wishedProductIds.contains(p.productId) ? 'Bỏ thích' : 'Yêu thích'}
+                                            </button>
+                                        </form>
                                     </div>
                                 </div>
                             </div>
@@ -224,14 +238,24 @@
                                     <div class="price-main mb-1">
                                         <fmt:formatNumber value="${p.basePriceAmount}" pattern="###,###"/> ₫
                                     </div>
-                                    <form method="post" action="${pageContext.request.contextPath}/cart/add">
-                                        <input type="hidden" name="productId" value="${p.productId}">
-                                        <input type="hidden" name="quantity" value="1">
-                                        <input type="hidden" name="returnUrl" value="${pageContext.request.contextPath}/home">
-                                        <button type="submit" class="btn btn-outline-danger w-100 fw-bold">
-                                            <i class="fas fa-cart-plus me-1"></i>Thêm giỏ
-                                        </button>
-                                    </form>
+                                    <div class="d-grid gap-2">
+                                        <form method="post" action="${pageContext.request.contextPath}/cart/add">
+                                            <input type="hidden" name="productId" value="${p.productId}">
+                                            <input type="hidden" name="quantity" value="1">
+                                            <input type="hidden" name="returnUrl" value="${pageContext.request.contextPath}/home">
+                                            <button type="submit" class="btn btn-outline-danger w-100 fw-bold">
+                                                <i class="fas fa-cart-plus me-1"></i>Thêm giỏ
+                                            </button>
+                                        </form>
+                                        <form method="post" action="${pageContext.request.contextPath}/wishlist/add">
+                                            <input type="hidden" name="productId" value="${p.productId}">
+                                            <input type="hidden" name="returnUrl" value="${pageContext.request.contextPath}/home">
+                                            <button type="submit" class="btn w-100 fw-bold ${not empty wishedProductIds and wishedProductIds.contains(p.productId) ? 'btn-danger' : 'btn-outline-danger'}">
+                                                <i class="fas fa-heart me-1"></i>
+                                                ${not empty wishedProductIds and wishedProductIds.contains(p.productId) ? 'Bỏ thích' : 'Yêu thích'}
+                                            </button>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
                         </div>
