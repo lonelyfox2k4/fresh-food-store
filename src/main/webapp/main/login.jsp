@@ -32,6 +32,7 @@
            class="btn btn-danger w-100 mb-2">
             <i class="fab fa-google me-2"></i> Đăng nhập bằng Google
         </a>
+        <a href="forgot-password" class="text-end d-block mb-3 text-decoration-none">Quên mật khẩu?</a>
         <a href="register" class="d-block text-center">Chưa có tài khoản? Đăng ký</a>
     </form>
 </div>

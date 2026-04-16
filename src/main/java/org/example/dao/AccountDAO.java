@@ -121,4 +121,34 @@ public class AccountDAO {
         } catch (Exception e) { e.printStackTrace(); }
         return null;
     }
+
+    public boolean resetPassword(String email, String newPass) {
+        // Câu lệnh SQL cập nhật mật khẩu dựa trên email
+        String sql = "UPDATE dbo.Accounts SET passwordHash = ? WHERE email = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, newPass); // Mật khẩu mới vừa tạo ngẫu nhiên
+            ps.setString(2, email);
+
+            return ps.executeUpdate() > 0; // Trả về true nếu update thành công
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public String hashPassword(String password) {
+        try {
+            java.security.MessageDigest md = java.security.MessageDigest.getInstance("MD5");
+            byte[] array = md.digest(password.getBytes());
+            StringBuilder sb = new StringBuilder();
+            for (byte b : array) {
+                sb.append(Integer.toHexString((b & 0xFF) | 0x100).substring(1, 3));
+            }
+            return sb.toString();
+        } catch (java.security.NoSuchAlgorithmException e) {
+            return null;
+        }
+    }
 }
