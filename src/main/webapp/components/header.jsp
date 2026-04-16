@@ -25,6 +25,7 @@
                         <i class="fas fa-user-circle me-1"></i>
                         Xin chào, <strong>${sessionScope.user.fullName}</strong>
                     </small>
+                    <a href="${pageContext.request.contextPath}/profile" class="text-decoration-none text-muted small">Hồ sơ</a>
                     <a href="${pageContext.request.contextPath}/orders" class="text-decoration-none text-muted small">Đơn hàng</a>
                     <a href="${pageContext.request.contextPath}/logout" class="text-decoration-none text-muted small">Đăng xuất</a>
                 </c:when>

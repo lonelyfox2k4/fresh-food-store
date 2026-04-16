@@ -42,8 +42,8 @@ public class HomeController extends HttpServlet {
             request.setAttribute("flashSaleProducts", flashSaleList);
             request.setAttribute("bestSellerProducts", bestSellerList);
             request.setAttribute("categories", categoryList);
-            // 3. Forward sang trang index.jsp
-            request.getRequestDispatcher("/index.jsp").forward(request, response);
+            // 3. Forward sang trang home.jsp
+            request.getRequestDispatcher("/home.jsp").forward(request, response);
 
         } catch (Exception e) {
             e.printStackTrace();
