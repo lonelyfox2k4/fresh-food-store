@@ -1,6 +1,7 @@
 package org.example.controller;
 
 import org.example.dao.CategoryDAO;
+import org.example.dao.CartDAO;
 import org.example.dao.ProductDAO;
 import org.example.model.catalog.Category;
 import org.example.model.catalog.Product;
@@ -22,6 +23,7 @@ public class HomeController extends HttpServlet {
     // Khởi tạo DAO
     private final ProductDAO productDAO = new ProductDAO();
     private final CategoryDAO categoryDAO = new CategoryDAO();
+    private final CartDAO cartDAO = new CartDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -42,6 +44,15 @@ public class HomeController extends HttpServlet {
             request.setAttribute("flashSaleProducts", flashSaleList);
             request.setAttribute("bestSellerProducts", bestSellerList);
             request.setAttribute("categories", categoryList);
+
+            Object userObj = request.getSession().getAttribute("user");
+            if (userObj instanceof org.example.model.auth.Account) {
+                org.example.model.auth.Account acc = (org.example.model.auth.Account) userObj;
+                request.getSession().setAttribute("cartCount", cartDAO.countCartLines(acc.getAccountId()));
+            }
+
+            moveFlashToRequest(request, "cartSuccessMsg");
+            moveFlashToRequest(request, "cartErrorMsg");
             // 3. Forward sang trang home.jsp
             request.getRequestDispatcher("/home.jsp").forward(request, response);
 
@@ -49,6 +60,14 @@ public class HomeController extends HttpServlet {
             e.printStackTrace();
             // Nếu lỗi DB, có thể redirect về trang báo lỗi (500)
             response.getWriter().println("Lỗi kết nối Hệ thống! Vui lòng thử lại sau.");
+        }
+    }
+
+    private void moveFlashToRequest(HttpServletRequest req, String key) {
+        Object value = req.getSession().getAttribute(key);
+        if (value != null) {
+            req.setAttribute(key, value);
+            req.getSession().removeAttribute(key);
         }
     }
 }

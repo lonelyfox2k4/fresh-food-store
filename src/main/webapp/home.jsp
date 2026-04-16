@@ -38,6 +38,14 @@
 </head>
 <body>
 <jsp:include page="components/header.jsp"/>
+<div class="container mt-3">
+    <c:if test="${not empty cartSuccessMsg}">
+        <div class="alert alert-success mb-0">${cartSuccessMsg}</div>
+    </c:if>
+    <c:if test="${not empty cartErrorMsg}">
+        <div class="alert alert-danger mb-0">${cartErrorMsg}</div>
+    </c:if>
+</div>
 
 <%-- ══ Hero Banner ══════════════════════════════════════════════════════ --%>
 <section class="hero-banner">
@@ -154,10 +162,20 @@
                                     <div class="price-main mb-1">
                                         <fmt:formatNumber value="${p.basePriceAmount}" pattern="###,###"/> ₫
                                     </div>
-                                    <a href="${pageContext.request.contextPath}/product-detail?id=${p.productId}"
-                                       class="btn btn-brand w-100 fw-bold">
-                                        <i class="fas fa-eye me-1"></i>Xem & Mua
-                                    </a>
+                                    <div class="d-grid gap-2">
+                                        <a href="${pageContext.request.contextPath}/product-detail?id=${p.productId}"
+                                           class="btn btn-outline-secondary w-100 fw-bold">
+                                            <i class="fas fa-eye me-1"></i>Xem chi tiết
+                                        </a>
+                                        <form method="post" action="${pageContext.request.contextPath}/cart/add">
+                                            <input type="hidden" name="productId" value="${p.productId}">
+                                            <input type="hidden" name="quantity" value="1">
+                                            <input type="hidden" name="returnUrl" value="${pageContext.request.contextPath}/home">
+                                            <button type="submit" class="btn btn-brand w-100 fw-bold">
+                                                <i class="fas fa-cart-plus me-1"></i>Thêm giỏ
+                                            </button>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -206,10 +224,14 @@
                                     <div class="price-main mb-1">
                                         <fmt:formatNumber value="${p.basePriceAmount}" pattern="###,###"/> ₫
                                     </div>
-                                    <a href="${pageContext.request.contextPath}/product-detail?id=${p.productId}"
-                                       class="btn btn-outline-danger w-100 fw-bold">
-                                        <i class="fas fa-cart-plus me-1"></i>Thêm giỏ
-                                    </a>
+                                    <form method="post" action="${pageContext.request.contextPath}/cart/add">
+                                        <input type="hidden" name="productId" value="${p.productId}">
+                                        <input type="hidden" name="quantity" value="1">
+                                        <input type="hidden" name="returnUrl" value="${pageContext.request.contextPath}/home">
+                                        <button type="submit" class="btn btn-outline-danger w-100 fw-bold">
+                                            <i class="fas fa-cart-plus me-1"></i>Thêm giỏ
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                         </div>

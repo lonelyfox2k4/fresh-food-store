@@ -1,6 +1,7 @@
 package org.example.controller;
 
 import org.example.dao.AccountDAO;
+import org.example.dao.CartDAO;
 import org.example.model.auth.Account;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -10,6 +11,7 @@ import java.io.IOException;
 @WebServlet(urlPatterns = {"/login", "/register", "/logout"})
 public class AuthController extends HttpServlet {
     private AccountDAO dao = new AccountDAO();
+    private CartDAO cartDAO = new CartDAO();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -49,6 +51,7 @@ public class AuthController extends HttpServlet {
 
         if (acc != null) {
             req.getSession().setAttribute("user", acc);
+            req.getSession().setAttribute("cartCount", cartDAO.countCartLines(acc.getAccountId()));
             if (acc.getRoleId() == 1) {
                 resp.sendRedirect("admin/dashboard");
             } else {
