@@ -146,9 +146,11 @@
                     <p class="text-white-50 lead fs-6 mb-0">Quản lý kho hàng, thông tin sản phẩm và trạng thái kinh doanh của cửa hàng.</p>
                 </div>
                 <div class="col-md-4 text-md-end mt-4 mt-md-0">
-                    <a href="products?action=new" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold shadow-lg">
-                        <i class="bi bi-plus-lg me-2"></i>Thêm sản phẩm mới
-                    </a>
+                    <c:if test="${sessionScope.user.roleId != 1}">
+                        <a href="products?action=new" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold shadow-lg">
+                            <i class="bi bi-plus-lg me-2"></i>Thêm sản phẩm mới
+                        </a>
+                    </c:if>
                 </div>
             </div>
         </div>
@@ -167,7 +169,9 @@
                             <th>Giá niêm yết</th>
                             <th>Chính sách giá</th>
                             <th>Trạng thái</th>
-                            <th class="text-end">Thao tác</th>
+                            <c:if test="${sessionScope.user.roleId != 1}">
+                                <th class="text-end">Thao tác</th>
+                            </c:if>
                         </tr>
                     </thead>
                     <tbody>
@@ -219,14 +223,16 @@
                                         </c:otherwise>
                                     </c:choose>
                                 </td>
-                                <td class="text-end">
-                                    <a href="products?action=edit&id=${p.productId}" class="action-btn me-1" title="Chỉnh sửa">
-                                        <i class="bi bi-pencil-square"></i>
-                                    </a>
-                                    <a href="products?action=delete&id=${p.productId}" class="action-btn delete" title="Ẩn sản phẩm" onclick="return confirm('Xác nhận ngừng kinh doanh sản phẩm này?')">
-                                        <i class="bi bi-eye-slash"></i>
-                                    </a>
-                                </td>
+                                <c:if test="${sessionScope.user.roleId != 1}">
+                                    <td class="text-end">
+                                        <a href="products?action=edit&id=${p.productId}" class="action-btn me-1" title="Chỉnh sửa">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+                                        <a href="products?action=delete&id=${p.productId}" class="action-btn delete" title="Ẩn sản phẩm" onclick="return confirm('Xác nhận ngừng kinh doanh sản phẩm này?')">
+                                            <i class="bi bi-eye-slash"></i>
+                                        </a>
+                                    </td>
+                                </c:if>
                             </tr>
                         </c:forEach>
                     </tbody>

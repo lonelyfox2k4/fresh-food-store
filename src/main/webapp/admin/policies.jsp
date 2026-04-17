@@ -134,9 +134,11 @@
                     <p class="text-white-50 lead fs-6 mb-0">Thiết lập các quy tắc giảm giá tự động dựa trên thời gian bảo quản và mức độ tươi của từng lô hàng.</p>
                 </div>
                 <div class="col-md-4 text-md-end mt-4 mt-md-0">
-                    <button type="button" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold shadow-lg" data-bs-toggle="modal" data-bs-target="#addPolicyModal">
-                        <i class="bi bi-plus-lg me-2"></i>Tạo chính sách mới
-                    </button>
+                    <c:if test="${sessionScope.user.roleId != 1}">
+                        <button type="button" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold shadow-lg" data-bs-toggle="modal" data-bs-target="#addPolicyModal">
+                            <i class="bi bi-plus-lg me-2"></i>Tạo chính sách mới
+                        </button>
+                    </c:if>
                 </div>
             </div>
         </div>
@@ -152,7 +154,9 @@
                             <th>Tên chính sách</th>
                             <th>Mô tả / Ghi chú</th>
                             <th>Trạng thái hoạt động</th>
-                            <th class="text-end">Cấu hình & Thao tác</th>
+                            <c:if test="${sessionScope.user.roleId != 1}">
+                                <th class="text-end">Cấu hình & Thao tác</th>
+                            </c:if>
                         </tr>
                     </thead>
                     <tbody>
@@ -171,14 +175,16 @@
                                         <c:otherwise><span class="status-badge status-inactive"><i class="bi bi-pause-circle-fill me-1"></i>Tạm dừng</span></c:otherwise>
                                     </c:choose>
                                 </td>
-                                <td class="text-end">
-                                    <a href="policies?action=edit-rules&id=${p.policyId}" class="action-btn me-1 shadow-sm">
-                                        <i class="bi bi-sliders me-1"></i> Cấu hình %
-                                    </a>
-                                    <button class="action-btn" onclick="editPolicy(${p.policyId}, '${p.policyName}', '${p.note}', ${p.status})" title="Sửa chính sách">
-                                        <i class="bi bi-pencil-square"></i>
-                                    </button>
-                                </td>
+                                <c:if test="${sessionScope.user.roleId != 1}">
+                                    <td class="text-end">
+                                        <a href="policies?action=edit-rules&id=${p.policyId}" class="action-btn me-1 shadow-sm">
+                                            <i class="bi bi-sliders me-1"></i> Cấu hình %
+                                        </a>
+                                        <button class="action-btn" onclick="editPolicy(${p.policyId}, '${p.policyName}', '${p.note}', ${p.status})" title="Sửa chính sách">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </button>
+                                    </td>
+                                </c:if>
                             </tr>
                         </c:forEach>
                     </tbody>
@@ -187,47 +193,50 @@
         </div>
     </main>
 
-    <!-- Modal Thêm/Sửa Policy -->
-    <div class="modal fade" id="addPolicyModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <form action="policies" method="post" class="modal-content">
-                <div class="modal-header border-0 pb-0 p-4">
-                    <h5 class="fw-bold" id="modalTitle">Thông tin Chính sách</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body p-4">
-                    <input type="hidden" name="id" id="policyId">
-                    <div class="mb-4">
-                        <label class="form-label fw-semibold small text-muted text-uppercase">Tên chính sách</label>
-                        <input type="text" name="policyName" id="policyName" class="form-control form-control-lg bg-light border-0" placeholder="VD: Giảm giá hàng rau củ" required>
+    <c:if test="${sessionScope.user.roleId != 1}">
+        <!-- Modal Thêm/Sửa Policy -->
+        <div class="modal fade" id="addPolicyModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <form action="policies" method="post" class="modal-content">
+                    <div class="modal-header border-0 pb-0 p-4">
+                        <h5 class="fw-bold" id="modalTitle">Thông tin Chính sách</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
-                    <div class="mb-4">
-                        <label class="form-label fw-semibold small text-muted text-uppercase">Mô tả / Ghi chú</label>
-                        <textarea name="note" id="policyNote" class="form-control bg-light border-0" rows="3" placeholder="Ghi chú về mục đích của chính sách này..."></textarea>
+                    <div class="modal-body p-4">
+                        <input type="hidden" name="id" id="policyId">
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold small text-muted text-uppercase">Tên chính sách</label>
+                            <input type="text" name="policyName" id="policyName" class="form-control form-control-lg bg-light border-0" placeholder="VD: Giảm giá hàng rau củ" required>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold small text-muted text-uppercase">Mô tả / Ghi chú</label>
+                            <textarea name="note" id="policyNote" class="form-control bg-light border-0" rows="3" placeholder="Ghi chú về mục đích của chính sách này..."></textarea>
+                        </div>
+                        <div class="form-check form-switch d-flex align-items-center p-0">
+                            <label class="form-check-label fw-semibold me-3">Kích hoạt áp dụng ngay</label>
+                            <input class="form-check-input ms-auto" type="checkbox" name="status" id="policyStatus" checked style="width: 3rem; height: 1.5rem;">
+                        </div>
                     </div>
-                    <div class="form-check form-switch d-flex align-items-center p-0">
-                        <label class="form-check-label fw-semibold me-3">Kích hoạt áp dụng ngay</label>
-                        <input class="form-check-input ms-auto" type="checkbox" name="status" id="policyStatus" checked style="width: 3rem; height: 1.5rem;">
+                    <div class="modal-footer border-0 pt-0 p-4">
+                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
+                        <button type="submit" class="btn btn-primary rounded-pill px-5 fw-bold">Lưu thay đổi</button>
                     </div>
-                </div>
-                <div class="modal-footer border-0 pt-0 p-4">
-                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
-                    <button type="submit" class="btn btn-primary rounded-pill px-5 fw-bold">Lưu thay đổi</button>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
-    </div>
+
+        <script>
+            function editPolicy(id, name, note, status) {
+                document.getElementById('modalTitle').innerText = 'Chỉnh sửa chính sách';
+                document.getElementById('policyId').value = id;
+                document.getElementById('policyName').value = name;
+                document.getElementById('policyNote').value = note;
+                document.getElementById('policyStatus').checked = status;
+                new bootstrap.Modal(document.getElementById('addPolicyModal')).show();
+            }
+        </script>
+    </c:if>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        function editPolicy(id, name, note, status) {
-            document.getElementById('modalTitle').innerText = 'Chỉnh sửa chính sách';
-            document.getElementById('policyId').value = id;
-            document.getElementById('policyName').value = name;
-            document.getElementById('policyNote').value = note;
-            document.getElementById('policyStatus').checked = status;
-            new bootstrap.Modal(document.getElementById('addPolicyModal')).show();
-        }
-    </script>
 </body>
 </html>

@@ -164,9 +164,11 @@
                     <p class="text-white-50 lead fs-6 mb-0">Hệ thống AI tự động điều chỉnh giá bán dựa trên quy tắc độ tươi và ngày hết hạn.</p>
                 </div>
                 <div class="col-md-4 text-md-end mt-4 mt-md-0">
-                    <a href="policies" class="btn btn-outline-light btn-sm rounded-pill px-4">
-                        <i class="bi bi-gear-fill me-2"></i>Cấu hình quy tắc
-                    </a>
+                    <c:if test="${sessionScope.user.roleId != 1}">
+                        <a href="policies" class="btn btn-outline-light btn-sm rounded-pill px-4">
+                            <i class="bi bi-gear-fill me-2"></i>Cấu hình quy tắc
+                        </a>
+                    </c:if>
                 </div>
             </div>
         </div>

@@ -134,9 +134,11 @@
                     <p class="text-white-50 lead fs-6 mb-0">Thiết lập mạng lưới nhà cung cấp uy tín để đảm bảo nguồn hàng luôn tươi sạch và ổn định.</p>
                 </div>
                 <div class="col-md-4 text-md-end mt-4 mt-md-0">
-                    <button type="button" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold shadow-lg" data-bs-toggle="modal" data-bs-target="#supplierModal">
-                        <i class="bi bi-plus-lg me-2"></i>Ký kết đối tác mới
-                    </button>
+                    <c:if test="${sessionScope.user.roleId != 1}">
+                        <button type="button" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold shadow-lg" data-bs-toggle="modal" data-bs-target="#supplierModal">
+                            <i class="bi bi-plus-lg me-2"></i>Ký kết đối tác mới
+                        </button>
+                    </c:if>
                 </div>
             </div>
         </div>
@@ -152,7 +154,9 @@
                             <th>Thông tin liên hệ</th>
                             <th>Địa chỉ kho hàng</th>
                             <th>Trạng thái hợp tác</th>
-                            <th class="text-end">Hành động</th>
+                            <c:if test="${sessionScope.user.roleId != 1}">
+                                <th class="text-end">Hành động</th>
+                            </c:if>
                         </tr>
                     </thead>
                     <tbody>
@@ -179,23 +183,25 @@
                                         <c:otherwise><span class="status-badge status-inactive"><i class="bi bi-slash-circle me-1"></i>Tạm dừng</span></c:otherwise>
                                     </c:choose>
                                 </td>
-                                <td class="text-end">
-                                    <button class="action-btn me-1" onclick='editSupplier(${s.supplierId}, "${s.supplierName}", "${s.phone}", "${s.email}", "${s.address}", ${s.status})' title="Cập nhật thông tin">
-                                        <i class="bi bi-pencil-square"></i>
-                                    </button>
-                                    <c:choose>
-                                        <c:when test="${s.status}">
-                                            <a href="suppliers?action=toggle-status&id=${s.supplierId}&status=false" class="action-btn text-danger border-danger-subtle" title="Ngừng hợp tác" onclick="return confirm('Bạn có chắc muốn tạm dừng hợp tác với đơn vị này?')">
-                                                <i class="bi bi-eye-slash"></i>
-                                            </a>
-                                        </c:when>
-                                        <c:otherwise>
-                                            <a href="suppliers?action=toggle-status&id=${s.supplierId}&status=true" class="action-btn text-success border-success-subtle" title="Kích hoạt lại" onclick="return confirm('Bạn có muốn kích hoạt lại hợp tác với đơn vị này?')">
-                                                <i class="bi bi-eye"></i>
-                                            </a>
-                                        </c:otherwise>
-                                    </c:choose>
-                                </td>
+                                <c:if test="${sessionScope.user.roleId != 1}">
+                                    <td class="text-end">
+                                        <button class="action-btn me-1" onclick='editSupplier(${s.supplierId}, "${s.supplierName}", "${s.phone}", "${s.email}", "${s.address}", ${s.status})' title="Cập nhật thông tin">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </button>
+                                        <c:choose>
+                                            <c:when test="${s.status}">
+                                                <a href="suppliers?action=toggle-status&id=${s.supplierId}&status=false" class="action-btn text-danger border-danger-subtle" title="Ngừng hợp tác" onclick="return confirm('Bạn có chắc muốn tạm dừng hợp tác với đơn vị này?')">
+                                                    <i class="bi bi-eye-slash"></i>
+                                                </a>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <a href="suppliers?action=toggle-status&id=${s.supplierId}&status=true" class="action-btn text-success border-success-subtle" title="Kích hoạt lại" onclick="return confirm('Bạn có muốn kích hoạt lại hợp tác với đơn vị này?')">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </td>
+                                </c:if>
                             </tr>
                         </c:forEach>
                     </tbody>
@@ -204,48 +210,60 @@
         </div>
     </main>
 
-    <!-- Modal -->
-    <div class="modal fade" id="supplierModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <form action="suppliers" method="POST" class="modal-content">
-                <div class="modal-header border-0 pb-0 p-4">
-                    <h5 class="fw-bold">Thông tin chi tiết Đối tác</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body p-4">
-                    <input type="hidden" name="id" id="supId">
-                    <div class="mb-4">
-                        <label class="form-label fw-semibold small text-muted text-uppercase">Tên nhà cung cấp / Công ty</label>
-                        <input type="text" name="supplierName" id="supName" class="form-control form-control-lg bg-light border-0" placeholder="VD: Công ty TNHH Thực phẩm Sạch" required>
+    <c:if test="${sessionScope.user.roleId != 1}">
+        <!-- Modal -->
+        <div class="modal fade" id="supplierModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <form action="suppliers" method="POST" class="modal-content">
+                    <div class="modal-header border-0 pb-0 p-4">
+                        <h5 class="fw-bold">Thông tin chi tiết Đối tác</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
-                    <div class="row g-4 mb-4">
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold small text-muted text-uppercase">Số điện thoại liên hệ</label>
-                            <input type="text" name="phone" id="supPhone" class="form-control bg-light border-0" placeholder="090x.xxx.xxx">
+                    <div class="modal-body p-4">
+                        <input type="hidden" name="id" id="supId">
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold small text-muted text-uppercase">Tên nhà cung cấp / Công ty</label>
+                            <input type="text" name="supplierName" id="supName" class="form-control form-control-lg bg-light border-0" placeholder="VD: Công ty TNHH Thực phẩm Sạch" required>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold small text-muted text-uppercase">Địa chỉ Email</label>
-                            <input type="email" name="email" id="supEmail" class="form-control bg-light border-0" placeholder="contact@supplier.com">
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small text-muted text-uppercase">Số điện thoại liên hệ</label>
+                                <input type="text" name="phone" id="supPhone" class="form-control bg-light border-0" placeholder="090x.xxx.xxx">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small text-muted text-uppercase">Địa chỉ Email</label>
+                                <input type="email" name="email" id="supEmail" class="form-control bg-light border-0" placeholder="contact@supplier.com">
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold small text-muted text-uppercase">Địa chỉ kho bãi / Trụ sở</label>
+                            <input type="text" name="address" id="supAddress" class="form-control bg-light border-0" placeholder="Số nhà, Tên đường, Quận/Huyện, Tỉnh/TP">
+                        </div>
+                        <div class="form-check form-switch d-flex align-items-center p-0">
+                            <label class="form-check-label fw-semibold me-3">Trạng thái hợp tác hiện tại</label>
+                            <input class="form-check-input ms-auto" type="checkbox" name="status" id="supStatus" checked style="width: 3rem; height: 1.5rem;">
                         </div>
                     </div>
-                    <div class="mb-4">
-                        <label class="form-label fw-semibold small text-muted text-uppercase">Địa chỉ kho bãi / Trụ sở</label>
-                        <input type="text" name="address" id="supAddress" class="form-control bg-light border-0" placeholder="Số nhà, Tên đường, Quận/Huyện, Tỉnh/TP">
+                    <div class="modal-footer border-0 pt-0 p-4">
+                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
+                        <button type="submit" class="btn btn-primary rounded-pill px-5 fw-bold">Xác nhận Lưu</button>
                     </div>
-                    <div class="form-check form-switch d-flex align-items-center p-0">
-                        <label class="form-check-label fw-semibold me-3">Trạng thái hợp tác hiện tại</label>
-                        <input class="form-check-input ms-auto" type="checkbox" name="status" id="supStatus" checked style="width: 3rem; height: 1.5rem;">
-                    </div>
-                </div>
-                <div class="modal-footer border-0 pt-0 p-4">
-                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
-                    <button type="submit" class="btn btn-primary rounded-pill px-5 fw-bold">Xác nhận Lưu</button>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
-    </div>
+        <script>
+            function editSupplier(id, name, phone, email, address, status) {
+                document.getElementById('supId').value = id;
+                document.getElementById('supName').value = name;
+                document.getElementById('supPhone').value = phone;
+                document.getElementById('supEmail').value = email;
+                document.getElementById('supAddress').value = address;
+                document.getElementById('supStatus').checked = status;
+                new bootstrap.Modal(document.getElementById('supplierModal')).show();
+            }
+        </script>
+    </c:if>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    </script>
 </body>
 </html>
