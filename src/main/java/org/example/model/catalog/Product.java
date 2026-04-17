@@ -9,27 +9,37 @@ import java.time.LocalDateTime;
 public class Product {
     private long productId;
     private int categoryId;
-    private String categoryName;
     private String productName;
     private String description;
     private String imageUrl;
     private BigDecimal basePriceAmount;
     private int priceBaseWeightGram;
     private Integer expiryPricingPolicyId;
-    private String policyName;
-    private Long supplierId;
-    private String supplierName;
     private boolean status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    // Explicit getters/setters if Lombok fails in some environments
+    // Explicit getters/setters (fallback when Lombok annotation processing unavailable)
+    public long getProductId() { return productId; }
+    public void setProductId(long productId) { this.productId = productId; }
+    public int getCategoryId() { return categoryId; }
+    public void setCategoryId(int categoryId) { this.categoryId = categoryId; }
+    public String getProductName() { return productName; }
+    public void setProductName(String productName) { this.productName = productName; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+    public BigDecimal getBasePriceAmount() { return basePriceAmount; }
+    public void setBasePriceAmount(BigDecimal basePriceAmount) { this.basePriceAmount = basePriceAmount; }
+    public int getPriceBaseWeightGram() { return priceBaseWeightGram; }
+    public void setPriceBaseWeightGram(int priceBaseWeightGram) { this.priceBaseWeightGram = priceBaseWeightGram; }
     public Integer getExpiryPricingPolicyId() { return expiryPricingPolicyId; }
     public void setExpiryPricingPolicyId(Integer expiryPricingPolicyId) { this.expiryPricingPolicyId = expiryPricingPolicyId; }
-    public String getPolicyName() { return policyName; }
-    public void setPolicyName(String policyName) { this.policyName = policyName; }
-    public Long getSupplierId() { return supplierId; }
-    public void setSupplierId(Long supplierId) { this.supplierId = supplierId; }
-    public String getSupplierName() { return supplierName; }
-    public void setSupplierName(String supplierName) { this.supplierName = supplierName; }
+    public boolean isStatus() { return status; }
+    public void setStatus(boolean status) { this.status = status; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }
