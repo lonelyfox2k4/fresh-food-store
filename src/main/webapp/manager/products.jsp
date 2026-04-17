@@ -127,7 +127,7 @@
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="../home">
                 <i class="bi bi-shield-check text-primary me-2 fs-3"></i>
-                <span class="fw-bold tracking-tight">FOODSTORE <span class="text-primary-light">ADMIN</span></span>
+                <span class="fw-bold tracking-tight">Fresh <span class="text-primary-light">Fresh Food</span></span>
             </a>
             <div class="navbar-nav ms-auto">
                 <a class="nav-link px-3 active" href="products">Hàng hóa</a>
@@ -162,10 +162,9 @@
                         <tr>
                             <th>Ảnh</th>
                             <th>Thông tin sản phẩm</th>
-                            <th>Phân loại</th>
-                            <th>Đối tác</th>
+                            <th>Phân loại ID</th>
                             <th>Giá niêm yết</th>
-                            <th>Chính sách giá</th>
+                            <th>Chính sách ID</th>
                             <th>Trạng thái</th>
                             <th class="text-end">Thao tác</th>
                         </tr>
@@ -181,17 +180,7 @@
                                     <small class="text-muted">SKU: ${p.productId}00${p.categoryId}</small>
                                 </td>
                                 <td>
-                                    <span class="badge bg-light text-primary border border-primary-subtle rounded-pill px-3">${p.categoryName}</span>
-                                </td>
-                                <td>
-                                    <c:choose>
-                                        <c:when test="${not empty p.supplierName}">
-                                            <span class="text-dark small fw-medium"><i class="bi bi-shop me-1"></i>${p.supplierName}</span>
-                                        </c:when>
-                                        <c:otherwise>
-                                            <span class="text-muted small italic">Chưa xác định</span>
-                                        </c:otherwise>
-                                    </c:choose>
+                                    <span class="badge bg-light text-primary border border-primary-subtle rounded-pill px-3">CAT-${p.categoryId}</span>
                                 </td>
                                 <td>
                                     <div class="fw-bold text-slate-900"><fmt:formatNumber value="${p.basePriceAmount}" pattern="#,###"/>đ</div>
@@ -199,9 +188,9 @@
                                 </td>
                                 <td>
                                     <c:choose>
-                                        <c:when test="${not empty p.policyName}">
+                                        <c:when test="${not empty p.expiryPricingPolicyId}">
                                             <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-3">
-                                                <i class="bi bi-lightning-charge-fill me-1"></i>${p.policyName}
+                                                <i class="bi bi-lightning-charge-fill me-1"></i>#${p.expiryPricingPolicyId}
                                             </span>
                                         </c:when>
                                         <c:otherwise>

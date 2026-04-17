@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${product != null ? 'Sửa' : 'Thêm'} Sản phẩm | FoodStore Admin</title>
+    <title>${product != null ? 'Sửa' : 'Thêm'} Sản phẩm | Fresh Food</title>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Bootstrap 5 -->
@@ -101,24 +101,14 @@
                             <input type="text" name="productName" class="form-control" value="${product.productName}" placeholder="VD: Thịt bò Wagyu Nhập khẩu" required>
                         </div>
 
-                        <div class="row g-4 mb-4">
-                            <div class="col-md-6">
-                                <label class="form-label">Danh mục Phân loại</label>
-                                <select name="categoryId" class="form-select" required>
-                                    <option value="" disabled ${product == null ? 'selected' : ''}>-- Chọn loại hàng --</option>
-                                    <c:forEach var="cat" items="${categories}">
-                                        <option value="${cat.categoryId}" ${product.categoryId == cat.categoryId ? 'selected' : ''}>${cat.categoryName}</option>
-                                    </c:forEach>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Đối tác Nhà cung cấp</label>
-                                <select name="supplierId" class="form-select" required>
-                                    <c:forEach var="sup" items="${suppliers}">
-                                        <option value="${sup.supplierId}" ${product.supplierId == sup.supplierId ? 'selected' : ''}>${sup.supplierName}</option>
-                                    </c:forEach>
-                                </select>
-                            </div>
+                        <div class="mb-4">
+                            <label class="form-label">Danh mục Phân loại</label>
+                            <select name="categoryId" class="form-select" required>
+                                <option value="" disabled ${product == null ? 'selected' : ''}>-- Chọn loại hàng --</option>
+                                <c:forEach var="cat" items="${categories}">
+                                    <option value="${cat.categoryId}" ${product.categoryId == cat.categoryId ? 'selected' : ''}>${cat.categoryName}</option>
+                                </c:forEach>
+                            </select>
                         </div>
                         
                         <div class="mb-4">

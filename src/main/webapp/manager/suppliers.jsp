@@ -115,7 +115,7 @@
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="../home">
                 <i class="bi bi-shield-check text-primary me-2 fs-3"></i>
-                <span class="fw-bold tracking-tight">FOODSTORE <span class="text-primary-light">ADMIN</span></span>
+                <span class="fw-bold tracking-tight">Fresh <span class="text-primary-light">Fresh Food</span></span>
             </a>
             <div class="navbar-nav ms-auto">
                 <a class="nav-link px-3" href="products">Hàng hóa</a>
