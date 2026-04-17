@@ -25,6 +25,7 @@
         padding: 0.5rem 1rem !important;
         border-radius: 0.5rem;
         margin: 0 0.25rem;
+        white-space: nowrap;
     }
     .admin-navbar .nav-link:hover, .admin-navbar .nav-link.active {
         color: var(--primary);
@@ -51,9 +52,45 @@
                         <i class="fas fa-users-cog me-1"></i> Quản lý người dùng
                     </a>
                 </li>
+                
+                <!-- Bán Hàng -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-box-open me-1"></i> Bán hàng
+                    </a>
+                    <ul class="dropdown-menu border-0 shadow-sm">
+                        <li><a class="dropdown-item" href="${pageContext.request.contextPath}/admin/categories"><i class="fas fa-tags me-2 text-muted"></i> Danh mục</a></li>
+                        <li><a class="dropdown-item" href="${pageContext.request.contextPath}/admin/products"><i class="fas fa-boxes me-2 text-muted"></i> Sản phẩm</a></li>
+                        <li><a class="dropdown-item" href="${pageContext.request.contextPath}/admin/inventory-pricing"><i class="fas fa-money-bill-wave me-2 text-muted"></i> Bảng giá</a></li>
+                    </ul>
+                </li>
+
+                <!-- Nội dung & Marketing -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-bullhorn me-1"></i> Marketing
+                    </a>
+                    <ul class="dropdown-menu border-0 shadow-sm">
+                        <li><a class="dropdown-item" href="${pageContext.request.contextPath}/staff/news"><i class="fas fa-newspaper me-2 text-muted"></i> Tin tức</a></li>
+                        <li><a class="dropdown-item" href="${pageContext.request.contextPath}/staff/voucher"><i class="fas fa-ticket-alt me-2 text-muted"></i> Mã giảm giá</a></li>
+                        <li><a class="dropdown-item" href="${pageContext.request.contextPath}/admin/policies"><i class="fas fa-shield-alt me-2 text-muted"></i> Chính sách</a></li>
+                    </ul>
+                </li>
+
+                <!-- Đối tác & CSKH -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-handshake me-1"></i> Đối tác & CSKH
+                    </a>
+                    <ul class="dropdown-menu border-0 shadow-sm">
+                        <li><a class="dropdown-item" href="${pageContext.request.contextPath}/admin/suppliers"><i class="fas fa-truck me-2 text-muted"></i> Nhà cung cấp</a></li>
+                        <li><a class="dropdown-item" href="${pageContext.request.contextPath}/staff/feedback"><i class="fas fa-comments me-2 text-muted"></i> Phản hồi</a></li>
+                    </ul>
+                </li>
+
                 <li class="nav-item">
                     <a class="nav-link" href="${pageContext.request.contextPath}/home">
-                        <i class="fas fa-home me-1"></i> Trang chủ Cửa hàng
+                        <i class="fas fa-home me-1"></i> Cửa hàng
                     </a>
                 </li>
             </ul>
