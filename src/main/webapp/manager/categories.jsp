@@ -1,11 +1,11 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chính sách Giảm giá | FoodStore Admin</title>
+    <title>Quản lý Loại sản phẩm | Fresh Food</title>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Bootstrap 5 -->
@@ -20,7 +20,6 @@
             --slate-50: #f8fafc;
             --slate-100: #f1f5f9;
             --slate-200: #e2e8f0;
-            --slate-500: #64748b;
             --slate-700: #334155;
             --slate-800: #1e293b;
             --slate-900: #0f172a;
@@ -82,18 +81,16 @@
         .status-inactive { background: #f1f5f9; color: #475569; }
 
         .action-btn {
+            width: 32px;
+            height: 32px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            padding: 0.5rem 1rem;
             border-radius: 0.5rem;
             transition: all 0.2s;
             border: 1px solid var(--slate-200);
             background: white;
             color: var(--slate-600);
-            font-size: 0.85rem;
-            font-weight: 500;
-            text-decoration: none;
         }
 
         .action-btn:hover {
@@ -118,10 +115,9 @@
             </a>
             <div class="navbar-nav ms-auto">
                 <a class="nav-link px-3" href="products">Hàng hóa</a>
-                <a class="nav-link px-3" href="categories">Phân phối</a>
+                <a class="nav-link px-3 active" href="categories">Phân phối</a>
                 <a class="nav-link px-3" href="suppliers">Đối tác</a>
                 <a class="nav-link px-3" href="inventory-pricing">Giá & Hạn dùng</a>
-                <a class="nav-link px-3 active" href="policies">Chính sách</a>
             </div>
         </div>
     </nav>
@@ -130,12 +126,12 @@
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-md-8">
-                    <h1 class="display-6 fw-bold mb-2">Chính sách Giảm giá</h1>
-                    <p class="text-white-50 lead fs-6 mb-0">Thiết lập các quy tắc giảm giá tự động dựa trên thời gian bảo quản và mức độ tươi của từng lô hàng.</p>
+                    <h1 class="display-6 fw-bold mb-2">Quản lý Phân loại</h1>
+                    <p class="text-white-50 lead fs-6 mb-0">Thiết lập các danh mục sản phẩm để tối ưu hóa việc phân phối và hiển thị hàng hóa.</p>
                 </div>
                 <div class="col-md-4 text-md-end mt-4 mt-md-0">
-                    <button type="button" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold shadow-lg" data-bs-toggle="modal" data-bs-target="#addPolicyModal">
-                        <i class="bi bi-plus-lg me-2"></i>Tạo chính sách mới
+                    <button type="button" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold shadow-lg" data-bs-toggle="modal" data-bs-target="#categoryModal">
+                        <i class="bi bi-plus-lg me-2"></i>Thêm phân loại mới
                     </button>
                 </div>
             </div>
@@ -148,36 +144,32 @@
                 <table class="table table-hover align-middle">
                     <thead>
                         <tr>
-                            <th style="width: 80px;">ID</th>
-                            <th>Tên chính sách</th>
-                            <th>Mô tả / Ghi chú</th>
-                            <th>Trạng thái hoạt động</th>
-                            <th class="text-end">Cấu hình & Thao tác</th>
+                            <th style="width: 100px;">Mã số</th>
+                            <th>Tên phân loại</th>
+                            <th>Trạng thái hiển thị</th>
+                            <th class="text-end">Hành động</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <c:forEach var="p" items="${policies}">
+                        <c:forEach var="c" items="${categories}">
                             <tr>
-                                <td class="text-muted fw-medium">#POL-${p.policyId}</td>
+                                <td class="text-muted fw-medium">#CAT-${c.categoryId}</td>
                                 <td>
-                                    <div class="fw-bold text-dark fs-6">${p.policyName}</div>
-                                </td>
-                                <td>
-                                    <div class="small text-secondary">${p.note}</div>
+                                    <div class="fw-bold text-dark fs-6">${c.categoryName}</div>
                                 </td>
                                 <td>
                                     <c:choose>
-                                        <c:when test="${p.status}"><span class="status-badge status-active"><i class="bi bi-check-circle-fill me-1"></i>Đang áp dụng</span></c:when>
-                                        <c:otherwise><span class="status-badge status-inactive"><i class="bi bi-pause-circle-fill me-1"></i>Tạm dừng</span></c:otherwise>
+                                        <c:when test="${c.status}"><span class="status-badge status-active"><i class="bi bi-eye-fill me-1"></i>Đang hiển thị</span></c:when>
+                                        <c:otherwise><span class="status-badge status-inactive"><i class="bi bi-eye-slash-fill me-1"></i>Đã ẩn</span></c:otherwise>
                                     </c:choose>
                                 </td>
                                 <td class="text-end">
-                                    <a href="policies?action=edit-rules&id=${p.policyId}" class="action-btn me-1 shadow-sm">
-                                        <i class="bi bi-sliders me-1"></i> Cấu hình %
-                                    </a>
-                                    <button class="action-btn" onclick="editPolicy(${p.policyId}, '${p.policyName}', '${p.note}', ${p.status})" title="Sửa chính sách">
+                                    <button class="action-btn me-1" onclick="editCategory(${c.categoryId}, '${c.categoryName}', ${c.status})" title="Chỉnh sửa">
                                         <i class="bi bi-pencil-square"></i>
                                     </button>
+                                    <a href="categories?action=delete&id=${c.categoryId}" class="action-btn delete" title="Ẩn phân loại" onclick="return confirm('Bạn có muốn ẩn phân loại này khỏi danh mục bán hàng?')">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
                                 </td>
                             </tr>
                         </c:forEach>
@@ -187,32 +179,28 @@
         </div>
     </main>
 
-    <!-- Modal Thêm/Sửa Policy -->
-    <div class="modal fade" id="addPolicyModal" tabindex="-1">
+    <!-- Modal -->
+    <div class="modal fade" id="categoryModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
-            <form action="policies" method="post" class="modal-content">
-                <div class="modal-header border-0 pb-0 p-4">
-                    <h5 class="fw-bold" id="modalTitle">Thông tin Chính sách</h5>
+            <form action="categories" method="POST" class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="fw-bold">Thông tin phân loại</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <input type="hidden" name="id" id="policyId">
+                    <input type="hidden" name="id" id="catId">
                     <div class="mb-4">
-                        <label class="form-label fw-semibold small text-muted text-uppercase">Tên chính sách</label>
-                        <input type="text" name="policyName" id="policyName" class="form-control form-control-lg bg-light border-0" placeholder="VD: Giảm giá hàng rau củ" required>
-                    </div>
-                    <div class="mb-4">
-                        <label class="form-label fw-semibold small text-muted text-uppercase">Mô tả / Ghi chú</label>
-                        <textarea name="note" id="policyNote" class="form-control bg-light border-0" rows="3" placeholder="Ghi chú về mục đích của chính sách này..."></textarea>
+                        <label class="form-label fw-semibold small text-muted text-uppercase">Tên phân loại</label>
+                        <input type="text" name="categoryName" id="catName" class="form-control form-control-lg bg-light border-0" placeholder="VD: Thực phẩm đông lạnh" required>
                     </div>
                     <div class="form-check form-switch d-flex align-items-center p-0">
-                        <label class="form-check-label fw-semibold me-3">Kích hoạt áp dụng ngay</label>
-                        <input class="form-check-input ms-auto" type="checkbox" name="status" id="policyStatus" checked style="width: 3rem; height: 1.5rem;">
+                        <label class="form-check-label fw-semibold me-3">Trạng thái hiển thị công khai</label>
+                        <input class="form-check-input ms-auto" type="checkbox" name="status" id="catStatus" checked style="width: 3rem; height: 1.5rem;">
                     </div>
                 </div>
-                <div class="modal-footer border-0 pt-0 p-4">
-                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
-                    <button type="submit" class="btn btn-primary rounded-pill px-5 fw-bold">Lưu thay đổi</button>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Hủy bỏ</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">Lưu thông tin</button>
                 </div>
             </form>
         </div>
@@ -220,13 +208,11 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        function editPolicy(id, name, note, status) {
-            document.getElementById('modalTitle').innerText = 'Chỉnh sửa chính sách';
-            document.getElementById('policyId').value = id;
-            document.getElementById('policyName').value = name;
-            document.getElementById('policyNote').value = note;
-            document.getElementById('policyStatus').checked = status;
-            new bootstrap.Modal(document.getElementById('addPolicyModal')).show();
+        function editCategory(id, name, status) {
+            document.getElementById('catId').value = id;
+            document.getElementById('catName').value = name;
+            document.getElementById('catStatus').checked = status;
+            new bootstrap.Modal(document.getElementById('categoryModal')).show();
         }
     </script>
 </body>
