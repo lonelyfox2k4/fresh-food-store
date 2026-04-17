@@ -1,12 +1,11 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản lý Sản phẩm | FoodStore Admin</title>
+    <title>Quản lý Loại sản phẩm | Fresh Food</title>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Bootstrap 5 -->
@@ -54,14 +53,6 @@
             overflow: hidden;
         }
 
-        .product-img { 
-            width: 48px; 
-            height: 48px; 
-            object-fit: cover; 
-            border-radius: 0.75rem;
-            border: 2px solid var(--slate-100);
-        }
-
         .table thead th {
             background-color: var(--slate-50);
             border-bottom: 2px solid var(--slate-100);
@@ -86,15 +77,8 @@
             font-weight: 600;
         }
 
-        .status-active {
-            background: #dcfce7;
-            color: #166534;
-        }
-
-        .status-inactive {
-            background: #f1f5f9;
-            color: #475569;
-        }
+        .status-active { background: #dcfce7; color: #166534; }
+        .status-inactive { background: #f1f5f9; color: #475569; }
 
         .action-btn {
             width: 32px;
@@ -115,10 +99,10 @@
             background: #eef2ff;
         }
 
-        .action-btn.delete:hover {
-            border-color: #ef4444;
-            color: #ef4444;
-            background: #fef2f2;
+        .modal-content {
+            border: none;
+            border-radius: 1rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         }
     </style>
 </head>
@@ -130,8 +114,8 @@
                 <span class="fw-bold tracking-tight">FOODSTORE <span class="text-primary-light">ADMIN</span></span>
             </a>
             <div class="navbar-nav ms-auto">
-                <a class="nav-link px-3 active" href="products">Hàng hóa</a>
-                <a class="nav-link px-3" href="categories">Phân phối</a>
+                <a class="nav-link px-3" href="products">Hàng hóa</a>
+                <a class="nav-link px-3 active" href="categories">Phân phối</a>
                 <a class="nav-link px-3" href="suppliers">Đối tác</a>
                 <a class="nav-link px-3" href="inventory-pricing">Giá & Hạn dùng</a>
             </div>
@@ -142,14 +126,14 @@
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-md-8">
-                    <h1 class="display-6 fw-bold mb-2">Danh mục Sản phẩm</h1>
-                    <p class="text-white-50 lead fs-6 mb-0">Quản lý kho hàng, thông tin sản phẩm và trạng thái kinh doanh của cửa hàng.</p>
+                    <h1 class="display-6 fw-bold mb-2">Quản lý Phân loại</h1>
+                    <p class="text-white-50 lead fs-6 mb-0">Thiết lập các danh mục sản phẩm để tối ưu hóa việc phân phối và hiển thị hàng hóa.</p>
                 </div>
                 <div class="col-md-4 text-md-end mt-4 mt-md-0">
                     <c:if test="${sessionScope.user.roleId != 1}">
-                        <a href="products?action=new" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold shadow-lg">
-                            <i class="bi bi-plus-lg me-2"></i>Thêm sản phẩm mới
-                        </a>
+                        <button type="button" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold shadow-lg" data-bs-toggle="modal" data-bs-target="#categoryModal">
+                            <i class="bi bi-plus-lg me-2"></i>Thêm phân loại mới
+                        </button>
                     </c:if>
                 </div>
             </div>
@@ -162,74 +146,34 @@
                 <table class="table table-hover align-middle">
                     <thead>
                         <tr>
-                            <th>Ảnh</th>
-                            <th>Thông tin sản phẩm</th>
-                            <th>Phân loại</th>
-                            <th>Đối tác</th>
-                            <th>Giá niêm yết</th>
-                            <th>Chính sách giá</th>
-                            <th>Trạng thái</th>
+                            <th style="width: 100px;">Mã số</th>
+                            <th>Tên phân loại</th>
+                            <th>Trạng thái hiển thị</th>
                             <c:if test="${sessionScope.user.roleId != 1}">
-                                <th class="text-end">Thao tác</th>
+                                <th class="text-end">Hành động</th>
                             </c:if>
                         </tr>
                     </thead>
                     <tbody>
-                        <c:forEach var="p" items="${products}">
+                        <c:forEach var="c" items="${categories}">
                             <tr>
+                                <td class="text-muted fw-medium">#CAT-${c.categoryId}</td>
                                 <td>
-                                    <img src="${p.imageUrl}" class="product-img" onerror="this.src='https://placehold.co/48x48/f1f5f9/475569?text=Food'">
-                                </td>
-                                <td>
-                                    <div class="fw-bold text-dark">${p.productName}</div>
-                                    <small class="text-muted">SKU: ${p.productId}00${p.categoryId}</small>
-                                </td>
-                                <td>
-                                    <span class="badge bg-light text-primary border border-primary-subtle rounded-pill px-3">${p.categoryName}</span>
+                                    <div class="fw-bold text-dark fs-6">${c.categoryName}</div>
                                 </td>
                                 <td>
                                     <c:choose>
-                                        <c:when test="${not empty p.supplierName}">
-                                            <span class="text-dark small fw-medium"><i class="bi bi-shop me-1"></i>${p.supplierName}</span>
-                                        </c:when>
-                                        <c:otherwise>
-                                            <span class="text-muted small italic">Chưa xác định</span>
-                                        </c:otherwise>
-                                    </c:choose>
-                                </td>
-                                <td>
-                                    <div class="fw-bold text-slate-900"><fmt:formatNumber value="${p.basePriceAmount}" pattern="#,###"/>đ</div>
-                                    <small class="text-muted">${p.priceBaseWeightGram}g</small>
-                                </td>
-                                <td>
-                                    <c:choose>
-                                        <c:when test="${not empty p.policyName}">
-                                            <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-3">
-                                                <i class="bi bi-lightning-charge-fill me-1"></i>${p.policyName}
-                                            </span>
-                                        </c:when>
-                                        <c:otherwise>
-                                            <span class="text-muted small">Mặc định</span>
-                                        </c:otherwise>
-                                    </c:choose>
-                                </td>
-                                <td>
-                                    <c:choose>
-                                        <c:when test="${p.status}">
-                                            <span class="status-badge status-active"><i class="bi bi-check-circle-fill me-1"></i>Đang bán</span>
-                                        </c:when>
-                                        <c:otherwise>
-                                            <span class="status-badge status-inactive"><i class="bi bi-dash-circle me-1"></i>Tạm dừng</span>
-                                        </c:otherwise>
+                                        <c:when test="${c.status}"><span class="status-badge status-active"><i class="bi bi-eye-fill me-1"></i>Đang hiển thị</span></c:when>
+                                        <c:otherwise><span class="status-badge status-inactive"><i class="bi bi-eye-slash-fill me-1"></i>Đã ẩn</span></c:otherwise>
                                     </c:choose>
                                 </td>
                                 <c:if test="${sessionScope.user.roleId != 1}">
                                     <td class="text-end">
-                                        <a href="products?action=edit&id=${p.productId}" class="action-btn me-1" title="Chỉnh sửa">
+                                        <button class="action-btn me-1" onclick="editCategory(${c.categoryId}, '${c.categoryName}', ${c.status})" title="Chỉnh sửa">
                                             <i class="bi bi-pencil-square"></i>
-                                        </a>
-                                        <a href="products?action=delete&id=${p.productId}" class="action-btn delete" title="Ẩn sản phẩm" onclick="return confirm('Xác nhận ngừng kinh doanh sản phẩm này?')">
-                                            <i class="bi bi-eye-slash"></i>
+                                        </button>
+                                        <a href="categories?action=delete&id=${c.categoryId}" class="action-btn delete" title="Ẩn phân loại" onclick="return confirm('Bạn có muốn ẩn phân loại này khỏi danh mục bán hàng?')">
+                                            <i class="bi bi-trash"></i>
                                         </a>
                                     </td>
                                 </c:if>
@@ -240,6 +184,44 @@
             </div>
         </div>
     </main>
+
+    <c:if test="${sessionScope.user.roleId != 1}">
+        <!-- Modal -->
+        <div class="modal fade" id="categoryModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <form action="categories" method="POST" class="modal-content">
+                    <div class="modal-header border-0 pb-0">
+                        <h5 class="fw-bold">Thông tin phân loại</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <input type="hidden" name="id" id="catId">
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold small text-muted text-uppercase">Tên phân loại</label>
+                            <input type="text" name="categoryName" id="catName" class="form-control form-control-lg bg-light border-0" placeholder="VD: Thực phẩm đông lạnh" required>
+                        </div>
+                        <div class="form-check form-switch d-flex align-items-center p-0">
+                            <label class="form-check-label fw-semibold me-3">Trạng thái hiển thị công khai</label>
+                            <input class="form-check-input ms-auto" type="checkbox" name="status" id="catStatus" checked style="width: 3rem; height: 1.5rem;">
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Hủy bỏ</button>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4">Lưu thông tin</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <script>
+            function editCategory(id, name, status) {
+                document.getElementById('catId').value = id;
+                document.getElementById('catName').value = name;
+                document.getElementById('catStatus').checked = status;
+                new bootstrap.Modal(document.getElementById('categoryModal')).show();
+            }
+        </script>
+    </c:if>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
