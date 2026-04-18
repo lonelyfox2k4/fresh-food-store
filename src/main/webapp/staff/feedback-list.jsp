@@ -20,7 +20,9 @@
                 <th>Nội dung</th>
                 <th>Đánh giá</th>
                 <th>Trạng thái</th>
-                <th>Thao tác</th>
+                <c:if test="${sessionScope.user.roleId != 1}">
+                    <th>Thao tác</th>
+                </c:if>
             </tr>
             </thead>
             <tbody>
@@ -40,11 +42,13 @@
                             <span class="badge bg-success">Đã xong</span>
                         </c:if>
                     </td>
-                    <td>
-                        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#replyModal${f.feedbackId}">
-                            Trả lời
-                        </button>
-                    </td>
+                    <c:if test="${sessionScope.user.roleId != 1}">
+                        <td>
+                            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#replyModal${f.feedbackId}">
+                                Trả lời
+                            </button>
+                        </td>
+                    </c:if>
                 </tr>
             </c:forEach>
             </tbody>
@@ -52,33 +56,35 @@
     </div>
 </div>
 
-<c:forEach items="${feedbackList}" var="f">
-    <div class="modal fade" id="replyModal${f.feedbackId}" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <form action="feedback" method="POST">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Trả lời #${f.feedbackId}</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <input type="hidden" name="feedbackId" value="${f.feedbackId}">
-                        <p><strong>Khách viết:</strong> <i>"${f.content}"</i></p>
-                        <hr>
-                        <div class="mb-3">
-                            <label class="form-label">Nội dung phản hồi:</label>
-                            <textarea name="responseText" class="form-control" rows="4" required>${f.response}</textarea>
+<c:if test="${sessionScope.user.roleId != 1}">
+    <c:forEach items="${feedbackList}" var="f">
+        <div class="modal fade" id="replyModal${f.feedbackId}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form action="feedback" method="POST">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Trả lời #${f.feedbackId}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                        <button type="submit" class="btn btn-success">Gửi phản hồi</button>
-                    </div>
-                </form>
+                        <div class="modal-body">
+                            <input type="hidden" name="feedbackId" value="${f.feedbackId}">
+                            <p><strong>Khách viết:</strong> <i>"${f.content}"</i></p>
+                            <hr>
+                            <div class="mb-3">
+                                <label class="form-label">Nội dung phản hồi:</label>
+                                <textarea name="responseText" class="form-control" rows="4" required>${f.response}</textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                            <button type="submit" class="btn btn-success">Gửi phản hồi</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
-    </div>
-</c:forEach>
+    </c:forEach>
+</c:if>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

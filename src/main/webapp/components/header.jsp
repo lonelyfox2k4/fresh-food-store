@@ -13,6 +13,11 @@
                         <i class="fas fa-user-circle me-1"></i>
                         Xin chào, <strong>${sessionScope.user.fullName}</strong>
                     </small>
+                    <c:if test="${sessionScope.user.roleId <= 3}">
+                        <a href="${pageContext.request.contextPath}/admin/dashboard" class="text-decoration-none text-danger fw-bold small">
+                            <i class="fas fa-cogs"></i> Quản trị
+                        </a>
+                    </c:if>
                     <a href="${pageContext.request.contextPath}/orders" class="text-decoration-none text-muted small">Đơn hàng</a>
                     <a href="${pageContext.request.contextPath}/logout" class="text-decoration-none text-muted small">Đăng xuất</a>
                 </c:when>

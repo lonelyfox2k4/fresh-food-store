@@ -14,6 +14,12 @@
         </div>
     </c:if>
 
+    <c:if test="${not empty successMsg}">
+        <div class="alert alert-success text-center p-2" style="font-size: 0.9rem;">
+                ${successMsg}
+        </div>
+    </c:if>
+
     <form action="login" method="post">
         <div class="mb-3">
             <input type="email" name="email" class="form-control" placeholder="Email"
@@ -32,6 +38,7 @@
            class="btn btn-danger w-100 mb-2">
             <i class="fab fa-google me-2"></i> Đăng nhập bằng Google
         </a>
+        <a href="forgot-password" class="text-end d-block mb-3 text-decoration-none">Quên mật khẩu?</a>
         <a href="register" class="d-block text-center">Chưa có tài khoản? Đăng ký</a>
     </form>
 </div>
