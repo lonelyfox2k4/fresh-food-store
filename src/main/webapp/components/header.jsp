@@ -1,5 +1,7 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<c:set var="uri" value="${pageContext.request.servletPath}" />
+<c:set var="isAuthPage" value="${uri.contains('login') || uri.contains('register') || uri.contains('forgot-password') || uri.contains('resend-otp') || uri.contains('verify-register')}" />
 <style>
     .bg-brand   { background-color: #E3000F !important; }
     .text-brand { color: #E3000F !important; }
@@ -57,6 +59,7 @@
 
         <div class="collapse navbar-collapse" id="mainMenu">
             <%-- Search bar --%>
+            <c:if test="${!isAuthPage}">
             <form class="d-flex mx-auto w-50 my-2 my-lg-0" action="${pageContext.request.contextPath}/products" method="GET">
                 <div class="input-group">
                     <input class="form-control border-0" type="search" name="keyword"
@@ -67,8 +70,10 @@
                     </button>
                 </div>
             </form>
+            </c:if>
 
             <%-- Right nav items --%>
+            <c:if test="${!isAuthPage}">
             <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center gap-2">
                 <%-- Wishlist --%>
                 <c:if test="${not empty sessionScope.user}">
@@ -79,7 +84,6 @@
                         </a>
                     </li>
                 </c:if>
-
                 <%-- Cart --%>
                 <li class="nav-item">
                     <a class="btn btn-outline-light position-relative border-0"
@@ -91,6 +95,7 @@
                     </a>
                 </li>
             </ul>
+            </c:if>
         </div>
     </div>
 </nav>
