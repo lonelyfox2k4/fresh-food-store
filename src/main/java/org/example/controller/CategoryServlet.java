@@ -22,8 +22,8 @@ public class CategoryServlet extends HttpServlet {
             categoryDAO.updateStatus(id, false);
             response.sendRedirect("categories");
         } else {
-            request.setAttribute("categories", categoryDAO.getAllCategories());
-            request.getRequestDispatcher("/admin/categories.jsp").forward(request, response);
+            request.setAttribute("categories", categoryDAO.getAllActiveCategories());
+            request.getRequestDispatcher("/manager/categories.jsp").forward(request, response);
         }
     }
 

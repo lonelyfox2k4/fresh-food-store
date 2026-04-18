@@ -49,14 +49,14 @@ public class ProductServlet extends HttpServlet {
 
     private void listProducts(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         request.setAttribute("products", productDAO.getAllProducts());
-        request.getRequestDispatcher("/admin/products.jsp").forward(request, response);
+        request.getRequestDispatcher("/manager/products.jsp").forward(request, response);
     }
 
     private void showNewForm(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         request.setAttribute("categories", categoryDAO.getAllActiveCategories());
         request.setAttribute("suppliers", supplierDAO.getActiveSuppliers());
         request.setAttribute("policies", policyDAO.getAllPolicies());
-        request.getRequestDispatcher("/admin/product-form.jsp").forward(request, response);
+        request.getRequestDispatcher("/manager/product-form.jsp").forward(request, response);
     }
 
     private void showEditForm(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -66,7 +66,7 @@ public class ProductServlet extends HttpServlet {
         request.setAttribute("categories", categoryDAO.getAllActiveCategories());
         request.setAttribute("suppliers", supplierDAO.getActiveSuppliers());
         request.setAttribute("policies", policyDAO.getAllPolicies());
-        request.getRequestDispatcher("/admin/product-form.jsp").forward(request, response);
+        request.getRequestDispatcher("/manager/product-form.jsp").forward(request, response);
     }
 
     private void deleteProduct(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -88,7 +88,6 @@ public class ProductServlet extends HttpServlet {
         // Basic Server-side Validation
         if (productName == null || productName.trim().isEmpty() || 
             basePriceStr == null || basePriceStr.isEmpty() ||
-            supIdStr == null || supIdStr.isEmpty() ||
             catIdStr == null || catIdStr.isEmpty()) {
             
             request.setAttribute("error", "Vui lòng điền đầy đủ các thông tin bắt buộc (*)");
@@ -144,7 +143,6 @@ public class ProductServlet extends HttpServlet {
             p.setExpiryPricingPolicyId(Integer.parseInt(policyId));
         }
         
-        p.setSupplierId(Long.parseLong(supIdStr));
         p.setStatus(request.getParameter("status") != null);
 
         if (idStr == null || idStr.isEmpty()) {
