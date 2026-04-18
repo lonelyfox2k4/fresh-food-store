@@ -1,8 +1,12 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%-- Styles are moved to assets/css/style.css --%>
+<c:set var="uri" value="${pageContext.request.servletPath}" />
+<c:set var="isAuthPage" value="${uri.contains('login') || uri.contains('register') || uri.contains('forgot-password') || uri.contains('resend-otp') || uri.contains('verify-register')}" />
+
 
 <%-- Top info bar --%>
+<c:if test="${!isAuthPage}">
 <div class="bg-light py-1 border-bottom">
     <div class="container d-flex justify-content-between align-items-center">
         <small class="text-muted"><i class="fas fa-phone-alt me-1"></i> Hotline: 1900 1234</small>
@@ -29,6 +33,8 @@
         </div>
     </div>
 </div>
+</c:if>
+
 
 <%-- Main navbar --%>
 <nav class="navbar navbar-expand-lg navbar-dark bg-brand py-3">
@@ -37,6 +43,7 @@
             <i class="fas fa-leaf me-2"></i>FRESH FOOD
         </a>
 
+        <c:if test="${!isAuthPage}">
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainMenu"
                 aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -79,5 +86,7 @@
                 </li>
             </ul>
         </div>
+        </c:if>
+
     </div>
 </nav>
