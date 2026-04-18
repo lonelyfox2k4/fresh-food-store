@@ -1,9 +1,8 @@
 package org.example.controller;
 
 import org.example.dao.AccountDAO;
+import org.example.dao.CartDAO;
 import org.example.model.auth.Account;
-import org.example.utils.EmailUtils;
-
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
@@ -12,6 +11,7 @@ import java.io.IOException;
 @WebServlet(urlPatterns = {"/login", "/register", "/logout"})
 public class AuthController extends HttpServlet {
     private AccountDAO dao = new AccountDAO();
+    private CartDAO cartDAO = new CartDAO();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -51,11 +51,11 @@ public class AuthController extends HttpServlet {
 
         if (acc != null) {
             req.getSession().setAttribute("user", acc);
-            // Chỉ RoleId 1 (Admin) mới vào được dashboard
+            req.getSession().setAttribute("cartCount", cartDAO.countCartLines(acc.getAccountId()));
             if (acc.getRoleId() == 1) {
                 resp.sendRedirect("admin/dashboard");
             } else {
-                resp.sendRedirect("home");
+                resp.sendRedirect("home.jsp");
             }
         } else {
             req.setAttribute("errorMsg", "Tài khoản hoặc mật khẩu không chính xác!");
@@ -69,37 +69,19 @@ public class AuthController extends HttpServlet {
         String phone = req.getParameter("phone");
         String password = req.getParameter("password");
 
-        // 1. Check dữ liệu đầu vào
-        if (name == null || name.trim().isEmpty() || 
-            email == null || email.trim().isEmpty() || 
-            password == null || password.length() < 6) {
-            req.setAttribute("errorMsg", "Thông tin không hợp lệ!");
+        if (name == null || name.trim().isEmpty() || email == null || email.trim().isEmpty() || password.length() < 6) {
+            req.setAttribute("errorMsg", "Vui lòng nhập đầy đủ thông tin và mật khẩu từ 6 ký tự!");
             req.getRequestDispatcher("/main/register.jsp").forward(req, resp);
             return;
         }
 
-        // 2. Check trùng email trước
-        if (dao.getAccountByEmail(email) != null) {
-            req.setAttribute("errorMsg", "Email này đã được sử dụng!");
-            req.getRequestDispatcher("/main/register.jsp").forward(req, resp);
-            return;
-        }
+        boolean success = dao.insertAccount(5, email, password, name, phone);
 
-        // 3. TẠO OTP VÀ LƯU THÔNG TIN ĐĂNG KÝ VÀO SESSION (Chưa lưu DB)
-        String otp = String.valueOf((int) (Math.random() * 899999) + 100000);
-        HttpSession session = req.getSession();
-        session.setAttribute("registerOtp", otp);
-        session.setAttribute("tempUser", new Account(0, 5, email, password, name, phone, true, false, null));
-        session.setAttribute("lastOtpSentTime", System.currentTimeMillis());
-
-        // 4. GỬI MAIL OTP
-        try {
-            EmailUtils.sendEmail(email, "Mã xác thực đăng ký", "Mã OTP của bạn là: " + otp);
-            // Chuyển hướng sang trang nhập OTP (mày cần tạo thêm trang này hoặc dùng chung trang cũ)
-            req.setAttribute("msg", "Mã OTP đã được gửi về Email: " + email);
-            req.getRequestDispatcher("/main/verify-register.jsp").forward(req, resp);
-        } catch (Exception e) {
-            req.setAttribute("errorMsg", "Lỗi gửi mail: " + e.getMessage());
+        if (success) {
+            req.setAttribute("errorMsg", "Đăng ký thành công! Vui lòng đăng nhập.");
+            req.getRequestDispatcher("/main/login.jsp").forward(req, resp);
+        } else {
+            req.setAttribute("errorMsg", "Đăng ký thất bại! Email có thể đã được sử dụng.");
             req.getRequestDispatcher("/main/register.jsp").forward(req, resp);
         }
     }

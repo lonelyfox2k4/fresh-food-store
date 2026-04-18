@@ -1,75 +1,139 @@
 package org.example.dao;
 
-import org.example.dto.CartItemDTO;
+import org.example.model.order.CartItemView;
 import org.example.utils.DBConnection;
+
 import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.sql.*;
-import java.util.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
 
 public class CartDAO {
 
-    /** Get existing cart for account, or create a new one. Returns cartId. */
-    public long getOrCreateCart(long accountId) {
-        String selectSql = "SELECT cartId FROM dbo.Carts WHERE accountId = ?";
+    public long findOrCreateCartIdByAccountId(long accountId) {
+        String findSql = "SELECT cartId FROM dbo.Carts WHERE accountId = ?";
+        String createSql = "INSERT INTO dbo.Carts (accountId) VALUES (?)";
+
         try (Connection conn = DBConnection.getConnection()) {
-            // Try to get existing
-            try (PreparedStatement ps = conn.prepareStatement(selectSql)) {
+            try (PreparedStatement ps = conn.prepareStatement(findSql)) {
                 ps.setLong(1, accountId);
                 try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) return rs.getLong("cartId");
+                    if (rs.next()) {
+                        return rs.getLong("cartId");
+                    }
                 }
             }
-            // Create new cart
-            String insertSql = "INSERT INTO dbo.Carts (accountId) VALUES (?)";
-            try (PreparedStatement ps = conn.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) {
+
+            try (PreparedStatement ps = conn.prepareStatement(createSql, PreparedStatement.RETURN_GENERATED_KEYS)) {
                 ps.setLong(1, accountId);
                 ps.executeUpdate();
-                try (ResultSet rs = ps.getGeneratedKeys()) {
-                    if (rs.next()) return rs.getLong(1);
+                try (ResultSet keys = ps.getGeneratedKeys()) {
+                    if (keys.next()) {
+                        return keys.getLong(1);
+                    }
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return -1;
+        return -1L;
     }
 
-    /** Get all items in a cart, joined with product and pack data. */
-    public List<CartItemDTO> getCartItems(long cartId) {
-        List<CartItemDTO> list = new ArrayList<>();
-        String sql = "SELECT ci.cartItemId, ci.cartId, ci.productPackId, ci.quantity, " +
-                     "pp.packWeightGram, pp.productId, " +
-                     "p.productName, p.imageUrl, p.basePriceAmount, p.priceBaseWeightGram, p.expiryPricingPolicyId " +
-                     "FROM dbo.CartItems ci " +
-                     "JOIN dbo.ProductPacks pp ON ci.productPackId = pp.productPackId " +
-                     "JOIN dbo.Products p ON pp.productId = p.productId " +
-                     "WHERE ci.cartId = ? ORDER BY ci.addedAt DESC";
+    public Long getDefaultPackIdByProductId(long productId) {
+        String sql = "SELECT TOP 1 productPackId FROM dbo.ProductPacks WHERE productId = ? AND status = 1 ORDER BY packWeightGram ASC";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setLong(1, cartId);
+            ps.setLong(1, productId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getLong("productPackId");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public boolean addOrIncreaseItem(long accountId, long productPackId, int quantity) {
+        String findItemSql = "SELECT ci.cartItemId, ci.quantity FROM dbo.CartItems ci " +
+                "INNER JOIN dbo.Carts c ON c.cartId = ci.cartId " +
+                "WHERE c.accountId = ? AND ci.productPackId = ?";
+        String updateSql = "UPDATE dbo.CartItems SET quantity = ?, updatedAt = SYSUTCDATETIME() WHERE cartItemId = ?";
+        String insertSql = "INSERT INTO dbo.CartItems (cartId, productPackId, quantity) VALUES (?, ?, ?)";
+        String updateCartSql = "UPDATE dbo.Carts SET updatedAt = SYSUTCDATETIME() WHERE cartId = ?";
+
+        long cartId = findOrCreateCartIdByAccountId(accountId);
+        if (cartId <= 0) {
+            return false;
+        }
+
+        try (Connection conn = DBConnection.getConnection()) {
+            try (PreparedStatement ps = conn.prepareStatement(findItemSql)) {
+                ps.setLong(1, accountId);
+                ps.setLong(2, productPackId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        long cartItemId = rs.getLong("cartItemId");
+                        int currentQty = rs.getInt("quantity");
+                        try (PreparedStatement ups = conn.prepareStatement(updateSql)) {
+                            ups.setInt(1, currentQty + quantity);
+                            ups.setLong(2, cartItemId);
+                            ups.executeUpdate();
+                        }
+                    } else {
+                        try (PreparedStatement ips = conn.prepareStatement(insertSql)) {
+                            ips.setLong(1, cartId);
+                            ips.setLong(2, productPackId);
+                            ips.setInt(3, quantity);
+                            ips.executeUpdate();
+                        }
+                    }
+                }
+            }
+
+            try (PreparedStatement cps = conn.prepareStatement(updateCartSql)) {
+                cps.setLong(1, cartId);
+                cps.executeUpdate();
+            }
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public List<CartItemView> getCartItemsByAccountId(long accountId) {
+        List<CartItemView> list = new ArrayList<>();
+        String sql = "SELECT ci.cartItemId, pp.productPackId, p.productId, p.productName, p.imageUrl, pp.packWeightGram, " +
+                "CAST((p.basePriceAmount * 1.0 * pp.packWeightGram / NULLIF(p.priceBaseWeightGram, 0)) AS DECIMAL(18,2)) AS unitPrice, " +
+                "ci.quantity " +
+                "FROM dbo.CartItems ci " +
+                "INNER JOIN dbo.Carts c ON c.cartId = ci.cartId " +
+                "INNER JOIN dbo.ProductPacks pp ON pp.productPackId = ci.productPackId " +
+                "INNER JOIN dbo.Products p ON p.productId = pp.productId " +
+                "WHERE c.accountId = ? " +
+                "ORDER BY ci.addedAt DESC";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, accountId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    CartItemDTO dto = new CartItemDTO();
-                    dto.setCartItemId(rs.getLong("cartItemId"));
-                    dto.setCartId(rs.getLong("cartId"));
-                    dto.setProductPackId(rs.getLong("productPackId"));
-                    dto.setProductId(rs.getLong("productId"));
-                    dto.setProductName(rs.getString("productName"));
-                    dto.setImageUrl(rs.getString("imageUrl"));
-                    dto.setPackWeightGram(rs.getInt("packWeightGram"));
-                    dto.setBasePriceAmount(rs.getBigDecimal("basePriceAmount"));
-                    dto.setPriceBaseWeightGram(rs.getInt("priceBaseWeightGram"));
-                    int pId = rs.getInt("expiryPricingPolicyId");
-                    dto.setExpiryPricingPolicyId(rs.wasNull() ? null : pId);
-                    dto.setQuantity(rs.getInt("quantity"));
-                    // Compute pack price: basePriceAmount * packWeightGram / priceBaseWeightGram
-                    BigDecimal packPrice = dto.getBasePriceAmount()
-                            .multiply(BigDecimal.valueOf(dto.getPackWeightGram()))
-                            .divide(BigDecimal.valueOf(dto.getPriceBaseWeightGram()), 2, RoundingMode.HALF_UP);
-                    dto.setComputedPackBasePrice(packPrice);
-                    dto.setLineTotal(packPrice.multiply(BigDecimal.valueOf(dto.getQuantity())));
-                    list.add(dto);
+                    CartItemView item = new CartItemView();
+                    item.setCartItemId(rs.getLong("cartItemId"));
+                    item.setProductPackId(rs.getLong("productPackId"));
+                    item.setProductId(rs.getLong("productId"));
+                    item.setProductName(rs.getString("productName"));
+                    item.setImageUrl(rs.getString("imageUrl"));
+                    item.setPackWeightGram(rs.getInt("packWeightGram"));
+                    item.setUnitPrice(rs.getBigDecimal("unitPrice"));
+                    item.setQuantity(rs.getInt("quantity"));
+                    BigDecimal unitPrice = item.getUnitPrice() == null ? BigDecimal.ZERO : item.getUnitPrice();
+                    item.setLineTotal(unitPrice.multiply(BigDecimal.valueOf(item.getQuantity())));
+                    list.add(item);
                 }
             }
         } catch (Exception e) {
@@ -78,50 +142,72 @@ public class CartDAO {
         return list;
     }
 
-    /**
-     * Add item to cart. If the pack is already in the cart, increment quantity.
-     * Uses MSSQL IF EXISTS ... UPDATE ... ELSE ... INSERT pattern.
-     */
-    public boolean addItem(long cartId, long productPackId, int quantity) {
-        String sql = "IF EXISTS (SELECT 1 FROM dbo.CartItems WHERE cartId = ? AND productPackId = ?) " +
-                     "    UPDATE dbo.CartItems SET quantity = quantity + ?, updatedAt = SYSUTCDATETIME() " +
-                     "    WHERE cartId = ? AND productPackId = ? " +
-                     "ELSE " +
-                     "    INSERT INTO dbo.CartItems (cartId, productPackId, quantity) VALUES (?, ?, ?)";
+    public BigDecimal getCartTotalAmount(long accountId) {
+        String sql = "SELECT SUM(CAST((p.basePriceAmount * 1.0 * pp.packWeightGram / NULLIF(p.priceBaseWeightGram, 0)) AS DECIMAL(18,2)) * ci.quantity) AS totalAmount " +
+                "FROM dbo.CartItems ci " +
+                "INNER JOIN dbo.Carts c ON c.cartId = ci.cartId " +
+                "INNER JOIN dbo.ProductPacks pp ON pp.productPackId = ci.productPackId " +
+                "INNER JOIN dbo.Products p ON p.productId = pp.productId " +
+                "WHERE c.accountId = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setLong(1, cartId);
-            ps.setLong(2, productPackId);
-            ps.setInt(3, quantity);
-            ps.setLong(4, cartId);
-            ps.setLong(5, productPackId);
-            ps.setLong(6, cartId);
-            ps.setLong(7, productPackId);
-            ps.setInt(8, quantity);
-            ps.executeUpdate();
-            return true;
+            ps.setLong(1, accountId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next() && rs.getBigDecimal("totalAmount") != null) {
+                    return rs.getBigDecimal("totalAmount");
+                }
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return false;
+        return BigDecimal.ZERO;
     }
 
-    /** Update quantity of a specific cart item. Removes it if quantity <= 0. */
-    public boolean updateQuantity(long cartItemId, int quantity) {
-        if (quantity <= 0) return removeItem(cartItemId);
-        String sql = "UPDATE dbo.CartItems SET quantity = ?, updatedAt = SYSUTCDATETIME() WHERE cartItemId = ?";
+    public int countCartLines(long accountId) {
+        String sql = "SELECT COUNT(*) AS lineCount FROM dbo.CartItems ci " +
+                "INNER JOIN dbo.Carts c ON c.cartId = ci.cartId " +
+                "WHERE c.accountId = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, accountId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("lineCount");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public boolean updateItemQuantity(long accountId, long cartItemId, int quantity) {
+        if (!isCartItemOwnedByAccount(accountId, cartItemId)) {
+            return false;
+        }
+        String sql = "UPDATE dbo.CartItems SET quantity = ?, updatedAt = SYSUTCDATETIME() WHERE cartItemId = ?";
+        String cartUpdateSql = "UPDATE c SET c.updatedAt = SYSUTCDATETIME() FROM dbo.Carts c " +
+                "INNER JOIN dbo.CartItems ci ON ci.cartId = c.cartId WHERE ci.cartItemId = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             PreparedStatement cps = conn.prepareStatement(cartUpdateSql)) {
             ps.setInt(1, quantity);
             ps.setLong(2, cartItemId);
-            return ps.executeUpdate() > 0;
+            boolean ok = ps.executeUpdate() > 0;
+            cps.setLong(1, cartItemId);
+            cps.executeUpdate();
+            return ok;
         } catch (Exception e) {
             e.printStackTrace();
         }
         return false;
     }
 
-    public boolean removeItem(long cartItemId) {
+    public boolean removeItem(long accountId, long cartItemId) {
+        if (!isCartItemOwnedByAccount(accountId, cartItemId)) {
+            return false;
+        }
         String sql = "DELETE FROM dbo.CartItems WHERE cartItemId = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -133,33 +219,20 @@ public class CartDAO {
         return false;
     }
 
-    public boolean clearCart(long cartId) {
-        String sql = "DELETE FROM dbo.CartItems WHERE cartId = ?";
+    public boolean isCartItemOwnedByAccount(long accountId, long cartItemId) {
+        String sql = "SELECT 1 FROM dbo.CartItems ci " +
+                "INNER JOIN dbo.Carts c ON c.cartId = ci.cartId " +
+                "WHERE ci.cartItemId = ? AND c.accountId = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setLong(1, cartId);
-            ps.executeUpdate();
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    /** Count total items in the cart for the badge in the header. */
-    public int countItems(long accountId) {
-        String sql = "SELECT ISNULL(SUM(ci.quantity), 0) " +
-                     "FROM dbo.CartItems ci JOIN dbo.Carts c ON ci.cartId = c.cartId " +
-                     "WHERE c.accountId = ?";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setLong(1, accountId);
+            ps.setLong(1, cartItemId);
+            ps.setLong(2, accountId);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return rs.getInt(1);
+                return rs.next();
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return 0;
+        return false;
     }
 }

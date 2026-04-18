@@ -1,12 +1,20 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%-- Styles are moved to assets/css/style.css --%>
-<c:set var="uri" value="${pageContext.request.servletPath}" />
-<c:set var="isAuthPage" value="${uri.contains('login') || uri.contains('register') || uri.contains('forgot-password') || uri.contains('resend-otp') || uri.contains('verify-register')}" />
-
+<style>
+    .bg-brand   { background-color: #E3000F !important; }
+    .text-brand { color: #E3000F !important; }
+    .nav-link   { font-weight: 500; }
+    .nav-link:hover { color: #f8d7da !important; }
+    .cart-badge-pill {
+        position: absolute; top: -6px; right: -6px;
+        background: #ffc107; color: #000;
+        font-size: .65rem; font-weight: 700;
+        border-radius: 50%; min-width: 18px; height: 18px;
+        display: flex; align-items: center; justify-content: center;
+    }
+</style>
 
 <%-- Top info bar --%>
-<c:if test="${!isAuthPage}">
 <div class="bg-light py-1 border-bottom">
     <div class="container d-flex justify-content-between align-items-center">
         <small class="text-muted"><i class="fas fa-phone-alt me-1"></i> Hotline: 1900 1234</small>
@@ -17,11 +25,7 @@
                         <i class="fas fa-user-circle me-1"></i>
                         Xin chào, <strong>${sessionScope.user.fullName}</strong>
                     </small>
-                    <c:if test="${sessionScope.user.roleId <= 3}">
-                        <a href="${pageContext.request.contextPath}/admin/dashboard" class="text-decoration-none text-danger fw-bold small">
-                            <i class="fas fa-cogs"></i> Quản trị
-                        </a>
-                    </c:if>
+                    <a href="${pageContext.request.contextPath}/profile" class="text-decoration-none text-muted small">Hồ sơ</a>
                     <a href="${pageContext.request.contextPath}/orders" class="text-decoration-none text-muted small">Đơn hàng</a>
                     <a href="${pageContext.request.contextPath}/logout" class="text-decoration-none text-muted small">Đăng xuất</a>
                 </c:when>
@@ -33,8 +37,6 @@
         </div>
     </div>
 </div>
-</c:if>
-
 
 <%-- Main navbar --%>
 <nav class="navbar navbar-expand-lg navbar-dark bg-brand py-3">
@@ -43,7 +45,6 @@
             <i class="fas fa-leaf me-2"></i>FRESH FOOD
         </a>
 
-        <c:if test="${!isAuthPage}">
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainMenu"
                 aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -86,7 +87,5 @@
                 </li>
             </ul>
         </div>
-        </c:if>
-
     </div>
 </nav>
