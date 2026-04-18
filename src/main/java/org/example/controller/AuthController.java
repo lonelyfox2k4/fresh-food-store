@@ -51,11 +51,25 @@ public class AuthController extends HttpServlet {
 
         if (acc != null) {
             req.getSession().setAttribute("user", acc);
-            // Chỉ RoleId 1 (Admin) mới vào được dashboard
-            if (acc.getRoleId() == 1) {
-                resp.sendRedirect("admin/dashboard");
-            } else {
-                resp.sendRedirect("home");
+            String contextPath = req.getContextPath();
+            
+            int roleId = acc.getRoleId();
+            System.out.println("[AuthController] Login success: " + acc.getEmail() + " (Role: " + roleId + ")");
+            
+            switch (roleId) {
+                case 1: // Admin
+                case 2: // Manager
+                    resp.sendRedirect(contextPath + "/admin/dashboard");
+                    break;
+                case 3: // Staff
+                    resp.sendRedirect(contextPath + "/staff/orders");
+                    break;
+                case 4: // Shipper
+                    resp.sendRedirect(contextPath + "/shipper/orders");
+                    break;
+                default: // Customer or others
+                    resp.sendRedirect(contextPath + "/home");
+                    break;
             }
         } else {
             req.setAttribute("errorMsg", "Tài khoản hoặc mật khẩu không chính xác!");
