@@ -15,7 +15,7 @@
     </servlet>
     <servlet-mapping>
         <servlet-name>ProductServlet</servlet-name>
-        <url-pattern>/admin/products</url-pattern>
+        <url-pattern>/manager/products</url-pattern>
     </servlet-mapping>
 
     <servlet>
@@ -24,7 +24,7 @@
     </servlet>
     <servlet-mapping>
         <servlet-name>CategoryServlet</servlet-name>
-        <url-pattern>/admin/categories</url-pattern>
+        <url-pattern>/manager/categories</url-pattern>
     </servlet-mapping>
 
     <servlet>
@@ -33,7 +33,7 @@
     </servlet>
     <servlet-mapping>
         <servlet-name>SupplierServlet</servlet-name>
-        <url-pattern>/admin/suppliers</url-pattern>
+        <url-pattern>/manager/suppliers</url-pattern>
     </servlet-mapping>
 
     <servlet>
@@ -42,7 +42,7 @@
     </servlet>
     <servlet-mapping>
         <servlet-name>PricingServlet</servlet-name>
-        <url-pattern>/admin/inventory-pricing</url-pattern>
+        <url-pattern>/manager/inventory-pricing</url-pattern>
     </servlet-mapping>
 
     <servlet>
@@ -51,7 +51,7 @@
     </servlet>
     <servlet-mapping>
         <servlet-name>PolicyServlet</servlet-name>
-        <url-pattern>/admin/policies</url-pattern>
+        <url-pattern>/manager/policies</url-pattern>
     </servlet-mapping>
 
     <filter>
