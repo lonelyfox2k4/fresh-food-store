@@ -2,8 +2,10 @@ package org.example.controller;
 
 import org.example.dao.AccountDAO;
 import org.example.dao.OrderDAO;
+import org.example.dao.OrderItemDAO;
 import org.example.model.auth.Account;
 import org.example.model.order.Order;
+import org.example.model.order.OrderItem;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -18,13 +20,13 @@ public class StaffOrderServlet extends HttpServlet {
 
     private OrderDAO orderDAO;
     private AccountDAO accountDAO;
-    private org.example.dao.OrderItemDAO orderItemDAO;
+    private OrderItemDAO orderItemDAO;
 
     @Override
     public void init() throws ServletException {
         orderDAO = new OrderDAO();
         accountDAO = new AccountDAO();
-        orderItemDAO = new org.example.dao.OrderItemDAO();
+        orderItemDAO = new OrderItemDAO();
     }
 
     @Override
@@ -51,7 +53,7 @@ public class StaffOrderServlet extends HttpServlet {
                         response.sendRedirect("orders?action=list&error=not_found");
                         return;
                     }
-                    List<org.example.model.order.OrderItem> items = orderItemDAO.getOrderItemsByOrderId(orderId);
+                    List<OrderItem> items = orderItemDAO.getOrderItemsByOrderId(orderId);
                     request.setAttribute("order", order);
                     request.setAttribute("itemList", items);
                     request.getRequestDispatcher("/staff/order-detail.jsp").forward(request, response);
@@ -81,14 +83,15 @@ public class StaffOrderServlet extends HttpServlet {
             
             switch (action) {
                 case "confirm":
-                    // Chuyển orderStatus = 1 (Đã xác nhận)
-                    orderDAO.updateOrderStatus(orderId, (byte) 1);
+                    // Chuyển orderStatus = 2 (Đã xác nhận / Chờ đóng gói)
+                    orderDAO.updateOrderStatus(orderId, (byte) 2);
                     response.sendRedirect("orders?action=list&msg=confirmed");
                     break;
                     
                 case "ready":
-                    // Chuyển shippingStatus = 1 (Ready for Pickup / Đóng gói xong)
-                    // We now allow packing to finish BEFORE assigning a shipper.
+                    // Chuyển orderStatus = 3 (Processing / Đóng gói xong) 
+                    // and Set shippingStatus = 1 (Ready for Pickup)
+                    orderDAO.updateOrderStatus(orderId, (byte) 3);
                     orderDAO.updateShippingStatus(orderId, (byte) 1);
                     response.sendRedirect("orders?action=list&msg=packed");
                     break;
@@ -100,8 +103,8 @@ public class StaffOrderServlet extends HttpServlet {
                         long shipperId = Long.parseLong(shipperIdStr);
                         Order order = orderDAO.getOrderById(orderId);
                         
-                        // Chỉ gán được khi đơn chưa hoàn thành/hủy (Tránh gán vào đơn Status 3 hoặc 4)
-                        if (order != null && order.getOrderStatus() < 3) {
+                        // Chỉ gán được khi đơn chưa hoàn thành/hủy (Tránh gán vào đơn Status 5 hoặc 6)
+                        if (order != null && order.getOrderStatus() < 5) {
                             orderDAO.assignShipper(orderId, shipperId);
                             response.sendRedirect("orders?action=list&msg=shipper_assigned");
                         } else {
@@ -113,25 +116,25 @@ public class StaffOrderServlet extends HttpServlet {
                     break;
                     
                 case "updatePayment":
-                    // Cập nhật paymentStatus (VD: 1 = Đã thanh toán)
+                    // Cập nhật paymentStatus (VD: 2 = Đã thanh toán trong scale mới)
                     byte paymentStatus = Byte.parseByte(request.getParameter("paymentStatus"));
                     orderDAO.updatePaymentStatus(orderId, paymentStatus);
                     response.sendRedirect("orders?action=list&msg=payment_updated");
                     break;
                     
                 case "complete":
-                    // Chuyển orderStatus = 2 (Hoàn thành)
-                    orderDAO.updateOrderStatus(orderId, (byte) 2);
+                    // Chuyển orderStatus = 5 (Hoàn thành)
+                    orderDAO.updateOrderStatus(orderId, (byte) 5);
                     response.sendRedirect("orders?action=list&msg=completed");
                     break;
                     
                 case "cancel":
-                    // Chuyển orderStatus = 3 (Đã hủy) với lý do
+                    // Chuyển orderStatus = 6 (Đã hủy) với lý do
                     String cancelReason = request.getParameter("reason");
                     if (cancelReason == null || cancelReason.trim().isEmpty()) {
                         cancelReason = "Nhân viên hủy đơn";
                     }
-                    orderDAO.cancelOrder(orderId, cancelReason);
+                    orderDAO.updateOrderCancelReason(orderId, cancelReason);
                     response.sendRedirect("orders?action=list&msg=cancelled");
                     break;
 

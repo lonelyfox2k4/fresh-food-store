@@ -62,10 +62,10 @@
                         </div>
                         <div class="mb-2">
                             <c:choose>
-                                <c:when test="${o.orderStatus == 1}"><span class="badge bg-primary">Chờ lấy hàng / Sẵn sàng</span></c:when>
-                                <c:when test="${o.orderStatus == 2}"><span class="badge bg-info text-dark">Đang giao hàng</span></c:when>
-                                <c:when test="${o.orderStatus == 3}"><span class="badge bg-success">Đã giao (Thành công)</span></c:when>
-                                <c:when test="${o.orderStatus == 4}"><span class="badge bg-danger">Giao thất bại / Hủy</span></c:when>
+                                <c:when test="${o.orderStatus == 3}"><span class="badge bg-primary">Chờ lấy hàng / Sẵn sàng</span></c:when>
+                                <c:when test="${o.orderStatus == 4}"><span class="badge bg-info text-dark">Đang giao hàng</span></c:when>
+                                <c:when test="${o.orderStatus == 5}"><span class="badge bg-success">Đã giao (Thành công)</span></c:when>
+                                <c:when test="${o.orderStatus == 6}"><span class="badge bg-danger">Giao thất bại / Hủy</span></c:when>
                             </c:choose>
                         </div>
                         

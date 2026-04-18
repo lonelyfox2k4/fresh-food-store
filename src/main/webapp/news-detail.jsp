@@ -72,6 +72,8 @@
 
     <jsp:include page="components/header.jsp" />
 
+    <c:set var="headerImg" value="${not empty article.imageUrl ? article.imageUrl : 'https://via.placeholder.com/1200x600?text=Fresh+Food+News'}" />
+    
     <div class="container py-4">
         <nav aria-label="breadcrumb" class="mb-4">
             <ol class="breadcrumb">
@@ -81,10 +83,10 @@
             </ol>
         </nav>
 
-        <div class="news-header" style="background-image: url('${not empty article.imageUrl ? article.imageUrl : 'https://via.placeholder.com/1200x600?text=Fresh+Food+News'}')">
+        <div class="news-header" style="background-image: url('${headerImg}')">
             <div class="position-absolute bottom-0 start-0 p-4 p-md-5 text-white" style="z-index: 2;">
                 <span class="badge bg-success mb-2">🌿 Food & Life</span>
-                <h1 class="display-5 fw-bold mb-0 text-shadow">${article.title}</h1>
+                <h1 class="display-5 fw-bold mb-0 text-shadow"><c:out value="${article.title}" /></h1>
             </div>
         </div>
 
@@ -96,7 +98,8 @@
                         Ngày đăng: 
                         <c:choose>
                             <c:when test="${not empty article.publishedAt}">
-                                ${article.publishedAt.toLocalDate()}
+                                <fmt:parseDate value="${article.publishedAt}" pattern="yyyy-MM-dd'T'HH:mm" var="parsedDate" type="both" />
+                                <fmt:formatDate value="${parsedDate}" pattern="dd/MM/yyyy" />
                             </c:when>
                             <c:otherwise>
                                 <span class="text-muted italic">Đang cập nhật</span>

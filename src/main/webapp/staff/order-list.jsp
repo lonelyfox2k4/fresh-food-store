@@ -109,11 +109,12 @@
                             </td>
                             <td>
                                 <c:choose>
-                                    <c:when test="${o.orderStatus == 0}"><span class="badge bg-secondary opacity-75">Chờ xác nhận</span></c:when>
-                                    <c:when test="${o.orderStatus == 1}"><span class="badge bg-warning text-dark"><i class="bi bi-box-seam"></i> Đang đóng gói</span></c:when>
-                                    <c:when test="${o.orderStatus == 2}"><span class="badge bg-info text-dark"><i class="bi bi-truck"></i> Đang giao hàng</span></c:when>
-                                    <c:when test="${o.orderStatus == 3}"><span class="badge bg-success"><i class="bi bi-check-all"></i> Đã hoàn tất</span></c:when>
-                                    <c:when test="${o.orderStatus == 4}">
+                                    <c:when test="${o.orderStatus == 1}"><span class="badge bg-secondary opacity-75">Chờ xác nhận</span></c:when>
+                                    <c:when test="${o.orderStatus == 2}"><span class="badge bg-warning text-dark"><i class="bi bi-box-seam"></i> Đã xác nhận</span></c:when>
+                                    <c:when test="${o.orderStatus == 3}"><span class="badge bg-primary text-white"><i class="bi bi-box-seam"></i> Đang đóng gói</span></c:when>
+                                    <c:when test="${o.orderStatus == 4}"><span class="badge bg-info text-dark"><i class="bi bi-truck"></i> Đang giao hàng</span></c:when>
+                                    <c:when test="${o.orderStatus == 5}"><span class="badge bg-success"><i class="bi bi-check-all"></i> Đã hoàn tất</span></c:when>
+                                    <c:when test="${o.orderStatus == 6}">
                                         <span class="badge bg-danger">Đã hủy</span>
                                         <c:if test="${not empty o.cancelledReason}">
                                             <div class="small text-danger mt-1" style="font-size: 0.75rem;">Lý do: ${o.cancelledReason}</div>
@@ -125,7 +126,7 @@
                             
                             <!-- Cột Shipper -->
                             <td>
-                                <c:if test="${o.orderStatus < 3}">
+                                <c:if test="${o.orderStatus < 5}">
                                     <c:choose>
                                         <c:when test="${o.shippingStatus >= 1}">
                                             <form action="orders" method="post" class="d-flex align-items-center m-0">
@@ -145,7 +146,7 @@
                                         </c:otherwise>
                                     </c:choose>
                                 </c:if>
-                                <c:if test="${o.orderStatus >= 3}">
+                                <c:if test="${o.orderStatus >= 5}">
                                     <small class="text-muted">
                                         <c:forEach items="${shipperList}" var="s">
                                             <c:if test="${o.shipperId == s.accountId}"><i class="bi bi-truck"></i> ${s.fullName}</c:if>
@@ -178,7 +179,7 @@
                                     <li><hr class="dropdown-divider"></li>
                                     
                                     <c:choose>
-                                        <c:when test="${o.orderStatus == 0}">
+                                        <c:when test="${o.orderStatus == 1}">
                                             <li>
                                                 <form action="orders" method="post" class="m-0">
                                                     <input type="hidden" name="action" value="confirm"><input type="hidden" name="orderId" value="${o.orderId}">
@@ -186,7 +187,7 @@
                                                 </form>
                                             </li>
                                         </c:when>
-                                        <c:when test="${o.orderStatus == 1}">
+                                        <c:when test="${o.orderStatus == 2}">
                                             <c:if test="${empty o.shippingStatus or o.shippingStatus == 0}">
                                                 <li>
                                                     <form action="orders" method="post" class="m-0">
@@ -195,6 +196,8 @@
                                                     </form>
                                                 </li>
                                             </c:if>
+                                        </c:when>
+                                        <c:when test="${o.orderStatus == 3 or o.orderStatus == 4}">
                                             <c:if test="${o.shippingStatus == 3}">
                                                 <li>
                                                     <form action="orders" method="post" class="m-0" onsubmit="return confirm('Xác nhận Đóng đơn?');">
@@ -206,16 +209,16 @@
                                         </c:when>
                                     </c:choose>
 
-                                    <c:if test="${o.paymentStatus == 0 && o.orderStatus != 3}">
+                                    <c:if test="${o.paymentStatus != 2 && o.orderStatus != 6}">
                                         <li>
                                             <form action="orders" method="post" class="m-0">
-                                                <input type="hidden" name="action" value="updatePayment"><input type="hidden" name="paymentStatus" value="1"><input type="hidden" name="orderId" value="${o.orderId}">
+                                                <input type="hidden" name="action" value="updatePayment"><input type="hidden" name="paymentStatus" value="2"><input type="hidden" name="orderId" value="${o.orderId}">
                                                 <button type="submit" class="dropdown-item text-success py-2"><i class="bi bi-cash me-2"></i> Đã thu tiền (COD)</button>
                                             </form>
                                         </li>
                                     </c:if>
 
-                                    <c:if test="${o.orderStatus != 2 && o.orderStatus != 3}">
+                                    <c:if test="${o.orderStatus != 4 && o.orderStatus != 5 && o.orderStatus != 6}">
                                         <li><hr class="dropdown-divider"></li>
                                         <li>
                                             <button type="button" class="dropdown-item text-danger py-2" data-bs-toggle="modal" data-bs-target="#cancelModal${o.orderId}">

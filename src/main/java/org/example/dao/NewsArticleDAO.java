@@ -29,7 +29,7 @@ public class NewsArticleDAO {
 
     public NewsArticle getNewsById(long id) {
         String sql = "SELECT * FROM NewsArticles WHERE newsId = ?";
-        try (Connection conn = new DBConnection().getConnection();
+        try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, id);
             try (ResultSet rs = ps.executeQuery()) {
@@ -41,6 +41,16 @@ public class NewsArticleDAO {
                     n.setContent(rs.getString("content"));
                     n.setImageUrl(rs.getString("imageUrl"));
                     n.setStatus(rs.getByte("status"));
+                    
+                    Timestamp created = rs.getTimestamp("createdAt");
+                    if (created != null) n.setCreatedAt(created.toLocalDateTime());
+                    
+                    Timestamp updated = rs.getTimestamp("updatedAt");
+                    if (updated != null) n.setUpdatedAt(updated.toLocalDateTime());
+                    
+                    Timestamp published = rs.getTimestamp("publishedAt");
+                    if (published != null) n.setPublishedAt(published.toLocalDateTime());
+                    
                     return n;
                 }
             }

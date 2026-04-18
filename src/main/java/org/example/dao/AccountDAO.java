@@ -273,6 +273,31 @@ public class AccountDAO {
         return false;
     }
 
+    public List<Account> getAccountsByRole(int roleId) {
+        List<Account> list = new ArrayList<>();
+        String sql = "SELECT * FROM dbo.Accounts WHERE roleId = ? AND status = 1";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, roleId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(new Account(
+                            rs.getLong("accountId"),
+                            rs.getInt("roleId"),
+                            rs.getString("email"),
+                            rs.getString("passwordHash"),
+                            rs.getString("fullName"),
+                            rs.getString("phone"),
+                            rs.getBoolean("status"),
+                            rs.getBoolean("emailVerified"),
+                            rs.getTimestamp("createdAt")
+                    ));
+                }
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return list;
+    }
+
     public Account getAccountById(long id) {
         String sql = "SELECT * FROM dbo.Accounts WHERE accountId = ?";
         try (Connection conn = DBConnection.getConnection();

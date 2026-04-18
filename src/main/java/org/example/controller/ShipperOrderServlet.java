@@ -1,8 +1,10 @@
 package org.example.controller;
 
 import org.example.dao.OrderDAO;
+import org.example.dao.OrderItemDAO;
 import org.example.model.auth.Account;
 import org.example.model.order.Order;
+import org.example.model.order.OrderItem;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -45,7 +47,7 @@ public class ShipperOrderServlet extends HttpServlet {
                     response.sendRedirect("orders?action=list&error=unauthorized");
                     return;
                 }
-                List<org.example.model.order.OrderItem> items = new org.example.dao.OrderItemDAO().getOrderItemsByOrderId(orderId);
+                List<OrderItem> items = new OrderItemDAO().getOrderItemsByOrderId(orderId);
                 request.setAttribute("order", order);
                 request.setAttribute("itemList", items);
                 request.getRequestDispatcher("/shipper/order-detail.jsp").forward(request, response);
@@ -83,20 +85,19 @@ public class ShipperOrderServlet extends HttpServlet {
 
             switch (action) {
                 case "startShipping":
-                    // Atomic start: updates both shippingStatus and orderStatus to 'Transit' (Value 2)
+                    // Atomic start: updates shippingStatus=2 and orderStatus=4
                     orderDAO.updateStartShipping(orderId);
                     response.sendRedirect("orders?action=list&msg=started");
                     break;
                     
                 case "delivered":
-                    // Atomic success: updates shipping, order, and payment status
-                    boolean isCod = "true".equals(request.getParameter("isCod"));
-                    orderDAO.updateDeliverySuccess(orderId, isCod);
+                    // Atomic success: updates shipping=3, order=5, payment=2
+                    orderDAO.updateDeliverySuccess(orderId);
                     response.sendRedirect("orders?action=list&msg=delivered");
                     break;
                     
                 case "failed":
-                    // Atomic failure: updates shippingStatus and appends to note
+                    // Atomic failure: updates shippingStatus=4 and cancels (orderStatus=6)
                     String failReason = request.getParameter("reason");
                     if (failReason != null && !failReason.isEmpty()) {
                         orderDAO.updateDeliveryFailure(orderId, failReason);
