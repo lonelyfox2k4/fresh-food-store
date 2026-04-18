@@ -297,4 +297,49 @@ public class AccountDAO {
         }
         return null;
     }
+
+    public Account getAccountById(long accountId) {
+        String sql = "SELECT accountId, roleId, email, fullName, phone, status, createdAt FROM dbo.Accounts WHERE accountId = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, accountId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new Account(
+                            rs.getLong("accountId"),
+                            rs.getInt("roleId"),
+                            rs.getString("email"),
+                            rs.getString("fullName"),
+                            rs.getString("phone"),
+                            rs.getBoolean("status"),
+                            rs.getTimestamp("createdAt")
+                    );
+                }
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return null;
+    }
+
+    public boolean updateProfile(long accountId, String fullName, String phone) {
+        String sql = "UPDATE dbo.Accounts SET fullName = ?, phone = ?, updatedAt = SYSUTCDATETIME() WHERE accountId = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, fullName);
+            ps.setString(2, phone);
+            ps.setLong(3, accountId);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) { e.printStackTrace(); }
+        return false;
+    }
+
+    public boolean updatePassword(long accountId, String newPassword) {
+        String sql = "UPDATE dbo.Accounts SET passwordHash = ?, updatedAt = SYSUTCDATETIME() WHERE accountId = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, encodePassword(newPassword));
+            ps.setLong(2, accountId);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) { e.printStackTrace(); }
+        return false;
+    }
 }

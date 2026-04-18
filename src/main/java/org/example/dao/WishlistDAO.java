@@ -1,22 +1,59 @@
 package org.example.dao;
 
-import org.example.model.catalog.Product;
+import org.example.model.marketing.WishlistItemView;
 import org.example.utils.DBConnection;
-import java.sql.*;
-import java.util.*;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 public class WishlistDAO {
 
-    public List<Product> getWishlist(long accountId) {
-        List<Product> list = new ArrayList<>();
-        String sql = "SELECT p.* FROM dbo.Wishlists w " +
-                     "JOIN dbo.Products p ON w.productId = p.productId " +
-                     "WHERE w.accountId = ? AND p.status = 1 ORDER BY w.createdAt DESC";
+    public Set<Long> getWishlistedProductIds(long accountId) {
+        Set<Long> ids = new HashSet<>();
+        String sql = "SELECT productId FROM dbo.Wishlists WHERE accountId = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, accountId);
             try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) list.add(mapProduct(rs));
+                while (rs.next()) {
+                    ids.add(rs.getLong("productId"));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return ids;
+    }
+
+    public List<WishlistItemView> getWishlistItemsByAccountIdOrderByName(long accountId) {
+        List<WishlistItemView> list = new ArrayList<>();
+        String sql = "SELECT w.wishlistId, w.productId, w.createdAt, p.productName, p.imageUrl, p.basePriceAmount, p.priceBaseWeightGram " +
+                "FROM dbo.Wishlists w " +
+                "INNER JOIN dbo.Products p ON p.productId = w.productId " +
+                "WHERE w.accountId = ? " +
+                "ORDER BY p.productName ASC";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, accountId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    WishlistItemView item = new WishlistItemView();
+                    item.setWishlistId(rs.getLong("wishlistId"));
+                    item.setProductId(rs.getLong("productId"));
+                    item.setProductName(rs.getString("productName"));
+                    item.setImageUrl(rs.getString("imageUrl"));
+                    item.setCurrentPrice(rs.getBigDecimal("basePriceAmount"));
+                    item.setPriceBaseWeightGram(rs.getInt("priceBaseWeightGram"));
+                    if (rs.getTimestamp("createdAt") != null) {
+                        item.setCreatedAt(rs.getTimestamp("createdAt").toLocalDateTime());
+                    }
+                    list.add(item);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -24,34 +61,7 @@ public class WishlistDAO {
         return list;
     }
 
-    public boolean addToWishlist(long accountId, long productId) {
-        if (isInWishlist(accountId, productId)) return true;
-        String sql = "INSERT INTO dbo.Wishlists (accountId, productId) VALUES (?, ?)";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setLong(1, accountId);
-            ps.setLong(2, productId);
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    public boolean removeFromWishlist(long accountId, long productId) {
-        String sql = "DELETE FROM dbo.Wishlists WHERE accountId = ? AND productId = ?";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setLong(1, accountId);
-            ps.setLong(2, productId);
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    public boolean isInWishlist(long accountId, long productId) {
+    public boolean exists(long accountId, long productId) {
         String sql = "SELECT 1 FROM dbo.Wishlists WHERE accountId = ? AND productId = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -66,18 +76,29 @@ public class WishlistDAO {
         return false;
     }
 
-    private Product mapProduct(ResultSet rs) throws SQLException {
-        Product p = new Product();
-        p.setProductId(rs.getLong("productId"));
-        p.setCategoryId(rs.getInt("categoryId"));
-        p.setProductName(rs.getString("productName"));
-        p.setDescription(rs.getString("description"));
-        p.setImageUrl(rs.getString("imageUrl"));
-        p.setBasePriceAmount(rs.getBigDecimal("basePriceAmount"));
-        p.setPriceBaseWeightGram(rs.getInt("priceBaseWeightGram"));
-        int pId = rs.getInt("expiryPricingPolicyId");
-        p.setExpiryPricingPolicyId(rs.wasNull() ? null : pId);
-        p.setStatus(rs.getBoolean("status"));
-        return p;
+    public boolean add(long accountId, long productId) {
+        String sql = "INSERT INTO dbo.Wishlists (accountId, productId) VALUES (?, ?)";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, accountId);
+            ps.setLong(2, productId);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean removeByProductId(long accountId, long productId) {
+        String sql = "DELETE FROM dbo.Wishlists WHERE accountId = ? AND productId = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, accountId);
+            ps.setLong(2, productId);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }
