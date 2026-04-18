@@ -33,14 +33,14 @@ public class PolicyServlet extends HttpServlet {
 
     private void listPolicies(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         request.setAttribute("policies", policyDAO.getAllPolicies());
-        request.getRequestDispatcher("/admin/policies.jsp").forward(request, response);
+        request.getRequestDispatcher("/manager/policies.jsp").forward(request, response);
     }
 
     private void showRulesForm(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         int id = Integer.parseInt(request.getParameter("id"));
         request.setAttribute("policy", policyDAO.getPolicyById(id));
         request.setAttribute("rules", policyDAO.getRulesByPolicyId(id));
-        request.getRequestDispatcher("/admin/policy-rules.jsp").forward(request, response);
+        request.getRequestDispatcher("/manager/policy-rules.jsp").forward(request, response);
     }
 
     @Override

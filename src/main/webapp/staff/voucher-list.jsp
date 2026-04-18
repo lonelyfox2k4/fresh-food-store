@@ -8,17 +8,17 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 </head>
 <body class="bg-light">
-<c:import url="/staff/common/nav.jsp" />
-
-<div class="container py-3 px-4">
+<div class="container py-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h3 class="fw-bold"><i class="bi bi-ticket-perforated me-2"></i>Quản lý Mã Giảm Giá</h3>
-            <p class="text-muted small">Tạo và theo dõi các chương trình khuyến mãi.</p>
+        <div class="mb-3 mb-md-0">
+            <h2 class="fw-bold text-success">🎟️ Quản lý Mã Giảm Giá</h2>
+            <p class="text-muted">Tạo và theo dõi các chương trình khuyến mãi của cửa hàng.</p>
         </div>
-        <a href="voucher?action=create" class="btn btn-success shadow-sm">
-            <i class="bi bi-plus-lg"></i> Thêm Voucher mới
-        </a>
+        <c:if test="${sessionScope.user.roleId != 1}">
+            <a href="voucher?action=create" class="btn btn-success shadow-sm">
+                <i class="bi bi-plus-lg"></i> Thêm Voucher mới
+            </a>
+        </c:if>
     </div>
 
     <c:if test="${not empty param.msg}">
@@ -35,7 +35,9 @@
                     <th>Giới hạn dùng</th>
                     <th>Thời hạn</th>
                     <th>Trạng thái</th>
-                    <th class="text-center">Thao tác</th>
+                    <c:if test="${sessionScope.user.roleId != 1}">
+                        <th class="text-center">Thao tác</th>
+                    </c:if>
                 </tr>
                 </thead>
                 <tbody>
@@ -68,13 +70,15 @@
                                         ${v.status == 1 ? 'Đang chạy' : 'Chờ xét duyệt'}
                                 </span>
                         </td>
-                        <td class="text-center">
-                            <a href="voucher?action=delete&id=${v.voucherId}"
-                               class="btn btn-sm btn-outline-danger"
-                               onclick="return confirm('Bạn có chắc chắn muốn xóa voucher này?')">
-                                <i class="bi bi-trash"></i>
-                            </a>
-                        </td>
+                        <c:if test="${sessionScope.user.roleId != 1}">
+                            <td class="text-center">
+                                <a href="voucher?action=delete&id=${v.voucherId}"
+                                   class="btn btn-sm btn-outline-danger"
+                                   onclick="return confirm('Bạn có chắc chắn muốn xóa voucher này?')">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </td>
+                        </c:if>
                     </tr>
                 </c:forEach>
                 <c:if test="${empty voucherList}">
@@ -84,6 +88,7 @@
             </table>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </div>
 </body>
 </html>

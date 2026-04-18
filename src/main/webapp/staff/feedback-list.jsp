@@ -7,60 +7,44 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 </head>
 <body class="bg-light">
-<c:import url="/staff/common/nav.jsp" />
 
-<div class="container-fluid py-3 px-4">
-    <div class="mb-4">
-        <h3 class="fw-bold"><i class="bi bi-chat-dots me-2"></i>Phản hồi khách hàng</h3>
-        <p class="text-muted small">Xem và trả lời đánh giá từ người mua hàng.</p>
-    </div>
-    <div class="card border-0 shadow-sm">
+<div class="container py-5">
+    <h2 class="mb-4">Hồi đáp đánh giá sản phẩm</h2>
+
+    <div class="card shadow-sm">
         <table class="table table-striped align-middle mb-0">
             <thead class="table-dark">
             <tr>
-                <th class="ps-4">Khách hàng</th>
-                <th>Đơn hàng</th>
-                <th>Nội dung</th>
-                <th>Đánh giá</th>
-                <th>Trạng thái</th>
-                <th class="text-center">Thao tác</th>
+                <th>ID Review</th>
+                <th>Khách hàng</th>
+                <th>Nội dung đánh giá</th>
+                <th>Số sao</th>
+                <th>Trạng thái hồi đáp</th>
+                <th>Thao tác</th>
             </tr>
             </thead>
             <tbody>
             <c:forEach items="${feedbackList}" var="f">
                 <tr>
-                    <td class="ps-4">
-                        <div class="fw-bold fs-6">${f.customerName}</div>
-                        <small class="text-muted"><i class="bi bi-clock"></i> ${f.createdAt.toString().replace('T', ' ').substring(0, 16)}</small>
+                    <td>#REV-${f.reviewId}</td>
+                    <td><strong>${f.subject}</strong></td>
+                    <td><small class="text-truncate d-inline-block" style="max-width: 300px;">${f.content}</small></td>
+                    <td class="text-warning">
+                        <c:forEach begin="1" end="${f.rating}">★</c:forEach>
                     </td>
                     <td>
                         <c:choose>
-                            <c:when test="${not empty f.orderCode}">
-                                <a href="orders?action=detail&id=${f.orderId}&from=feedback" class="text-decoration-none fw-bold">
-                                    <i class="bi bi-receipt"></i> #${f.orderCode}
-                                </a>
+                            <c:when test="${f.status == 1}">
+                                <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Đã phản hồi</span>
                             </c:when>
-                            <c:otherwise><span class="text-muted small">N/A</span></c:otherwise>
+                            <c:otherwise>
+                                <span class="badge bg-warning"><i class="bi bi-clock me-1"></i>Chờ xử lý</span>
+                            </c:otherwise>
                         </c:choose>
                     </td>
-                    <td style="max-width: 300px;">
-                        <div class="text-truncate" title="${f.content}">${f.content}</div>
-                    </td>
-                    <td class="text-warning">
-                        <c:forEach begin="1" end="${f.rating}"><i class="bi bi-star-fill"></i></c:forEach>
-                        <c:forEach begin="${f.rating + 1}" end="5"><i class="bi bi-star text-muted"></i></c:forEach>
-                    </td>
                     <td>
-                        <c:if test="${f.status == 0}">
-                            <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split"></i> Chờ trả lời</span>
-                        </c:if>
-                        <c:if test="${f.status == 1}">
-                            <span class="badge bg-success"><i class="bi bi-check-all"></i> Đã phản hồi</span>
-                        </c:if>
-                    </td>
-                    <td class="text-center">
-                        <button class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#replyModal${f.feedbackId}">
-                            <i class="bi bi-reply"></i> Phản hồi
+                        <button class="btn btn-primary btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#replyModal${f.reviewId}">
+                            <i class="bi bi-reply-fill me-1"></i>Trả lời
                         </button>
                     </td>
                 </tr>
@@ -71,43 +55,29 @@
 </div>
 
 <c:forEach items="${feedbackList}" var="f">
-    <div class="modal fade" id="replyModal${f.feedbackId}" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
+    <div class="modal fade" id="replyModal${f.reviewId}" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
                 <form action="feedback" method="POST">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Trả lời #${f.feedbackId}</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title">Hồi đáp Review #${f.reviewId}</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                     </div>
-                    <div class="modal-body">
-                        <input type="hidden" name="feedbackId" value="${f.feedbackId}">
-                        <div class="alert alert-light border small py-2 mb-3">
-                            <strong>Khách viết:</strong> <br>
-                            <i class="text-muted">"${f.content}"</i>
-                        </div>
-                        
-                        <c:if test="${not empty f.itemList}">
-                            <div class="mb-3">
-                                <label class="form-label small text-uppercase text-muted fw-bold">Sản phẩm đã mua:</label>
-                                <div class="list-group list-group-flush border rounded overflow-hidden">
-                                    <c:forEach items="${f.itemList}" var="item">
-                                        <div class="list-group-item list-group-item-light d-flex justify-content-between align-items-center py-1 small">
-                                            <span>${item.productNameSnapshot} <small class="text-muted">(${item.packWeightGramSnapshot}g)</small></span>
-                                            <span class="badge bg-secondary rounded-pill">x${item.orderedQuantity}</span>
-                                        </div>
-                                    </c:forEach>
-                                </div>
-                            </div>
-                        </c:if>
-                        
+                    <div class="modal-body p-4">
+                        <input type="hidden" name="reviewId" value="${f.reviewId}">
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Nội dung phản hồi:</label>
-                            <textarea name="responseText" class="form-control" rows="4" placeholder="Nhập lời cảm ơn hoặc giải đáp thắc mắc..." required>${f.response}</textarea>
+                            <label class="form-label fw-bold text-muted small">NỘI DUNG ĐÁNH GIÁ CỦA KHÁCH:</label>
+                            <div class="bg-light p-3 rounded italic">"${f.content}"</div>
+                        </div>
+                        <hr>
+                        <div class="mb-0">
+                            <label class="form-label fw-bold small text-primary">NỘI DUNG PHẢN HỒI CỦA SHOP:</label>
+                            <textarea name="responseText" class="form-control" rows="5" placeholder="Nhập lời cảm ơn hoặc giải thích cho khách hàng..." required>${f.response}</textarea>
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                        <button type="submit" class="btn btn-success">Gửi phản hồi</button>
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">Gửi phản hồi ngay</button>
                     </div>
                 </form>
             </div>

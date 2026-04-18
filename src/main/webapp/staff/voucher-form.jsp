@@ -5,12 +5,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
-<c:import url="/staff/common/nav.jsp" />
-
-<div class="container py-3">
-    <div class="mb-4">
-        <a href="voucher" class="btn btn-sm btn-light text-muted border-0 shadow-sm"><i class="bi bi-arrow-left"></i> Quay lại</a>
-    </div>
+<div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-lg-8">
             <div class="card border-0 shadow">
@@ -85,6 +80,7 @@
             </div>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </div>
 </body>
 </html>

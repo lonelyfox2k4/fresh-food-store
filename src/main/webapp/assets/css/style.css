@@ -1,0 +1,214 @@
+/* =============================================
+   Fresh Food Store – Global Stylesheet
+   Brand color: #E3000F (red)
+   ============================================= */
+
+/* ── Google Font ── */
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+    --brand:      #E3000F;
+    --brand-dark: #b5000c;
+    --brand-light:#fff0f0;
+    --text-main:  #1a1a2e;
+    --text-muted: #6c757d;
+    --border:     #e9ecef;
+    --radius:     12px;
+    --shadow-sm:  0 2px 8px rgba(0,0,0,.06);
+    --shadow-md:  0 4px 20px rgba(0,0,0,.10);
+}
+
+* { box-sizing: border-box; }
+
+body {
+    font-family: 'Be Vietnam Pro', sans-serif;
+    color: var(--text-main);
+    background: #f8f9fa;
+}
+
+/* ── Brand helpers ── */
+.btn-brand          { background: var(--brand); border-color: var(--brand); color: #fff; font-weight: 600; }
+.btn-brand:hover    { background: var(--brand-dark); border-color: var(--brand-dark); color: #fff; }
+.text-brand         { color: var(--brand) !important; }
+.bg-brand           { background-color: var(--brand) !important; }
+.border-brand       { border-color: var(--brand) !important; }
+
+/* ── Product cards ── */
+.product-card {
+    border: none;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    transition: transform .25s ease, box-shadow .25s ease;
+    overflow: hidden;
+}
+.product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+}
+.product-img {
+    height: 200px;
+    object-fit: cover;
+    width: 100%;
+}
+
+/* ── Price ── */
+.price-main  { color: var(--brand); font-size: 1.2rem; font-weight: 700; }
+.old-price   { text-decoration: line-through; color: var(--text-muted); font-size: .85rem; }
+
+/* ── Badge / Tag ── */
+.badge-flash { background: var(--brand); color: #fff; font-weight: 700;
+               border-radius: 8px 0 8px 0; padding: 4px 10px; font-size: .75rem; }
+
+/* ── Pagination ── */
+.page-link { color: var(--brand); border-radius: 8px !important; margin: 0 2px; }
+.page-item.active .page-link { background: var(--brand); border-color: var(--brand); }
+.page-link:hover { color: var(--brand-dark); }
+
+/* ── Star rating ── */
+.stars-display { color: #ffc107; letter-spacing: 2px; }
+.stars-input label { cursor: pointer; font-size: 1.6rem; color: #ddd; }
+.stars-input input:checked ~ label,
+.stars-input label:hover,
+.stars-input label:hover ~ label { color: #ffc107; }
+.stars-input { display: flex; flex-direction: row-reverse; gap: 4px; }
+
+/* ── Cart table ── */
+.cart-img { width: 72px; height: 72px; object-fit: cover; border-radius: 8px; }
+.qty-box  { display: flex; align-items: center; gap: 4px; }
+.qty-box input { width: 56px; text-align: center; }
+
+/* ── Order status badges ── */
+.status-1 { background: #fff3cd; color: #856404; }
+.status-2 { background: #cff4fc; color: #055160; }
+.status-3 { background: #d1ecf1; color: #0c5460; }
+.status-4 { background: #d4edda; color: #155724; }
+.status-5 { background: #c3e6cb; color: #155724; }
+.status-6 { background: #f8d7da; color: #721c24; }
+
+/* ── Checkout ── */
+.checkout-card {
+    background: #fff;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    padding: 28px;
+}
+
+/* ── Sidebar filter ── */
+.filter-sidebar { background: #fff; border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow-sm); }
+.filter-sidebar .form-check-label { cursor: pointer; font-weight: 500; }
+.filter-sidebar .form-check-input:checked { background-color: var(--brand); border-color: var(--brand); }
+
+/* ── Flash / Heartbeat animation ── */
+@keyframes heartbeat {
+    0%   { transform: scale(1); }
+    14%  { transform: scale(1.05); }
+    28%  { transform: scale(1); }
+    42%  { transform: scale(1.05); }
+    70%  { transform: scale(1); }
+}
+.heartbeat { animation: heartbeat 1.5s ease-in-out infinite; }
+
+/* ── Responsive tweaks ── */
+@media (max-width: 576px) {
+    .product-img { height: 160px; }
+}
+
+/* ── Merged Navbar Styles ── */
+.navbar-nav .nav-link {
+    position: relative;
+    font-weight: 500;
+    font-size: 15px;
+    letter-spacing: 0.3px;
+    transition: all 0.3s ease;
+    padding: 8px 16px;
+}
+
+.navbar-nav .nav-link:hover {
+    color: #ffc107 !important;
+    transform: translateY(-1px);
+}
+
+.navbar-nav .nav-link::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 5px;
+    width: 0;
+    height: 2px;
+    background: #ffc107;
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+}
+
+.navbar-nav .nav-link:hover::after,
+.navbar-nav .nav-link.active::after {
+    width: 60%;
+}
+
+.navbar-nav .nav-link.active {
+    color: #ffc107 !important;
+    font-weight: 700;
+}
+
+.cart-badge-pill {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: #ffc107;
+    color: #000;
+    font-size: .65rem;
+    font-weight: 700;
+    border-radius: 50%;
+    min-width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ── Authentication Pages ── */
+.auth-section {
+    min-height: calc(100vh - 400px); /* Đảm bảo chiều cao tối thiểu trừ đi header/footer */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 0;
+    background: #f8f9fa;
+}
+
+.auth-card {
+    background: #fff;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    padding: 40px;
+    width: 100%;
+    max-width: 450px;
+    border: 1px solid var(--border);
+}
+
+.auth-card h3 {
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 24px;
+}
+
+.auth-card .form-label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-main);
+}
+
+.btn-google {
+    background: #fff;
+    border: 1px solid #ddd;
+    color: #444;
+    font-weight: 600;
+    transition: all .2s;
+}
+
+.btn-google:hover {
+    background: #f8f9fa;
+    border-color: #ccc;
+    box-shadow: 0 2px 4px rgba(0,0,0,.05);
+}
+

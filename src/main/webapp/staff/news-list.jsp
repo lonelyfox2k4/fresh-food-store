@@ -7,15 +7,12 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 </head>
 <body class="bg-light">
-<c:import url="/staff/common/nav.jsp" />
-
-<div class="container-fluid py-3 px-4">
+<div class="container py-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h3 class="fw-bold"><i class="bi bi-newspaper me-2"></i>Quản lý Bài viết</h3>
-            <p class="text-muted small">Đăng tin tức và khuyến mãi lên website.</p>
-        </div>
-        <a href="news?action=create" class="btn btn-primary shadow-sm"><i class="bi bi-plus-circle"></i> Viết bài mới</a>
+        <h2 class="fw-bold text-primary"><i class="bi bi-newspaper"></i> Quản lý bài viết</h2>
+        <c:if test="${sessionScope.user.roleId != 1}">
+            <a href="news?action=create" class="btn btn-primary shadow-sm"><i class="bi bi-plus-circle"></i> Viết bài mới</a>
+        </c:if>
     </div>
 
     <div class="card border-0 shadow-sm">
@@ -27,7 +24,9 @@
                     <th>Tiêu đề & Tóm tắt</th>
                     <th>Trạng thái</th>
                     <th>Ngày tạo</th>
-                    <th class="text-end pe-4">Thao tác</th>
+                    <c:if test="${sessionScope.user.roleId != 1}">
+                        <th class="text-end pe-4">Thao tác</th>
+                    </c:if>
                 </tr>
                 </thead>
                 <tbody>
@@ -45,49 +44,52 @@
                             </c:choose>
                         </td>
                         <td class="small text-muted">${n.createdAt}</td>
-                        <td class="text-end pe-4">
-                            <div class="btn-group">
-                                <a href="news?action=edit&newsId=${n.newsId}" class="btn btn-sm btn-outline-primary" title="Chỉnh sửa">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
+                        <c:if test="${sessionScope.user.roleId != 1}">
+                            <td class="text-end pe-4">
+                                <div class="btn-group">
+                                    <a href="news?action=edit&newsId=${n.newsId}" class="btn btn-sm btn-outline-primary" title="Chỉnh sửa">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
 
-                                <c:if test="${n.status == 0}">
-                                    <form action="news" method="POST" class="d-inline ms-1">
-                                        <input type="hidden" name="action" value="changeStatus">
+                                    <c:if test="${n.status == 0}">
+                                        <form action="news" method="POST" class="d-inline ms-1">
+                                            <input type="hidden" name="action" value="changeStatus">
+                                            <input type="hidden" name="newsId" value="${n.newsId}">
+                                            <input type="hidden" name="status" value="2">
+                                            <button type="submit" class="btn btn-sm btn-success" title="Đăng bài">
+                                                <i class="bi bi-cloud-arrow-up"></i>
+                                            </button>
+                                        </form>
+                                    </c:if>
+
+                                    <c:if test="${n.status == 2}">
+                                        <form action="news" method="POST" class="d-inline ms-1">
+                                            <input type="hidden" name="action" value="changeStatus">
+                                            <input type="hidden" name="newsId" value="${n.newsId}">
+                                            <input type="hidden" name="status" value="0">
+                                            <button type="submit" class="btn btn-sm btn-warning text-white" title="Gỡ bài">
+                                                <i class="bi bi-cloud-arrow-down"></i>
+                                            </button>
+                                        </form>
+                                    </c:if>
+
+                                    <form action="news" method="POST" class="d-inline ms-1" onsubmit="return confirm('Bạn có chắc muốn XÓA VĨNH VIỄN bài này?')">
+                                        <input type="hidden" name="action" value="delete">
                                         <input type="hidden" name="newsId" value="${n.newsId}">
-                                        <input type="hidden" name="status" value="2">
-                                        <button type="submit" class="btn btn-sm btn-success" title="Đăng bài">
-                                            <i class="bi bi-cloud-arrow-up"></i>
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash"></i>
                                         </button>
                                     </form>
-                                </c:if>
-
-                                <c:if test="${n.status == 2}">
-                                    <form action="news" method="POST" class="d-inline ms-1">
-                                        <input type="hidden" name="action" value="changeStatus">
-                                        <input type="hidden" name="newsId" value="${n.newsId}">
-                                        <input type="hidden" name="status" value="0">
-                                        <button type="submit" class="btn btn-sm btn-warning text-white" title="Gỡ bài">
-                                            <i class="bi bi-cloud-arrow-down"></i>
-                                        </button>
-                                    </form>
-                                </c:if>
-
-                                <form action="news" method="POST" class="d-inline ms-1" onsubmit="return confirm('Bạn có chắc muốn XÓA VĨNH VIỄN bài này?')">
-                                    <input type="hidden" name="action" value="delete">
-                                    <input type="hidden" name="newsId" value="${n.newsId}">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
-                            </div>
-                        </td>
+                                </div>
+                            </td>
+                        </c:if>
                     </tr>
                 </c:forEach>
                 </tbody>
             </table>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </div>
 </body>
 </html>
