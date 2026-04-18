@@ -148,7 +148,7 @@
 
                         <%-- Wishlist form (sibling, NOT nested) --%>
                         <c:if test="${not empty sessionScope.user}">
-                            <form action="${pageContext.request.contextPath}/wishlist/toggle" method="post">
+                            <form action="${pageContext.request.contextPath}/wishlist/add" method="post">
                                 <input type="hidden" name="productId" value="${product.productId}">
                                 <input type="hidden" name="redirect"
                                        value="${pageContext.request.contextPath}/product-detail?id=${product.productId}">

@@ -8,7 +8,7 @@ public class DBConnection {
         try {
             String url = "jdbc:sqlserver://localhost:1433;databaseName=fresh_food_store;encrypt=false";
             String user = "sa";
-            String password = "a"; // User's local DB password
+            String password = "123456"; // User's local DB password
 
             Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
             return DriverManager.getConnection(url, user, password);

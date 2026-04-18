@@ -58,7 +58,7 @@ public class AuthController extends HttpServlet {
             if (acc.getRoleId() == 1) {
                 resp.sendRedirect("admin/dashboard");
             } else {
-                resp.sendRedirect("home.jsp");
+                resp.sendRedirect("home");
             }
         } else {
             req.setAttribute("errorMsg", "Tài khoản hoặc mật khẩu không chính xác!");

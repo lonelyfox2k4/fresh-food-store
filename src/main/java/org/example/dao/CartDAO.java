@@ -235,4 +235,53 @@ public class CartDAO {
         }
         return false;
     }
+
+    /** Retrieves detailed items for Checkout/Order placement. */
+    public List<org.example.dto.CartItemDTO> getCartItemDTOsByAccountId(long accountId) {
+        List<org.example.dto.CartItemDTO> list = new ArrayList<>();
+        String sql = "SELECT ci.cartItemId, ci.cartId, ci.productPackId, p.productId, p.productName, p.imageUrl, " +
+                "pp.packWeightGram, p.basePriceAmount, p.priceBaseWeightGram, p.expiryPricingPolicyId, ci.quantity " +
+                "FROM dbo.CartItems ci " +
+                "INNER JOIN dbo.Carts c ON c.cartId = ci.cartId " +
+                "INNER JOIN dbo.ProductPacks pp ON pp.productPackId = ci.productPackId " +
+                "INNER JOIN dbo.Products p ON p.productId = pp.productId " +
+                "WHERE c.accountId = ? " +
+                "ORDER BY ci.addedAt DESC";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, accountId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    org.example.dto.CartItemDTO dto = new org.example.dto.CartItemDTO();
+                    dto.setCartItemId(rs.getLong("cartItemId"));
+                    dto.setCartId(rs.getLong("cartId"));
+                    dto.setProductPackId(rs.getLong("productPackId"));
+                    dto.setProductId(rs.getLong("productId"));
+                    dto.setProductName(rs.getString("productName"));
+                    dto.setImageUrl(rs.getString("imageUrl"));
+                    dto.setPackWeightGram(rs.getInt("packWeightGram"));
+                    dto.setBasePriceAmount(rs.getBigDecimal("basePriceAmount"));
+                    dto.setPriceBaseWeightGram(rs.getInt("priceBaseWeightGram"));
+                    int policyId = rs.getInt("expiryPricingPolicyId");
+                    dto.setExpiryPricingPolicyId(rs.wasNull() ? null : policyId);
+                    dto.setQuantity(rs.getInt("quantity"));
+
+                    // Calculations
+                    BigDecimal base = dto.getBasePriceAmount();
+                    BigDecimal weight = BigDecimal.valueOf(dto.getPackWeightGram());
+                    BigDecimal baseWeight = BigDecimal.valueOf(dto.getPriceBaseWeightGram());
+                    
+                    BigDecimal unitPrice = base.multiply(weight)
+                            .divide(baseWeight, 2, java.math.RoundingMode.HALF_UP);
+                    
+                    dto.setComputedPackBasePrice(unitPrice);
+                    dto.setLineTotal(unitPrice.multiply(BigDecimal.valueOf(dto.getQuantity())));
+                    
+                    list.add(dto);
+                }
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return list;
+    }
 }

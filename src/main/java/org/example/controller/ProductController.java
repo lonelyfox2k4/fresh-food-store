@@ -3,6 +3,8 @@ package org.example.controller;
 import org.example.dao.CategoryDAO;
 import org.example.dao.ProductDAO;
 import org.example.dao.ProductPackDAO;
+import org.example.dao.WishlistDAO;
+import org.example.model.auth.Account;
 import org.example.model.catalog.Category;
 import org.example.model.catalog.Product;
 import org.example.model.catalog.ProductPack;
@@ -19,6 +21,7 @@ public class ProductController extends HttpServlet {
     private final ProductDAO     productDAO  = new ProductDAO();
     private final CategoryDAO    categoryDAO = new CategoryDAO();
     private final ProductPackDAO packDAO     = new ProductPackDAO();
+    private final WishlistDAO    wishlistDAO = new WishlistDAO();
 
     private static final int PAGE_SIZE = 12;
 
@@ -88,6 +91,17 @@ public class ProductController extends HttpServlet {
 
         req.setAttribute("product",     product);
         req.setAttribute("packs",       packs);
+
+        // Check wishlist status
+        boolean inWishlist = false;
+        HttpSession session = req.getSession(false);
+        if (session != null) {
+            Account user = (Account) session.getAttribute("user");
+            if (user != null) {
+                inWishlist = wishlistDAO.exists(user.getAccountId(), productId);
+            }
+        }
+        req.setAttribute("inWishlist", inWishlist);
 
         req.getRequestDispatcher("/product-detail.jsp").forward(req, resp);
     }
