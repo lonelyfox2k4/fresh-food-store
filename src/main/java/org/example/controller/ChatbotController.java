@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Locale;
 
 @WebServlet("/api/chatbot")
-public class ChatbotServlet extends HttpServlet {
+public class ChatbotController extends HttpServlet {
 
     private final ProductDAO productDAO = new ProductDAO();
     private final CategoryDAO categoryDAO = new CategoryDAO();

@@ -90,6 +90,7 @@ public class AuthController extends HttpServlet {
         HttpSession session = req.getSession();
         session.setAttribute("registerOtp", otp);
         session.setAttribute("tempUser", new Account(0, 5, email, password, name, phone, true, false, null));
+        session.setAttribute("lastOtpSentTime", System.currentTimeMillis());
 
         // 4. GỬI MAIL OTP
         try {

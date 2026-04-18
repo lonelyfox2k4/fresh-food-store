@@ -166,3 +166,49 @@ body {
     justify-content: center;
 }
 
+/* ── Authentication Pages ── */
+.auth-section {
+    min-height: calc(100vh - 400px); /* Đảm bảo chiều cao tối thiểu trừ đi header/footer */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 0;
+    background: #f8f9fa;
+}
+
+.auth-card {
+    background: #fff;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    padding: 40px;
+    width: 100%;
+    max-width: 450px;
+    border: 1px solid var(--border);
+}
+
+.auth-card h3 {
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 24px;
+}
+
+.auth-card .form-label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-main);
+}
+
+.btn-google {
+    background: #fff;
+    border: 1px solid #ddd;
+    color: #444;
+    font-weight: 600;
+    transition: all .2s;
+}
+
+.btn-google:hover {
+    background: #f8f9fa;
+    border-color: #ccc;
+    box-shadow: 0 2px 4px rgba(0,0,0,.05);
+}
+

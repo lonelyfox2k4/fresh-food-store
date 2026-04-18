@@ -41,9 +41,20 @@ public class ForgotPasswordController extends HttpServlet {
         if ("send-otp".equals(action)) {
             String email = req.getParameter("email");
             if (dao.getAccountByEmail(email) != null) {
+                // Kiểm tra thời gian chờ 60s
+                Long lastSentTime = (Long) session.getAttribute("lastOtpSentTime");
+                long currentTime = System.currentTimeMillis();
+                if (lastSentTime != null && (currentTime - lastSentTime) < 60000) {
+                    long remaining = 60 - (currentTime - lastSentTime) / 1000;
+                    req.setAttribute("error", "Vui lòng đợi " + remaining + " giây nữa để yêu cầu mã mới.");
+                    req.getRequestDispatcher("/main/forgot-password.jsp").forward(req, resp);
+                    return;
+                }
+
                 String otp = String.valueOf((int) (Math.random() * 899999) + 100000);
                 session.setAttribute("otp", otp);
                 session.setAttribute("resetEmail", email);
+                session.setAttribute("lastOtpSentTime", currentTime);
 
                 try {
                     EmailUtils.sendEmail(email, "Mã xác thực OTP", "Mã OTP của bạn là: " + otp);

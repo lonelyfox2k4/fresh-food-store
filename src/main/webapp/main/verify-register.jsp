@@ -1,61 +1,104 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<html>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<!DOCTYPE html>
+<html lang="vi">
 <head>
-    <title>Xác thực đăng ký</title>
-    <style>
-        body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f4f4f4; }
-        .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 350px; text-align: center; }
-        input[type="text"] { width: 100%; padding: 12px; margin: 15px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; font-size: 18px; text-align: center; letter-spacing: 5px; }
-        .btn-submit { width: 100%; padding: 12px; background-color: #28a745; border: none; color: white; border-radius: 4px; cursor: pointer; font-size: 16px; }
-        .btn-submit:hover { background-color: #218838; }
-        .msg { color: #28a745; margin-bottom: 10px; font-size: 14px; border: 1px solid #28a745; padding: 5px; border-radius: 4px; background: #e9f7ef; }
-        .error { color: #dc3545; margin-bottom: 10px; font-size: 14px; border: 1px solid #dc3545; padding: 5px; border-radius: 4px; background: #fdf2f2; }
-
-        /* Style cho nút gửi lại */
-        .resend-btn { background: none; border: none; color: #007bff; cursor: pointer; padding: 0; text-decoration: underline; font-size: 12px; }
-        .resend-btn:disabled { color: #ccc; cursor: not-allowed; text-decoration: none; }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xác thực Email | Fresh Food Store</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
 </head>
 <body>
-<div class="container">
-    <h2>Xác thực Email</h2>
-    <p style="font-size: 13px; color: #666;">Vui lòng nhập mã OTP đã được gửi đến email của bạn.</p>
+<jsp:include page="../components/header.jsp"/>
 
-    <%-- Hiển thị thông báo lỗi hoặc thành công --%>
-    <% if (request.getAttribute("errorMsg") != null) { %>
-    <div class="error"><%= request.getAttribute("errorMsg") %></div>
-    <% } %>
-    <% if (request.getAttribute("msg") != null) { %>
-    <div class="msg"><%= request.getAttribute("msg") %></div>
-    <% } %>
+<section class="auth-section">
+    <div class="container d-flex justify-content-center">
+        <div class="auth-card text-center">
+            <div class="mb-4">
+                <i class="fas fa-envelope-open-text fa-3x text-brand mb-2"></i>
+                <h3 class="fw-bold mb-1">Xác thực Email</h3>
+                <p class="text-muted small">Vui lòng nhập mã OTP đã được gửi đến email của bạn</p>
+            </div>
 
-    <%-- Form xác nhận OTP --%>
-    <form action="${pageContext.request.contextPath}/verify-register" method="post">
-        <input type="text" name="otp" placeholder="000000" maxlength="6" required autofocus>
-        <button type="submit" class="btn-submit">Xác nhận đăng ký</button>
-    </form>
+            <c:if test="${not empty errorMsg}">
+                <div class="alert alert-danger text-center p-2 mb-3" style="font-size: 0.9rem; border-radius: 8px;">
+                    <i class="fas fa-exclamation-circle me-2"></i>${errorMsg}
+                </div>
+            </c:if>
+            <c:if test="${not empty msg}">
+                <div class="alert alert-success text-center p-2 mb-3" style="font-size: 0.9rem; border-radius: 8px;">
+                    <i class="fas fa-check-circle me-2"></i>${msg}
+                </div>
+            </c:if>
 
-    <p style="margin-top: 15px; font-size: 12px;">
-        Không nhận được mã?
-        <%-- Form gửi lại OTP (Chạy ngầm để không mất dữ liệu Session) --%>
-    <form action="${pageContext.request.contextPath}/resend-otp" method="post" style="display: inline;" id="resendForm">
-        <button type="submit" class="resend-btn" id="resendBtn">Gửi lại mã</button>
-    </form>
-    </p>
+            <form action="${pageContext.request.contextPath}/verify-register" method="post">
+                <div class="mb-4">
+                    <input type="text" name="otp" class="form-control text-center fw-bold rounded-3 py-3" 
+                           placeholder="000000" maxlength="6" required autofocus
+                           style="font-size: 24px; letter-spacing: 10px; border: 2px solid #eee;">
+                </div>
+                
+                <button type="submit" class="btn btn-brand w-100 py-2 fw-bold mb-3 shadow-sm">
+                    Xác nhận đăng ký <i class="fas fa-check-circle ms-1"></i>
+                </button>
+            </form>
 
-    <a href="register" style="display: block; margin-top: 10px; font-size: 11px; color: #999; text-decoration: none;">Quay lại trang Đăng ký</a>
-</div>
+            <p class="small text-muted mb-2">Không nhận được mã?</p>
+            <form action="${pageContext.request.contextPath}/resend-otp" method="post" id="resendForm">
+                <button type="submit" class="btn btn-link btn-sm text-decoration-none fw-bold" id="resendBtn">
+                    <i class="fas fa-sync-alt me-1"></i> Gửi lại mã
+                </button>
+            </form>
+
+            <div class="mt-4 pt-3 border-top">
+                <a href="register" class="text-decoration-none small text-muted">
+                    <i class="fas fa-arrow-left me-1"></i> Quay lại trang Đăng ký
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<jsp:include page="../components/footer.jsp"/>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    // Script chống spam nút gửi lại
     const resendBtn = document.getElementById('resendBtn');
     const resendForm = document.getElementById('resendForm');
+    let timer;
+
+    function startTimer(seconds) {
+        let countdown = seconds;
+        resendBtn.disabled = true;
+        resendBtn.classList.add('disabled');
+        resendBtn.style.cursor = "not-allowed";
+        
+        timer = setInterval(() => {
+            countdown--;
+            resendBtn.innerHTML = `<i class="fas fa-sync-alt me-1 shadow-none"></i> Gửi lại mã (${countdown}s)`;
+            
+            if (countdown <= 0) {
+                clearInterval(timer);
+                resendBtn.disabled = false;
+                resendBtn.classList.remove('disabled');
+                resendBtn.style.cursor = "pointer";
+                resendBtn.innerHTML = `<i class="fas fa-sync-alt me-1 shadow-none"></i> Gửi lại mã`;
+            }
+        }, 1000);
+    }
 
     resendForm.onsubmit = function() {
-        resendBtn.disabled = true;
-        resendBtn.innerText = "Đang gửi lại...";
+        if (resendBtn.disabled) return false;
         return true;
+    };
+
+    window.onload = function() {
+        <% if (request.getAttribute("msg") != null) { %>
+            startTimer(60);
+        <% } %>
     };
 </script>
 </body>
-</html>
+</html>

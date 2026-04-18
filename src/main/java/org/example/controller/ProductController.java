@@ -3,13 +3,9 @@ package org.example.controller;
 import org.example.dao.CategoryDAO;
 import org.example.dao.ProductDAO;
 import org.example.dao.ProductPackDAO;
-import org.example.dao.ReviewDAO;
-import org.example.dao.WishlistDAO;
-import org.example.model.auth.Account;
 import org.example.model.catalog.Category;
 import org.example.model.catalog.Product;
 import org.example.model.catalog.ProductPack;
-import org.example.dto.ReviewDTO;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -23,8 +19,6 @@ public class ProductController extends HttpServlet {
     private final ProductDAO     productDAO  = new ProductDAO();
     private final CategoryDAO    categoryDAO = new CategoryDAO();
     private final ProductPackDAO packDAO     = new ProductPackDAO();
-    private final ReviewDAO      reviewDAO   = new ReviewDAO();
-    private final WishlistDAO    wishlistDAO = new WishlistDAO();
 
     private static final int PAGE_SIZE = 12;
 
@@ -91,27 +85,9 @@ public class ProductController extends HttpServlet {
         if (product == null) { resp.sendRedirect("products"); return; }
 
         List<ProductPack> packs    = packDAO.getPacksByProductId(productId);
-        List<ReviewDTO>   reviews  = reviewDAO.getReviewsByProduct(productId);
-        double            avgRating = reviewDAO.getAverageRating(productId);
-        int               reviewCount = reviews.size();
-
-        // Wishlist & Review Eligibility status (if logged in)
-        boolean inWishlist = false;
-        boolean canReview = false;
-        HttpSession session = req.getSession(false);
-        if (session != null && session.getAttribute("user") != null) {
-            Account user = (Account) session.getAttribute("user");
-            inWishlist = wishlistDAO.isInWishlist(user.getAccountId(), productId);
-            canReview = reviewDAO.canReview(user.getAccountId(), productId);
-        }
 
         req.setAttribute("product",     product);
         req.setAttribute("packs",       packs);
-        req.setAttribute("reviews",     reviews);
-        req.setAttribute("avgRating",   avgRating);
-        req.setAttribute("reviewCount", reviewCount);
-        req.setAttribute("inWishlist",  inWishlist);
-        req.setAttribute("canReview",   canReview);
 
         req.getRequestDispatcher("/product-detail.jsp").forward(req, resp);
     }

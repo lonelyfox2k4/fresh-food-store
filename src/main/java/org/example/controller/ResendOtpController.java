@@ -26,11 +26,22 @@ public class ResendOtpController extends HttpServlet {
         Account tempUser = (Account) session.getAttribute("tempUser");
 
         if (tempUser != null) {
+            // Kiểm tra thời gian chờ 60s
+            Long lastSentTime = (Long) session.getAttribute("lastOtpSentTime");
+            long currentTime = System.currentTimeMillis();
+            if (lastSentTime != null && (currentTime - lastSentTime) < 60000) {
+                long remaining = 60 - (currentTime - lastSentTime) / 1000;
+                req.setAttribute("errorMsg", "Vui lòng đợi " + remaining + " giây nữa để gửi lại mã.");
+                req.getRequestDispatcher("/main/verify-register.jsp").forward(req, resp);
+                return;
+            }
+
             // 1. Tạo mã OTP mới ngẫu nhiên 6 số
             String newOtp = String.valueOf((int) (Math.random() * 899999) + 100000);
 
             // 2. Cập nhật mã mới vào Session (để lúc xác nhận khớp với mã này)
             session.setAttribute("registerOtp", newOtp);
+            session.setAttribute("lastOtpSentTime", currentTime);
 
             try {
                 // 3. Gửi lại Email với mã mới
