@@ -17,7 +17,7 @@
                         <i class="fas fa-user-circle me-1"></i>
                         Xin chào, <strong>${sessionScope.user.fullName}</strong>
                     </small>
-                    <c:if test="${sessionScope.user.roleId <= 3}">
+                    <c:if test="${sessionScope.user.roleId == 1}">
                         <a href="${pageContext.request.contextPath}/admin/dashboard" class="text-decoration-none text-danger fw-bold small">
                             <i class="fas fa-cogs"></i> Quản trị
                         </a>
