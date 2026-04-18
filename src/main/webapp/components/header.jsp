@@ -1,18 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<style>
-    .bg-brand   { background-color: #E3000F !important; }
-    .text-brand { color: #E3000F !important; }
-    .nav-link   { font-weight: 500; }
-    .nav-link:hover { color: #f8d7da !important; }
-    .cart-badge-pill {
-        position: absolute; top: -6px; right: -6px;
-        background: #ffc107; color: #000;
-        font-size: .65rem; font-weight: 700;
-        border-radius: 50%; min-width: 18px; height: 18px;
-        display: flex; align-items: center; justify-content: center;
-    }
-</style>
+<%-- Styles are moved to assets/css/style.css --%>
 
 <%-- Top info bar --%>
 <div class="bg-light py-1 border-bottom">

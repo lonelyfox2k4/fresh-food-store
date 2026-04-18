@@ -10,9 +10,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -42,8 +39,7 @@ public class HomeController extends HttpServlet {
             request.setAttribute("flashSaleProducts", flashSaleList);
             request.setAttribute("bestSellerProducts", bestSellerList);
             request.setAttribute("categories", categoryList);
-            // 3. Forward sang trang index.jsp
-            request.getRequestDispatcher("/index.jsp").forward(request, response);
+            request.getRequestDispatcher("/home.jsp").forward(request, response);
 
         } catch (Exception e) {
             e.printStackTrace();
