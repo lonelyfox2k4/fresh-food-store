@@ -17,7 +17,7 @@
             <p class="text-muted small">Danh sách toàn bộ đơn hàng trong hệ thống.</p>
         </div>
         <div class="d-flex gap-2">
-            <a href="orders" class="btn btn-outline-secondary shadow-sm">
+            <a href="${pageContext.request.contextPath}/staff/orders" class="btn btn-outline-secondary shadow-sm">
                 <i class="bi bi-arrow-clockwise"></i> Làm mới
             </a>
         </div>
@@ -99,7 +99,10 @@
                                 <div class="mt-1">
                                     <c:choose>
                                         <c:when test="${o.paymentStatus == 1}">
-                                            <span class="badge rounded-pill bg-success fw-normal"><i class="bi bi-check-lg"></i> Đã thanh toán</span>
+                                            <span class="badge rounded-pill bg-success fw-normal"><i class="bi bi-credit-card"></i> Đã TT Online</span>
+                                        </c:when>
+                                        <c:when test="${o.paymentStatus == 2}">
+                                            <span class="badge rounded-pill bg-success fw-normal"><i class="bi bi-cash-coin"></i> Đã thu (COD)</span>
                                         </c:when>
                                         <c:otherwise>
                                             <span class="badge rounded-pill bg-light text-dark border fw-normal text-muted"><i class="bi bi-clock"></i> Chờ thanh toán</span>
@@ -129,7 +132,7 @@
                                 <c:if test="${o.orderStatus < 5}">
                                     <c:choose>
                                         <c:when test="${o.shippingStatus >= 1}">
-                                            <form action="orders" method="post" class="d-flex align-items-center m-0">
+                                            <form action="${pageContext.request.contextPath}/staff/orders" method="post" class="d-flex align-items-center m-0">
                                                 <input type="hidden" name="action" value="assignShipper">
                                                 <input type="hidden" name="orderId" value="${o.orderId}">
                                                 <select name="shipperId" class="form-select form-select-sm me-1 shadow-none" style="min-width: 120px;">
@@ -174,14 +177,14 @@
                                   </button>
                                   <ul class="dropdown-menu dropdown-menu-end shadow">
                                     <li>
-                                        <a class="dropdown-item py-2" href="orders?action=detail&id=${o.orderId}"><i class="bi bi-eye text-primary me-2"></i> Chi tiết</a>
+                                        <a class="dropdown-item py-2" href="${pageContext.request.contextPath}/staff/orders?action=detail&id=${o.orderId}"><i class="bi bi-eye text-primary me-2"></i> Chi tiết</a>
                                     </li>
                                     <li><hr class="dropdown-divider"></li>
                                     
                                     <c:choose>
                                         <c:when test="${o.orderStatus == 1}">
                                             <li>
-                                                <form action="orders" method="post" class="m-0">
+                                                <form action="${pageContext.request.contextPath}/staff/orders" method="post" class="m-0">
                                                     <input type="hidden" name="action" value="confirm"><input type="hidden" name="orderId" value="${o.orderId}">
                                                     <button type="submit" class="dropdown-item text-primary py-2"><i class="bi bi-check-circle me-2"></i> Xác nhận & Đóng gói</button>
                                                 </form>
@@ -190,7 +193,7 @@
                                         <c:when test="${o.orderStatus == 2}">
                                             <c:if test="${empty o.shippingStatus or o.shippingStatus == 0}">
                                                 <li>
-                                                    <form action="orders" method="post" class="m-0">
+                                                    <form action="${pageContext.request.contextPath}/staff/orders" method="post" class="m-0">
                                                         <input type="hidden" name="action" value="ready"><input type="hidden" name="orderId" value="${o.orderId}">
                                                         <button type="submit" class="dropdown-item text-info py-2"><i class="bi bi-box-arrow-right me-2"></i> Hoàn tất đóng gói</button>
                                                     </form>
@@ -211,7 +214,7 @@
 
                                     <c:if test="${o.paymentStatus != 2 && o.orderStatus != 6}">
                                         <li>
-                                            <form action="orders" method="post" class="m-0">
+                                            <form action="${pageContext.request.contextPath}/staff/orders" method="post" class="m-0">
                                                 <input type="hidden" name="action" value="updatePayment"><input type="hidden" name="paymentStatus" value="2"><input type="hidden" name="orderId" value="${o.orderId}">
                                                 <button type="submit" class="dropdown-item text-success py-2"><i class="bi bi-cash me-2"></i> Đã thu tiền (COD)</button>
                                             </form>
@@ -233,7 +236,7 @@
                                 <div class="modal fade" id="cancelModal${o.orderId}" tabindex="-1" aria-hidden="true">
                                     <div class="modal-dialog modal-dialog-centered">
                                         <div class="modal-content border-0 shadow">
-                                            <form action="orders" method="post" class="m-0">
+                                            <form action="${pageContext.request.contextPath}/staff/orders" method="post" class="m-0">
                                                 <div class="modal-header bg-danger text-white">
                                                     <h5 class="modal-title"><i class="bi bi-x-circle me-2"></i>Hủy đơn hàng #${o.orderCode}</h5>
                                                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>

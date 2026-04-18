@@ -10,6 +10,7 @@ public class Feedback {
     private long accountId;
     private Long orderId;
     private Long reviewId;
+    private String productName; // tên sản phẩm được đánh giá (join từ Products)
     private String subject;
     private String content;
     private Integer rating;
@@ -29,6 +30,8 @@ public class Feedback {
     public void setOrderId(Long orderId) { this.orderId = orderId; }
     public Long getReviewId() { return reviewId; }
     public void setReviewId(Long reviewId) { this.reviewId = reviewId; }
+    public String getProductName() { return productName; }
+    public void setProductName(String productName) { this.productName = productName; }
     public String getSubject() { return subject; }
     public void setSubject(String subject) { this.subject = subject; }
     public String getContent() { return content; }
