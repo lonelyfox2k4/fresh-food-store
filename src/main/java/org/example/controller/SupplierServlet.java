@@ -24,7 +24,7 @@ public class SupplierServlet extends HttpServlet {
             response.sendRedirect("suppliers");
         } else {
             request.setAttribute("suppliers", supplierDAO.getAllSuppliers());
-            request.getRequestDispatcher("/admin/suppliers.jsp").forward(request, response);
+            request.getRequestDispatcher("/manager/suppliers.jsp").forward(request, response);
         }
     }
 

@@ -14,6 +14,6 @@ public class PricingServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         request.setAttribute("pricingList", pricingDAO.getInventoryWithPricing());
-        request.getRequestDispatcher("/admin/pricing.jsp").forward(request, response);
+        request.getRequestDispatcher("/manager/pricing.jsp").forward(request, response);
     }
 }

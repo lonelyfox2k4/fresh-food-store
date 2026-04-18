@@ -140,4 +140,55 @@ public class VoucherDAO {
         }
         return null;
     }
+
+    // ==================== CUSTOMER METHODS ====================
+    public Voucher getValidVoucherByCode(String code, java.math.BigDecimal orderAmount) {
+        String sql = "SELECT * FROM dbo.Vouchers " +
+                     "WHERE voucherCode = ? AND status = 1 " +
+                     "AND startAt <= SYSUTCDATETIME() AND endAt >= SYSUTCDATETIME() " +
+                     "AND (usageLimit IS NULL OR usedCount < usageLimit) " +
+                     "AND minOrderAmount <= ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, code.trim().toUpperCase());
+            ps.setBigDecimal(2, orderAmount);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return mapRow(rs);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public java.math.BigDecimal calculateDiscount(Voucher voucher, java.math.BigDecimal orderAmount) {
+        if (voucher == null) return java.math.BigDecimal.ZERO;
+        java.math.BigDecimal discount;
+        if (voucher.getDiscountType() == 1) {
+            discount = orderAmount.multiply(voucher.getDiscountValue())
+                                  .divide(java.math.BigDecimal.valueOf(100), 2, java.math.RoundingMode.HALF_UP);
+        } else {
+            discount = voucher.getDiscountValue();
+        }
+        if (voucher.getMaxDiscountAmount() != null) {
+            discount = discount.min(voucher.getMaxDiscountAmount());
+        }
+        return discount.min(orderAmount);
+    }
+
+    private Voucher mapRow(ResultSet rs) throws SQLException {
+        Voucher v = new Voucher();
+        v.setVoucherId(rs.getLong("voucherId"));
+        v.setVoucherCode(rs.getString("voucherCode"));
+        v.setVoucherName(rs.getString("voucherName"));
+        v.setDiscountType(rs.getByte("discountType"));
+        v.setDiscountValue(rs.getBigDecimal("discountValue"));
+        v.setMinOrderAmount(rs.getBigDecimal("minOrderAmount"));
+        v.setMaxDiscountAmount(rs.getBigDecimal("maxDiscountAmount"));
+        int usageLimit = rs.getInt("usageLimit");
+        v.setUsageLimit(rs.wasNull() ? null : usageLimit);
+        v.setUsedCount(rs.getInt("usedCount"));
+        v.setStatus(rs.getByte("status"));
+        return v;
+    }
 }
