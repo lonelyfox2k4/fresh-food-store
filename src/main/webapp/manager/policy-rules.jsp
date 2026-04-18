@@ -145,9 +145,11 @@
                     <p class="text-white-50 lead fs-6 mb-0">Thiết lập mốc thời gian và tỷ lệ phần trăm giá bán cho chính sách: <span class="text-white fw-semibold">${policy.policyName}</span></p>
                 </div>
                 <div class="col text-md-end mt-4 mt-md-0">
-                    <button type="button" class="btn btn-outline-light rounded-pill px-4" onclick="addRow()">
-                        <i class="bi bi-plus-lg me-2"></i>Thêm mốc mớI
-                    </button>
+                    <c:if test="${sessionScope.user.roleId != 1}">
+                        <button type="button" class="btn btn-outline-light rounded-pill px-4" onclick="addRow()">
+                            <i class="bi bi-plus-lg me-2"></i>Thêm mốc mới
+                        </button>
+                    </c:if>
                 </div>
             </div>
         </div>
@@ -164,21 +166,23 @@
                         <div class="rule-row row align-items-end g-3">
                             <div class="col-md-5">
                                 <label class="form-label">Min Days Remaining (Số ngày tối thiểu)</label>
-                                <input type="number" name="minDaysRemaining" class="form-control form-control-premium" value="${rule.minDaysRemaining}" required placeholder="VD: 8">
+                                <input type="number" name="minDaysRemaining" class="form-control form-control-premium" value="${rule.minDaysRemaining}" required placeholder="VD: 8" ${sessionScope.user.roleId == 1 ? 'readonly' : ''}>
                                 <div class="form-text small mt-2">Áp dụng khi sản phẩm còn ≤ <strong>${rule.minDaysRemaining}</strong> ngày.</div>
                             </div>
                             <div class="col-md-5">
                                 <label class="form-label">Sell Price Percent (Bán với giá %)</label>
                                 <div class="input-group">
-                                    <input type="number" name="sellPricePercent" class="form-control form-control-premium" value="${rule.sellPricePercent}" required min="0" max="100" placeholder="VD: 80">
+                                    <input type="number" name="sellPricePercent" class="form-control form-control-premium" value="${rule.sellPricePercent}" required min="0" max="100" placeholder="VD: 80" ${sessionScope.user.roleId == 1 ? 'readonly' : ''}>
                                     <span class="input-group-text input-group-text-premium">%</span>
                                 </div>
                                 <div class="form-text small mt-2">Nhập 80 để giảm 20% (Giá mới = 80 % giá gốc).</div>
                             </div>
                             <div class="col-md-2 text-end">
-                                <button type="button" class="btn btn-remove" onclick="removeRow(this)" title="Xóa mốc này">
-                                    <i class="bi bi-trash3-fill"></i>
-                                </button>
+                                <c:if test="${sessionScope.user.roleId != 1}">
+                                    <button type="button" class="btn btn-remove" onclick="removeRow(this)">
+                                        <i class="bi bi-trash3-fill"></i>
+                                    </button>
+                                </c:if>
                             </div>
                         </div>
                     </c:forEach>
@@ -192,9 +196,9 @@
 
                 <div class="p-4 bg-light border-top d-flex justify-content-between align-items-center">
                     <a href="policies" class="text-secondary text-decoration-none fw-medium"><i class="bi bi-arrow-left me-1"></i> Quay lại</a>
-                    <button type="submit" class="btn btn-primary rounded-pill px-5 fw-bold shadow">
-                        <i class="bi bi-cloud-check me-2"></i>Lưu cấu hình quy tắc
-                    </button>
+                    <c:if test="${sessionScope.user.roleId != 1}">
+                        <button type="submit" class="btn btn-primary px-4 py-2 fw-bold">Lưu cấu hình</button>
+                    </c:if>
                 </div>
             </form>
         </div>
@@ -255,5 +259,6 @@
             btn.closest('.rule-row').remove();
         }
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

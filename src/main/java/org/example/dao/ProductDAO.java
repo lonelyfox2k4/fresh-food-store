@@ -193,4 +193,29 @@ public class ProductDAO {
         }
         return p;
     }
+
+    // 8. Tìm kiếm linh hoạt dành riêng cho Chatbot (Tên và Môt tả)
+    public List<Product> searchProductsByChatbot(String keyword) {
+        List<Product> list = new ArrayList<>();
+        // Query những sản phẩm có chứa keyword và đang mở bán
+        String sql = "SELECT TOP 5 p.*, c.categoryName, s.supplierName, ep.policyName FROM dbo.Products p " +
+                     "LEFT JOIN dbo.Categories c ON p.categoryId = c.categoryId " +
+                     "LEFT JOIN dbo.Suppliers s ON p.supplierId = s.supplierId " +
+                     "LEFT JOIN dbo.ExpiryPricingPolicies ep ON p.expiryPricingPolicyId = ep.policyId " +
+                     "WHERE p.status = 1 AND p.productName LIKE ? " +
+                     "ORDER BY p.productId DESC";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setNString(1, "%" + keyword + "%");
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapRowToProduct(rs));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
 }
