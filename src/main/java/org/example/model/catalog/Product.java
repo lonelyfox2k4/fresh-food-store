@@ -4,8 +4,13 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+/**
+ * Model ánh xạ 1:1 với bảng dbo.Products trong Database.
+ * Không thêm các trường hiển thị vào đây để tránh làm sai lệch cấu trúc dữ liệu.
+ */
 @Data
-@NoArgsConstructor @AllArgsConstructor
+@NoArgsConstructor
+@AllArgsConstructor
 public class Product {
     private long productId;
     private int categoryId;
@@ -19,7 +24,7 @@ public class Product {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    // Explicit getters/setters (fallback when Lombok annotation processing unavailable)
+    // Explicit getters/setters (dự phòng trường hợp Lombok không hoạt động)
     public long getProductId() { return productId; }
     public void setProductId(long productId) { this.productId = productId; }
     public int getCategoryId() { return categoryId; }

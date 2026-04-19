@@ -57,6 +57,8 @@ public class AuthController extends HttpServlet {
             req.getSession().setAttribute("cartCount", cartDAO.countCartLines(acc.getAccountId()));
             if (acc.getRoleId() == 1) {
                 resp.sendRedirect("admin/dashboard");
+            } else if (acc.getRoleId() == 2) {
+                resp.sendRedirect("manager/products");
             } else {
                 resp.sendRedirect("home");
             }
