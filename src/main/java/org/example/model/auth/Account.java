@@ -16,20 +16,7 @@ public class Account {
     private boolean emailVerified;
     private Timestamp createdAt;
 
-    public Account() {}
-
-    public Account(long accountId, int roleId, String email, String passwordHash, String fullName, String phone, boolean status, boolean emailVerified, Timestamp createdAt) {
-        this.accountId = accountId;
-        this.roleId = roleId;
-        this.email = email;
-        this.passwordHash = passwordHash;
-        this.fullName = fullName;
-        this.phone = phone;
-        this.status = status;
-        this.emailVerified = emailVerified;
-        this.createdAt = createdAt;
-    }
-
+    // Explicit Getters/Setters (Fallback for Lombok)
     public long getAccountId() { return accountId; }
     public void setAccountId(long accountId) { this.accountId = accountId; }
     public int getRoleId() { return roleId; }
