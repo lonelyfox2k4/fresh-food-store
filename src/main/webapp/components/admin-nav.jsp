@@ -2,14 +2,15 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <style>
     :root {
-        --primary: #4F46E5;
-        --text-muted: #6B7280;
+        --primary: #E3000F;
+        --primary-light: #fff0f0;
+        --text-muted: #64748b;
         --card-bg: #FFFFFF;
     }
     .admin-navbar {
         background-color: var(--card-bg);
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        padding: 1rem 2rem;
+        padding: 0.75rem 1rem;
         margin-bottom: 2rem;
     }
     .admin-navbar .navbar-brand {
@@ -22,18 +23,19 @@
         font-weight: 500;
         color: var(--text-muted);
         transition: all 0.3s ease;
-        padding: 0.5rem 1rem !important;
+        padding: 0.5rem 0.6rem !important;
+        font-size: 0.9rem;
         border-radius: 0.5rem;
-        margin: 0 0.25rem;
+        margin: 0 0.1rem;
         white-space: nowrap;
     }
     .admin-navbar .nav-link:hover, .admin-navbar .nav-link.active {
         color: var(--primary);
-        background-color: #EEF2FF;
+        background-color: var(--primary-light);
     }
 </style>
 <nav class="navbar navbar-expand-lg admin-navbar sticky-top">
-    <div class="container-fluid">
+    <div class="container-fluid px-4">
         <a class="navbar-brand" href="${pageContext.request.contextPath}/admin/dashboard">
             <i class="fas fa-leaf text-success me-2"></i>FFS Admin
         </a>
@@ -42,16 +44,18 @@
         </button>
         <div class="collapse navbar-collapse" id="adminNav">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item">
-                    <a class="nav-link ${param.active == 'dashboard' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/dashboard">
-                        <i class="fas fa-chart-line me-1"></i> Dashboard
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link ${param.active == 'users' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/users">
-                        <i class="fas fa-users-cog me-1"></i> Quản lý người dùng
-                    </a>
-                </li>
+                <c:if test="${sessionScope.user.roleId == 1}">
+                    <li class="nav-item">
+                        <a class="nav-link ${param.active == 'dashboard' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/dashboard">
+                            <i class="fas fa-chart-line me-1"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link ${param.active == 'users' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/users">
+                            <i class="fas fa-users-cog me-1"></i> Người dùng
+                        </a>
+                    </li>
+                </c:if>
                 
                 <!-- Bán Hàng -->
                 <li class="nav-item dropdown">
@@ -97,14 +101,14 @@
             <div class="d-flex align-items-center">
                 <div class="dropdown">
                     <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
-                        <img src="https://ui-avatars.com/api/?name=Admin&background=4F46E5&color=fff" alt="Admin" class="rounded-circle me-2" width="32" height="32">
-                        <span class="fw-semibold">Administrator</span>
+                        <img src="https://ui-avatars.com/api/?name=Admin&background=E3000F&color=fff" alt="Admin" class="rounded-circle me-1" width="32" height="32">
+                        <span class="fw-semibold d-none d-xl-inline">Administrator</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2">
                         <li><a class="dropdown-item" href="#"><i class="fas fa-user-circle me-2"></i> Hồ sơ</a></li>
                         <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i> Cài đặt</a></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item text-danger" href="${pageContext.request.contextPath}/auth/logout"><i class="fas fa-sign-out-alt me-2"></i> Đăng xuất</a></li>
+                        <li><a class="dropdown-item text-danger" href="${pageContext.request.contextPath}/logout"><i class="fas fa-sign-out-alt me-2"></i> Đăng xuất</a></li>
                     </ul>
                 </div>
             </div>

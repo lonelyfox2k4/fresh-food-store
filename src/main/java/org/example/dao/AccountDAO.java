@@ -131,7 +131,7 @@ public class AccountDAO {
     }
 
     public boolean updateStatus(long id, boolean status) {
-        String sql = "UPDATE dbo.Accounts SET status = ?, updatedAt = SYSUTCDATETIME() WHERE accountId = ?";
+        String sql = "UPDATE dbo.Accounts SET status = ? WHERE accountId = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setBoolean(1, status);
@@ -321,5 +321,29 @@ public class AccountDAO {
             e.printStackTrace();
         }
         return null;
+    }
+
+
+    public boolean updateProfile(long accountId, String fullName, String phone) {
+        String sql = "UPDATE dbo.Accounts SET fullName = ?, phone = ? WHERE accountId = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, fullName);
+            ps.setString(2, phone);
+            ps.setLong(3, accountId);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) { e.printStackTrace(); }
+        return false;
+    }
+
+    public boolean updatePassword(long accountId, String newPassword) {
+        String sql = "UPDATE dbo.Accounts SET passwordHash = ? WHERE accountId = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, encodePassword(newPassword));
+            ps.setLong(2, accountId);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) { e.printStackTrace(); }
+        return false;
     }
 }

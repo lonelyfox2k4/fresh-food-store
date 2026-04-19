@@ -5,9 +5,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.sql.Timestamp;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class Account {
     private long accountId;
     private int roleId;

@@ -1,124 +1,215 @@
 package org.example.controller;
 
 import org.example.dao.CartDAO;
-import org.example.dao.ProductPackDAO;
-import org.example.dto.CartItemDTO;
 import org.example.model.auth.Account;
-import org.example.model.catalog.ProductPack;
+import org.example.model.order.CartItemView;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.*;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.List;
 
 @WebServlet(urlPatterns = {"/cart", "/cart/add", "/cart/update", "/cart/remove"})
 public class CartController extends HttpServlet {
-
-    private final CartDAO        cartDAO = new CartDAO();
-    private final ProductPackDAO packDAO = new ProductPackDAO();
+    private final CartDAO cartDAO = new CartDAO();
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
-        if ("/cart".equals(req.getServletPath())) {
-            showCart(req, resp);
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        Account currentUser = getSessionUser(req);
+        if (currentUser == null) {
+            resp.sendRedirect(req.getContextPath() + "/login");
+            return;
+        }
+
+        long accountId = currentUser.getAccountId();
+        cartDAO.findOrCreateCartIdByAccountId(accountId);
+
+        List<CartItemView> cartItems = cartDAO.getCartItemsByAccountId(accountId);
+        BigDecimal cartTotal = cartDAO.getCartTotalAmount(accountId);
+
+        req.setAttribute("cartItems", cartItems);
+        req.setAttribute("cartTotal", cartTotal);
+        moveFlashToRequest(req, "cartSuccessMsg");
+        moveFlashToRequest(req, "cartErrorMsg");
+        req.getRequestDispatcher("/main/cart.jsp").forward(req, resp);
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        req.setCharacterEncoding("UTF-8");
+        Account currentUser = getSessionUser(req);
+        if (currentUser == null) {
+            resp.sendRedirect(req.getContextPath() + "/login");
+            return;
+        }
+
+        String servletPath = req.getServletPath();
+        if ("/cart/add".equals(servletPath)) {
+            handleAdd(req, resp, currentUser);
+            return;
+        }
+        if ("/cart/update".equals(servletPath)) {
+            handleUpdate(req, resp, currentUser);
+            return;
+        }
+        if ("/cart/remove".equals(servletPath)) {
+            handleRemove(req, resp, currentUser);
+            return;
+        }
+        resp.sendRedirect(req.getContextPath() + "/cart");
+    }
+
+    private void handleAdd(HttpServletRequest req, HttpServletResponse resp, Account currentUser) throws IOException {
+        long accountId = currentUser.getAccountId();
+        String productIdRaw = req.getParameter("productId");
+        String quantityRaw = req.getParameter("quantity");
+
+        int quantity = parsePositiveInt(quantityRaw);
+        long productId = parsePositiveLong(productIdRaw);
+
+        if (productId <= 0 || quantity <= 0) {
+            setFlash(req, "cartErrorMsg", "Dữ liệu thêm giỏ hàng không hợp lệ.");
+            resp.sendRedirect(resolveReturnUrl(req));
+            return;
+        }
+
+        Long productPackId = cartDAO.getDefaultPackIdByProductId(productId);
+        if (productPackId == null) {
+            setFlash(req, "cartErrorMsg", "Sản phẩm hiện chưa có quy cách bán.");
+            resp.sendRedirect(resolveReturnUrl(req));
+            return;
+        }
+
+        boolean ok = cartDAO.addOrIncreaseItem(accountId, productPackId, quantity);
+        if (ok) {
+            refreshCartCount(req, accountId);
+            setFlash(req, "cartSuccessMsg", "Đã thêm sản phẩm vào giỏ hàng.");
+        } else {
+            setFlash(req, "cartErrorMsg", "Không thể thêm vào giỏ hàng. Vui lòng thử lại.");
+        }
+        resp.sendRedirect(resolveReturnUrl(req));
+    }
+
+    private void handleUpdate(HttpServletRequest req, HttpServletResponse resp, Account currentUser) throws IOException {
+        long accountId = currentUser.getAccountId();
+        long cartItemId = parsePositiveLong(req.getParameter("cartItemId"));
+        String quantityRaw = req.getParameter("quantity");
+        int quantity = parseInt(quantityRaw);
+
+        if (cartItemId <= 0) {
+            setFlash(req, "cartErrorMsg", "Không tìm thấy item cần cập nhật.");
+            resp.sendRedirect(req.getContextPath() + "/cart");
+            return;
+        }
+
+        boolean ok;
+        if (quantity <= 0) {
+            ok = cartDAO.removeItem(accountId, cartItemId);
+            if (ok) {
+                setFlash(req, "cartSuccessMsg", "Đã xóa sản phẩm khỏi giỏ hàng.");
+            } else {
+                setFlash(req, "cartErrorMsg", "Xóa sản phẩm thất bại.");
+            }
+        } else {
+            ok = cartDAO.updateItemQuantity(accountId, cartItemId, quantity);
+            if (ok) {
+                setFlash(req, "cartSuccessMsg", "Cập nhật số lượng thành công.");
+            } else {
+                setFlash(req, "cartErrorMsg", "Cập nhật số lượng thất bại.");
+            }
+        }
+        refreshCartCount(req, accountId);
+        resp.sendRedirect(req.getContextPath() + "/cart");
+    }
+
+    private void handleRemove(HttpServletRequest req, HttpServletResponse resp, Account currentUser) throws IOException {
+        long accountId = currentUser.getAccountId();
+        long cartItemId = parsePositiveLong(req.getParameter("cartItemId"));
+        if (cartItemId <= 0) {
+            setFlash(req, "cartErrorMsg", "Không tìm thấy item cần xóa.");
+            resp.sendRedirect(req.getContextPath() + "/cart");
+            return;
+        }
+
+        boolean ok = cartDAO.removeItem(accountId, cartItemId);
+        if (ok) {
+            setFlash(req, "cartSuccessMsg", "Đã xóa sản phẩm khỏi giỏ hàng.");
+        } else {
+            setFlash(req, "cartErrorMsg", "Xóa sản phẩm thất bại.");
+        }
+        refreshCartCount(req, accountId);
+        resp.sendRedirect(req.getContextPath() + "/cart");
+    }
+
+    private Account getSessionUser(HttpServletRequest req) {
+        HttpSession session = req.getSession(false);
+        if (session == null) {
+            return null;
+        }
+        Object user = session.getAttribute("user");
+        if (!(user instanceof Account)) {
+            return null;
+        }
+        return (Account) user;
+    }
+
+    private void refreshCartCount(HttpServletRequest req, long accountId) {
+        int cartLines = cartDAO.countCartLines(accountId);
+        req.getSession().setAttribute("cartCount", cartLines);
+    }
+
+    private void setFlash(HttpServletRequest req, String key, String message) {
+        req.getSession().setAttribute(key, message);
+    }
+
+    private void moveFlashToRequest(HttpServletRequest req, String key) {
+        HttpSession session = req.getSession(false);
+        if (session == null) {
+            return;
+        }
+        Object value = session.getAttribute(key);
+        if (value != null) {
+            req.setAttribute(key, value);
+            session.removeAttribute(key);
         }
     }
 
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
-        switch (req.getServletPath()) {
-            case "/cart/add":    handleAdd(req, resp);    break;
-            case "/cart/update": handleUpdate(req, resp); break;
-            case "/cart/remove": handleRemove(req, resp); break;
+    private String resolveReturnUrl(HttpServletRequest req) {
+        String returnUrl = req.getParameter("returnUrl");
+        if (returnUrl != null && returnUrl.startsWith(req.getContextPath() + "/")) {
+            return returnUrl;
         }
-    }
-
-    // ── View cart ────────────────────────────────────────────────────────────
-
-    private void showCart(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
-        Account user   = getUser(req);
-        long    cartId = cartDAO.getOrCreateCart(user.getAccountId());
-        List<CartItemDTO> items = cartDAO.getCartItems(cartId);
-
-        // Compute subtotal server-side (EL 2.x does not support stream API)
-        java.math.BigDecimal cartSubtotal = items.stream()
-                .map(org.example.dto.CartItemDTO::getLineTotal)
-                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
-
-        req.setAttribute("cartItems",    items);
-        req.setAttribute("cartId",       cartId);
-        req.setAttribute("cartSubtotal", cartSubtotal);
-        req.getRequestDispatcher("/cart.jsp").forward(req, resp);
-    }
-
-    // ── Add item ─────────────────────────────────────────────────────────────
-
-    private void handleAdd(HttpServletRequest req, HttpServletResponse resp)
-            throws IOException {
-        String packIdParam = req.getParameter("productPackId");
-        String qtyParam    = req.getParameter("quantity");
-
-        if (packIdParam == null) { resp.sendRedirect(req.getContextPath() + "/products"); return; }
-
-        long packId; int qty = 1;
-        try { packId = Long.parseLong(packIdParam); }
-        catch (NumberFormatException e) { resp.sendRedirect(req.getContextPath() + "/products"); return; }
-        try { if (qtyParam != null) qty = Math.max(1, Integer.parseInt(qtyParam)); }
-        catch (NumberFormatException ignored) {}
-
-        // Validate pack exists
-        ProductPack pack = packDAO.getPackById(packId);
-        if (pack == null) { resp.sendRedirect(req.getContextPath() + "/products"); return; }
-
-        Account user   = getUser(req);
-        long    cartId = cartDAO.getOrCreateCart(user.getAccountId());
-        cartDAO.addItem(cartId, packId, qty);
-        updateCartCountInSession(req, user.getAccountId());
-
-        // Redirect back to product detail or referer
         String referer = req.getHeader("Referer");
-        resp.sendRedirect(referer != null ? referer : req.getContextPath() + "/cart");
+        if (referer != null && !referer.trim().isEmpty()) {
+            return referer;
+        }
+        return req.getContextPath() + "/home";
     }
 
-    // ── Update quantity ───────────────────────────────────────────────────────
+    private int parsePositiveInt(String value) {
+        int num = parseInt(value);
+        return num > 0 ? num : -1;
+    }
 
-    private void handleUpdate(HttpServletRequest req, HttpServletResponse resp)
-            throws IOException {
+    private int parseInt(String value) {
         try {
-            long   cartItemId = Long.parseLong(req.getParameter("cartItemId"));
-            int    quantity   = Integer.parseInt(req.getParameter("quantity"));
-            Account user      = getUser(req);
-            cartDAO.updateQuantity(cartItemId, quantity);
-            updateCartCountInSession(req, user.getAccountId());
-        } catch (NumberFormatException ignored) {}
-        resp.sendRedirect(req.getContextPath() + "/cart");
+            return Integer.parseInt(value == null ? "" : value.trim());
+        } catch (Exception e) {
+            return -1;
+        }
     }
 
-    // ── Remove item ───────────────────────────────────────────────────────────
-
-    private void handleRemove(HttpServletRequest req, HttpServletResponse resp)
-            throws IOException {
+    private long parsePositiveLong(String value) {
         try {
-            long    cartItemId = Long.parseLong(req.getParameter("cartItemId"));
-            Account user       = getUser(req);
-            cartDAO.removeItem(cartItemId);
-            updateCartCountInSession(req, user.getAccountId());
-        } catch (NumberFormatException ignored) {}
-        resp.sendRedirect(req.getContextPath() + "/cart");
-    }
-
-    // ── Helpers ───────────────────────────────────────────────────────────────
-
-    private Account getUser(HttpServletRequest req) {
-        return (Account) req.getSession().getAttribute("user");
-    }
-
-    private void updateCartCountInSession(HttpServletRequest req, long accountId) {
-        int count = cartDAO.countItems(accountId);
-        req.getSession().setAttribute("cartCount", count);
+            long num = Long.parseLong(value == null ? "" : value.trim());
+            return num > 0 ? num : -1;
+        } catch (Exception e) {
+            return -1;
+        }
     }
 }

@@ -1,12 +1,22 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%-- Styles are moved to assets/css/style.css --%>
 <c:set var="uri" value="${pageContext.request.servletPath}" />
 <c:set var="isAuthPage" value="${uri.contains('login') || uri.contains('register') || uri.contains('forgot-password') || uri.contains('resend-otp') || uri.contains('verify-register')}" />
-
+<style>
+    .bg-brand   { background-color: #E3000F !important; }
+    .text-brand { color: #E3000F !important; }
+    .nav-link   { font-weight: 500; }
+    .nav-link:hover { color: #f8d7da !important; }
+    .cart-badge-pill {
+        position: absolute; top: -6px; right: -6px;
+        background: #ffc107; color: #000;
+        font-size: .65rem; font-weight: 700;
+        border-radius: 50%; min-width: 18px; height: 18px;
+        display: flex; align-items: center; justify-content: center;
+    }
+</style>
 
 <%-- Top info bar --%>
-<c:if test="${!isAuthPage}">
 <div class="bg-light py-1 border-bottom">
     <div class="container d-flex justify-content-between align-items-center">
         <small class="text-muted"><i class="fas fa-phone-alt me-1"></i> Hotline: 1900 1234</small>
@@ -47,8 +57,6 @@
         </div>
     </div>
 </div>
-</c:if>
-
 
 <%-- Main navbar --%>
 <nav class="navbar navbar-expand-lg navbar-dark bg-brand py-3">
@@ -57,7 +65,6 @@
             <i class="fas fa-leaf me-2"></i>FRESH FOOD
         </a>
 
-        <c:if test="${!isAuthPage}">
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainMenu"
                 aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -65,6 +72,7 @@
 
         <div class="collapse navbar-collapse" id="mainMenu">
             <%-- Search bar --%>
+            <c:if test="${!isAuthPage}">
             <form class="d-flex mx-auto w-50 my-2 my-lg-0" action="${pageContext.request.contextPath}/products" method="GET">
                 <div class="input-group">
                     <input class="form-control border-0" type="search" name="keyword"
@@ -75,8 +83,10 @@
                     </button>
                 </div>
             </form>
+            </c:if>
 
             <%-- Right nav items --%>
+            <c:if test="${!isAuthPage}">
             <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center gap-2">
                 <%-- Wishlist --%>
                 <c:if test="${not empty sessionScope.user}">
@@ -87,7 +97,6 @@
                         </a>
                     </li>
                 </c:if>
-
                 <%-- Cart --%>
                 <li class="nav-item">
                     <a class="btn btn-outline-light position-relative border-0"
@@ -99,8 +108,7 @@
                     </a>
                 </li>
             </ul>
+            </c:if>
         </div>
-        </c:if>
-
     </div>
 </nav>
