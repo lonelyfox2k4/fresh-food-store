@@ -536,9 +536,16 @@ CREATE TABLE dbo.Feedbacks
     CONSTRAINT PK_Feedbacks PRIMARY KEY (feedbackId),
     CONSTRAINT FK_Feedbacks_Accounts FOREIGN KEY (accountId) REFERENCES dbo.Accounts(accountId),
     CONSTRAINT FK_Feedbacks_Orders FOREIGN KEY (orderId) REFERENCES dbo.Orders(orderId),
-    CONSTRAINT FK_Feedbacks_Reviews FOREIGN KEY (reviewId) REFERENCES dbo.ProductReviews(reviewId),
+    CONSTRAINT FK_Feedbacks_ProductReviews FOREIGN KEY (reviewId) REFERENCES dbo.ProductReviews(reviewId),
     CONSTRAINT FK_Feedbacks_RespondedByAccount FOREIGN KEY (respondedByAccountId) REFERENCES dbo.Accounts(accountId)
 );
+GO
+
+-- Filtered Unique Index: đảm bảo mỗi reviewId chỉ có 1 phản hồi,
+-- nhưng cho phép nhiều dòng có reviewId = NULL (feedback dạng khác)
+CREATE UNIQUE INDEX UX_Feedbacks_ReviewId
+ON dbo.Feedbacks(reviewId)
+WHERE reviewId IS NOT NULL;
 GO
 
 CREATE TABLE dbo.NewsArticles
@@ -628,6 +635,7 @@ CREATE INDEX IX_Payments_OrderId ON dbo.Payments(orderId);
 CREATE INDEX IX_OrderVouchers_OrderId ON dbo.OrderVouchers(orderId);
 CREATE INDEX IX_ProductReviews_ProductId ON dbo.ProductReviews(productId);
 CREATE INDEX IX_Feedbacks_Account_Status ON dbo.Feedbacks(accountId, status);
+CREATE INDEX IX_Feedbacks_ReviewId ON dbo.Feedbacks(reviewId);
 CREATE INDEX IX_NewsArticles_Status_PublishedAt ON dbo.NewsArticles(status, publishedAt DESC);
 CREATE INDEX IX_ChatConversations_Customer_Status ON dbo.ChatConversations(customerId, status);
 CREATE INDEX IX_ChatConversations_AssignedStaff_Status ON dbo.ChatConversations(assignedStaffId, status);
