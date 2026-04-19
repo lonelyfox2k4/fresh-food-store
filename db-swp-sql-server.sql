@@ -524,6 +524,7 @@ CREATE TABLE dbo.Feedbacks
     feedbackId BIGINT IDENTITY(1,1) NOT NULL,
     accountId BIGINT NOT NULL,
     orderId BIGINT NULL,
+    reviewId BIGINT NULL,
     subject NVARCHAR(200) NULL,
     content NVARCHAR(1000) NOT NULL,
     response NVARCHAR(1000) NULL,
@@ -535,6 +536,7 @@ CREATE TABLE dbo.Feedbacks
     CONSTRAINT PK_Feedbacks PRIMARY KEY (feedbackId),
     CONSTRAINT FK_Feedbacks_Accounts FOREIGN KEY (accountId) REFERENCES dbo.Accounts(accountId),
     CONSTRAINT FK_Feedbacks_Orders FOREIGN KEY (orderId) REFERENCES dbo.Orders(orderId),
+    CONSTRAINT FK_Feedbacks_Reviews FOREIGN KEY (reviewId) REFERENCES dbo.ProductReviews(reviewId),
     CONSTRAINT FK_Feedbacks_RespondedByAccount FOREIGN KEY (respondedByAccountId) REFERENCES dbo.Accounts(accountId)
 );
 GO
