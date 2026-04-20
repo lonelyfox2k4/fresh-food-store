@@ -1,0 +1,283 @@
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<html>
+<head>
+    <title>Quản lý Đơn hàng | Staff</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body class="bg-light">
+<c:import url="/staff/common/nav.jsp" />
+
+<div class="container-fluid py-3 px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold"><i class="bi bi-box-seam me-2"></i>Quản lý Đơn hàng</h3>
+            <p class="text-muted small">Danh sách toàn bộ đơn hàng trong hệ thống.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="${pageContext.request.contextPath}/staff/orders" class="btn btn-outline-secondary shadow-sm">
+                <i class="bi bi-arrow-clockwise"></i> Làm mới
+            </a>
+        </div>
+    </div>
+
+    <c:if test="${not empty param.msg}">
+        <div class="alert alert-success border-0 shadow-sm alert-dismissible fade show">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <c:choose>
+                <c:when test="${param.msg == 'confirmed'}">Đơn hàng đã được xác nhận thành công.</c:when>
+                <c:when test="${param.msg == 'ready'}">Đơn hàng đã sẵn sàng để Shipper lấy hàng.</c:when>
+                <c:when test="${param.msg == 'shipper_assigned'}">Đã điều phối Shipper thành công cho đơn hàng.</c:when>
+                <c:when test="${param.msg == 'payment_updated'}">Đã cập nhật trạng thái thanh toán.</c:when>
+                <c:when test="${param.msg == 'completed'}">Đơn hàng đã được hoàn thành.</c:when>
+                <c:when test="${param.msg == 'cancelled'}">Đơn hàng đã được hủy bỏ.</c:when>
+                <c:otherwise>Thao tác dữ liệu thành công!</c:otherwise>
+            </c:choose>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    </c:if>
+    <c:if test="${not empty param.error}">
+        <div class="alert alert-danger border-0 shadow-sm alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <c:choose>
+                <c:when test="${param.error == 'missing_shipper'}">Vui lòng chọn Shipper trước khi gán!</c:when>
+                <c:when test="${param.error == 'no_shipper_assigned'}">Hãy gán Shipper cho đơn hàng trước khi xác nhận Sẵn sàng giao!</c:when>
+                <c:otherwise>Lỗi thao tác: ${param.error}</c:otherwise>
+            </c:choose>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    </c:if>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-success">
+                    <tr>
+                        <th class="ps-4">Mã Đơn / Khách hàng</th>
+                        <th>Địa chỉ / Ghi chú</th>
+                        <th>Tổng tiền / Đã trả</th>
+                        <th>Trạng thái Đơn</th>
+                        <th>Điều phối Shipper</th>
+                        <th>Trạng thái Giao hàng</th>
+                        <th class="text-center">Thao tác</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <c:forEach items="${orderList}" var="o">
+                        <tr>
+                            <td class="ps-4">
+                                <div class="fw-bold text-primary">${o.orderCode}</div>
+                                <div>${o.recipientNameSnapshot}</div>
+                                <small class="text-muted"><i class="bi bi-telephone"></i> ${o.recipientPhoneSnapshot}</small>
+                                <div class="small text-muted">Đặt lúc: ${o.placedAt.toString().replace('T', ' ').substring(0, 16)}</div>
+                            </td>
+                            <td style="max-width: 250px;">
+                                <div class="text-truncate-2 small" title="${o.shippingAddressSnapshot}">${o.shippingAddressSnapshot}</div>
+                                <c:if test="${not empty o.note}">
+                                    <c:choose>
+                                        <c:when test="${o.note.contains('Giao thất bại')}">
+                                            <div class="mt-1 p-2 border border-danger rounded bg-danger bg-opacity-10 small">
+                                                <div class="fw-bold text-danger"><i class="bi bi-exclamation-octagon-fill"></i> Phản hồi từ Shipper:</div>
+                                                <span class="text-dark">${o.note}</span>
+                                            </div>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <div class="mt-1 p-1 px-2 border border-warning rounded bg-warning bg-opacity-10 small">
+                                                <i class="bi bi-info-circle-fill text-warning me-1"></i> <span class="text-dark">${o.note}</span>
+                                            </div>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </c:if>
+                            </td>
+                            <td>
+                                <div class="fw-bold text-danger">
+                                    <fmt:formatNumber value="${o.totalAmount}" type="number"/> đ
+                                </div>
+                                <div class="mt-1">
+                                    <c:choose>
+                                        <c:when test="${o.paymentStatus == 1}">
+                                            <span class="badge rounded-pill bg-success fw-normal"><i class="bi bi-credit-card"></i> Đã TT Online</span>
+                                        </c:when>
+                                        <c:when test="${o.paymentStatus == 2}">
+                                            <span class="badge rounded-pill bg-success fw-normal"><i class="bi bi-cash-coin"></i> Đã thu (COD)</span>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <span class="badge rounded-pill bg-light text-dark border fw-normal text-muted"><i class="bi bi-clock"></i> Chờ thanh toán</span>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </div>
+                            </td>
+                            <td>
+                                <c:choose>
+                                    <c:when test="${o.orderStatus == 1}"><span class="badge bg-secondary opacity-75">Chờ xác nhận</span></c:when>
+                                    <c:when test="${o.orderStatus == 2}"><span class="badge bg-warning text-dark"><i class="bi bi-box-seam"></i> Đã xác nhận</span></c:when>
+                                    <c:when test="${o.orderStatus == 3}"><span class="badge bg-primary text-white"><i class="bi bi-box-seam"></i> Đang đóng gói</span></c:when>
+                                    <c:when test="${o.orderStatus == 4}"><span class="badge bg-info text-dark"><i class="bi bi-truck"></i> Đang giao hàng</span></c:when>
+                                    <c:when test="${o.orderStatus == 5}"><span class="badge bg-success"><i class="bi bi-check-all"></i> Đã hoàn tất</span></c:when>
+                                    <c:when test="${o.orderStatus == 6}">
+                                        <span class="badge bg-danger">Đã hủy</span>
+                                        <c:if test="${not empty o.cancelledReason}">
+                                            <div class="small text-danger mt-1" style="font-size: 0.75rem;">Lý do: ${o.cancelledReason}</div>
+                                        </c:if>
+                                    </c:when>
+                                    <c:otherwise>Không xác định</c:otherwise>
+                                </c:choose>
+                            </td>
+                            
+                            <!-- Cột Shipper -->
+                            <td>
+                                <c:if test="${o.orderStatus < 5}">
+                                    <c:choose>
+                                        <c:when test="${o.shippingStatus >= 1}">
+                                            <form action="${pageContext.request.contextPath}/staff/orders" method="post" class="d-flex align-items-center m-0">
+                                                <input type="hidden" name="action" value="assignShipper">
+                                                <input type="hidden" name="orderId" value="${o.orderId}">
+                                                <select name="shipperId" class="form-select form-select-sm me-1 shadow-none" style="min-width: 120px;">
+                                                    <option value="">-- Gán Shipper --</option>
+                                                    <c:forEach items="${shipperList}" var="s">
+                                                        <option value="${s.accountId}" ${o.shipperId == s.accountId ? 'selected' : ''}>${s.fullName}</option>
+                                                    </c:forEach>
+                                                </select>
+                                                <button type="submit" class="btn btn-sm btn-primary py-1" title="Giao phó Shipper"><i class="bi bi-send"></i></button>
+                                            </form>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <span class="text-muted small italic"><i class="bi bi-hourglass-split"></i> Đợi đóng gói...</span>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </c:if>
+                                <c:if test="${o.orderStatus >= 5}">
+                                    <small class="text-muted">
+                                        <c:forEach items="${shipperList}" var="s">
+                                            <c:if test="${o.shipperId == s.accountId}"><i class="bi bi-truck"></i> ${s.fullName}</c:if>
+                                        </c:forEach>
+                                        <c:if test="${empty o.shipperId}">N/A</c:if>
+                                    </small>
+                                </c:if>
+                            </td>
+
+                            <!-- Cột Trạng thái Giao -->
+                            <td>
+                                <c:choose>
+                                    <c:when test="${o.shippingStatus == 0}"><span class="text-muted small"><i class="bi bi-dash-circle"></i> Chưa chuẩn bị</span></c:when>
+                                    <c:when test="${o.shippingStatus == 1}"><span class="text-primary small fw-bold"><i class="bi bi-box-seam"></i> Chờ shipper</span></c:when>
+                                    <c:when test="${o.shippingStatus == 2}"><span class="text-info small fw-bold"><i class="bi bi-truck"></i> Đang giao</span></c:when>
+                                    <c:when test="${o.shippingStatus == 3}"><span class="text-success small fw-bold"><i class="bi bi-house-check"></i> Đã giao</span></c:when>
+                                    <c:when test="${o.shippingStatus == 4}"><span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 small"><i class="bi bi-x-octagon"></i> Giao thất bại</span></c:when>
+                                </c:choose>
+                            </td>
+
+                            <td class="text-center">
+                                <div class="dropdown">
+                                  <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                  </button>
+                                  <ul class="dropdown-menu dropdown-menu-end shadow">
+                                    <li>
+                                        <a class="dropdown-item py-2" href="${pageContext.request.contextPath}/staff/orders?action=detail&id=${o.orderId}"><i class="bi bi-eye text-primary me-2"></i> Chi tiết</a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    
+                                    <c:choose>
+                                        <c:when test="${o.orderStatus == 1}">
+                                            <li>
+                                                <form action="${pageContext.request.contextPath}/staff/orders" method="post" class="m-0">
+                                                    <input type="hidden" name="action" value="confirm"><input type="hidden" name="orderId" value="${o.orderId}">
+                                                    <button type="submit" class="dropdown-item text-primary py-2"><i class="bi bi-check-circle me-2"></i> Xác nhận & Đóng gói</button>
+                                                </form>
+                                            </li>
+                                        </c:when>
+                                        <c:when test="${o.orderStatus == 2}">
+                                            <c:if test="${empty o.shippingStatus or o.shippingStatus == 0}">
+                                                <li>
+                                                    <form action="${pageContext.request.contextPath}/staff/orders" method="post" class="m-0">
+                                                        <input type="hidden" name="action" value="ready"><input type="hidden" name="orderId" value="${o.orderId}">
+                                                        <button type="submit" class="dropdown-item text-info py-2"><i class="bi bi-box-arrow-right me-2"></i> Hoàn tất đóng gói</button>
+                                                    </form>
+                                                </li>
+                                            </c:if>
+                                        </c:when>
+                                        <c:when test="${o.orderStatus == 3 or o.orderStatus == 4}">
+                                            <c:if test="${o.shippingStatus == 3}">
+                                                <li>
+                                                    <form action="orders" method="post" class="m-0" onsubmit="return confirm('Xác nhận Đóng đơn?');">
+                                                        <input type="hidden" name="action" value="complete"><input type="hidden" name="orderId" value="${o.orderId}">
+                                                        <button type="submit" class="dropdown-item text-success fw-bold py-2"><i class="bi bi-flag-fill me-2"></i> Lưu kho & Hoàn thành</button>
+                                                    </form>
+                                                </li>
+                                            </c:if>
+                                        </c:when>
+                                    </c:choose>
+
+                                    <c:if test="${o.paymentStatus != 2 && o.orderStatus != 6}">
+                                        <li>
+                                            <form action="${pageContext.request.contextPath}/staff/orders" method="post" class="m-0">
+                                                <input type="hidden" name="action" value="updatePayment"><input type="hidden" name="paymentStatus" value="2"><input type="hidden" name="orderId" value="${o.orderId}">
+                                                <button type="submit" class="dropdown-item text-success py-2"><i class="bi bi-cash me-2"></i> Đã thu tiền (COD)</button>
+                                            </form>
+                                        </li>
+                                    </c:if>
+
+                                    <c:if test="${o.orderStatus != 4 && o.orderStatus != 5 && o.orderStatus != 6}">
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <button type="button" class="dropdown-item text-danger py-2" data-bs-toggle="modal" data-bs-target="#cancelModal${o.orderId}">
+                                                <i class="bi bi-x-circle me-2"></i> Hủy đơn
+                                            </button>
+                                        </li>
+                                    </c:if>
+                                  </ul>
+                                </div>
+
+                                <!-- Modal Hủy đơn -->
+                                <div class="modal fade" id="cancelModal${o.orderId}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content border-0 shadow">
+                                            <form action="${pageContext.request.contextPath}/staff/orders" method="post" class="m-0">
+                                                <div class="modal-header bg-danger text-white">
+                                                    <h5 class="modal-title"><i class="bi bi-x-circle me-2"></i>Hủy đơn hàng #${o.orderCode}</h5>
+                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body text-start">
+                                                    <input type="hidden" name="action" value="cancel">
+                                                    <input type="hidden" name="orderId" value="${o.orderId}">
+                                                    
+                                                    <p class="mb-3">Bạn chắc chắn muốn hủy đơn hàng này? Thao tác này không thể hoàn tác.</p>
+                                                    
+                                                    <label class="form-label fw-bold">Lý do hủy đơn:</label>
+                                                    <select name="reason" class="form-select mb-3" required>
+                                                        <option value="">-- Chọn lý do --</option>
+                                                        <option value="Khách hàng yêu cầu hủy">Khách hàng yêu cầu hủy</option>
+                                                        <option value="Sản phẩm hết hàng / Có vấn đề">Sản phẩm hết hàng / có vấn đề</option>
+                                                        <option value="Không liên lạc được khách hàng">Không liên lạc được khách hàng</option>
+                                                        <option value="Đơn hàng trùng lặp">Đơn hàng bị trùng</option>
+                                                        <option value="Khác">Lý do khác...</option>
+                                                    </select>
+                                                </div>
+                                                <div class="modal-footer border-0">
+                                                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Đóng</button>
+                                                    <button type="submit" class="btn btn-danger px-4">Xác nhận Hủy Đơn</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- End Modal -->
+                            </td>
+                        </tr>
+                    </c:forEach>
+                    <c:if test="${empty orderList}">
+                        <tr><td colspan="7" class="text-center py-5 text-muted">Chưa có đơn hàng nào.</td></tr>
+                    </c:if>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

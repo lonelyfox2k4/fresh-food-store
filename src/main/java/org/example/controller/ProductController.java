@@ -3,6 +3,10 @@ package org.example.controller;
 import org.example.dao.CategoryDAO;
 import org.example.dao.ProductDAO;
 import org.example.dao.ProductPackDAO;
+import org.example.dao.ReviewDAO;
+import org.example.dao.WishlistDAO;
+import org.example.dto.ReviewDTO;
+import org.example.model.auth.Account;
 import org.example.model.catalog.Category;
 import org.example.model.catalog.Product;
 import org.example.model.catalog.ProductPack;
@@ -19,6 +23,8 @@ public class ProductController extends HttpServlet {
     private final ProductDAO     productDAO  = new ProductDAO();
     private final CategoryDAO    categoryDAO = new CategoryDAO();
     private final ProductPackDAO packDAO     = new ProductPackDAO();
+    private final WishlistDAO    wishlistDAO = new WishlistDAO();
+    private final ReviewDAO      reviewDAO   = new ReviewDAO();
 
     private static final int PAGE_SIZE = 12;
 
@@ -88,6 +94,36 @@ public class ProductController extends HttpServlet {
 
         req.setAttribute("product",     product);
         req.setAttribute("packs",       packs);
+
+        // Check wishlist status
+        boolean inWishlist = false;
+        HttpSession session = req.getSession(false);
+        if (session != null) {
+            Account user = (Account) session.getAttribute("user");
+            if (user != null) {
+                inWishlist = wishlistDAO.exists(user.getAccountId(), productId);
+            }
+        }
+        req.setAttribute("inWishlist", inWishlist);
+
+        // Check review eligibility
+        boolean canReview = false;
+        if (session != null) {
+            Account user = (Account) session.getAttribute("user");
+            if (user != null) {
+                canReview = reviewDAO.canReview(user.getAccountId(), productId);
+            }
+        }
+        req.setAttribute("canReview", canReview);
+
+        // Fetch reviews and rating info
+        List<ReviewDTO> reviews = reviewDAO.getReviewsByProduct(productId);
+        double avgRating        = reviewDAO.getAverageRating(productId);
+        int reviewCount         = reviewDAO.countReviews(productId);
+
+        req.setAttribute("reviews",      reviews);
+        req.setAttribute("avgRating",    avgRating);
+        req.setAttribute("reviewCount",   reviewCount);
 
         req.getRequestDispatcher("/product-detail.jsp").forward(req, resp);
     }

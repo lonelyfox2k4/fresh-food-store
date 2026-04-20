@@ -9,7 +9,7 @@
     <title>Giỏ hàng</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/style.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
 </head>
 <body class="bg-light d-flex flex-column min-vh-100">
 <jsp:include page="/components/header.jsp" />
@@ -94,7 +94,7 @@
                 <a href="${pageContext.request.contextPath}/home" class="btn btn-outline-secondary">
                     <i class="fa-solid fa-arrow-left me-1"></i> Quay lại mua sắm
                 </a>
-                <a href="${pageContext.request.contextPath}/orders" class="btn btn-success">
+                <a href="${pageContext.request.contextPath}/checkout" class="btn btn-success">
                     <i class="fa-solid fa-credit-card me-1"></i> Thanh toán
                 </a>
             </div>

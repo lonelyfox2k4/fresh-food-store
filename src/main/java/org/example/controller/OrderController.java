@@ -19,6 +19,12 @@ public class OrderController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
+        
+        if (getUser(req) == null) {
+            resp.sendRedirect(req.getContextPath() + "/login");
+            return;
+        }
+
         switch (req.getServletPath()) {
             case "/orders":        showOrderHistory(req, resp); break;
             case "/orders/detail": showOrderDetail(req, resp);  break;
@@ -41,7 +47,7 @@ public class OrderController extends HttpServlet {
         Account user = getUser(req);
         List<Order> orders = orderDAO.getOrdersByAccount(user.getAccountId());
         req.setAttribute("orders", orders);
-        req.getRequestDispatcher("/order-history.jsp").forward(req, resp);
+        req.getRequestDispatcher("/main/order-history.jsp").forward(req, resp);
     }
 
     // ── Order detail ──────────────────────────────────────────────────────────
@@ -60,7 +66,7 @@ public class OrderController extends HttpServlet {
             List<OrderItem> items = orderDAO.getOrderItemsByOrderId(orderId);
             req.setAttribute("order", order);
             req.setAttribute("orderItems", items);
-            req.getRequestDispatcher("/order-detail.jsp").forward(req, resp);
+            req.getRequestDispatcher("/main/order-detail.jsp").forward(req, resp);
 
         } catch (NumberFormatException e) {
             resp.sendRedirect(req.getContextPath() + "/orders");
@@ -81,7 +87,7 @@ public class OrderController extends HttpServlet {
             if (order == null) { resp.sendRedirect(req.getContextPath() + "/orders"); return; }
 
             req.setAttribute("order", order);
-            req.getRequestDispatcher("/order-success.jsp").forward(req, resp);
+            req.getRequestDispatcher("/main/order-success.jsp").forward(req, resp);
 
         } catch (NumberFormatException e) {
             resp.sendRedirect(req.getContextPath() + "/orders");
