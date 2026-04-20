@@ -122,8 +122,8 @@ public class ProductDAO {
         if (daysRemaining < 0)
             return BigDecimal.ZERO;
         String sql = "SELECT TOP 1 sellPricePercent FROM dbo.ExpiryPricingPolicyRules " +
-                "WHERE policyId = ? AND minDaysRemaining <= ? " +
-                "ORDER BY minDaysRemaining DESC";
+                "WHERE policyId = ? AND minDaysRemaining >= ? " +
+                "ORDER BY minDaysRemaining ASC";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, policyId);
             ps.setInt(2, daysRemaining);

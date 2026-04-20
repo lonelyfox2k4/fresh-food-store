@@ -10,9 +10,14 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 public class CategoryServlet extends HttpServlet {
+    // Khởi tạo đối tượng DAO dùng chung cho toàn bộ Servlet này để tương tác với cơ sở dữ liệu
     private final CategoryDAO categoryDAO = new CategoryDAO();
 
     @Override
+    /**
+     * Phương thức doGet: Thường dùng để xử lý các yêu cầu lấy dữ liệu (hiển thị trang, lấy danh sách)
+     * hoặc các thao tác truyền tham số trực tiếp trên thanh URL (như xóa).
+     */
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String action = request.getParameter("action");
         if (action == null) action = "list";
