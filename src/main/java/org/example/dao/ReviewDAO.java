@@ -88,8 +88,7 @@ public class ReviewDAO {
     public boolean canReview(long accountId, long productId) {
         String sql = "SELECT 1 FROM dbo.Orders o " +
                      "JOIN dbo.OrderItems oi ON o.orderId = oi.orderId " +
-                     "JOIN dbo.ProductPacks pp ON oi.productPackId = pp.productPackId " +
-                     "WHERE o.accountId = ? AND pp.productId = ? AND o.orderStatus = 5";
+                     "WHERE o.accountId = ? AND oi.productId = ? AND o.orderStatus = 5";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, accountId);

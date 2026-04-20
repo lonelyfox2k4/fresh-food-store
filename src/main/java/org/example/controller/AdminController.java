@@ -8,6 +8,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
 import java.io.IOException;
 import java.util.List;
+import org.example.utils.ValidationUtils;
 
 @WebServlet(urlPatterns = {"/admin/users", "/admin/update-status", "/admin/assign"})
 public class AdminController extends HttpServlet {
@@ -47,6 +48,7 @@ public class AdminController extends HttpServlet {
             req.setAttribute("currentPage", page);
             req.setAttribute("totalPages", totalPages);
             req.setAttribute("totalRecords", totalRecords);
+            req.setAttribute("userStats", dao.getUserSummaryStats());
             
             req.getRequestDispatcher("/admin/users.jsp").forward(req, resp);
         } else if ("/admin/assign".equals(path)) {
@@ -68,13 +70,42 @@ public class AdminController extends HttpServlet {
 
         } else if ("/admin/assign".equals(path)) {
             // Logic "Create" trong CRUD: Admin cấp tài khoản mới
-            int roleId = Integer.parseInt(req.getParameter("roleId"));
+            String roleIdStr = req.getParameter("roleId");
             String email = req.getParameter("email");
             String name = req.getParameter("name");
             String phone = req.getParameter("phone");
 
-            dao.insertAccount(roleId, email, "123456", name, phone);
-            resp.sendRedirect("users");
+            // 1. Kiểm tra không để trống
+            if (!ValidationUtils.isNonEmpty(roleIdStr, email, name)) {
+                req.setAttribute("error", "Vui lòng nhập đầy đủ Họ tên, Email và chọn Vai trò!");
+                req.getRequestDispatcher("/admin/assign.jsp").forward(req, resp);
+                return;
+            }
+
+            // 2. Kiểm tra định dạng Email chuẩn
+            if (!ValidationUtils.isValidEmail(email)) {
+                req.setAttribute("error", "Địa chỉ Email không đúng định dạng!");
+                req.getRequestDispatcher("/admin/assign.jsp").forward(req, resp);
+                return;
+            }
+
+            // 3. Kiểm tra số điện thoại (nếu nhập)
+            if (phone != null && !phone.trim().isEmpty() && !ValidationUtils.isValidPhone(phone)) {
+                req.setAttribute("error", "Số điện thoại phải bao gồm đúng 10 chữ số!");
+                req.getRequestDispatcher("/admin/assign.jsp").forward(req, resp);
+                return;
+            }
+
+            int roleId = Integer.parseInt(roleIdStr);
+            // Mật khẩu mặc định mới đáp ứng tiêu chuẩn Hoa, Thường, Số
+            boolean success = dao.insertAccount(roleId, email, "FreshFood123", name, phone);
+            
+            if (success) {
+                resp.sendRedirect("users?msg=Assign success");
+            } else {
+                req.setAttribute("error", "Lỗi: Email này đã được sử dụng trong hệ thống.");
+                req.getRequestDispatcher("/admin/assign.jsp").forward(req, resp);
+            }
         }
     }
 }

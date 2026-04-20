@@ -63,6 +63,8 @@
                             <div class="input-group">
                                 <span class="input-group-text bg-light border-end-0"><i class="fas fa-envelope text-muted"></i></span>
                                 <input type="email" name="email" id="emailInput" class="form-control border-start-0" placeholder="example@gmail.com" required 
+                                       oninvalid="this.setCustomValidity('Vui lòng nhập Email đúng định dạng!')"
+                                       oninput="this.setCustomValidity('')"
                                        value="${sessionScope.resetEmail}">
                             </div>
                         </div>
@@ -87,22 +89,38 @@
 <jsp:include page="../components/footer.jsp"/>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
+<%
+    // Lấy thời gian gửi OTP cuối cùng từ Session để tính toán bộ đếm ngược
+    Long lastSent = (Long) session.getAttribute("lastOtpSentTime");
+    long remainingSeconds = 0;
+    if (lastSent != null) {
+        long elapsed = System.currentTimeMillis() - lastSent;
+        if (elapsed < 60000) { // Cooldown 60 giây
+            remainingSeconds = (60000 - elapsed) / 1000;
+        }
+    }
+%>
+
 <script>
     const resendBtn = document.getElementById('resendBtn');
     const sendBtn = document.getElementById('sendBtn');
     let timer;
 
-    function startTimer(btn) {
+    function startTimer(btn, initialSeconds) {
         if (!btn) return;
-        let seconds = 60;
+        let seconds = initialSeconds || 60;
         btn.disabled = true;
         btn.classList.add('disabled');
         btn.style.cursor = "not-allowed";
         
+        // Cập nhật giao diện ngay lập tức
+        if (btn === sendBtn) btn.innerHTML = `Gửi mã OTP qua Mail (<b class="text-danger">` + seconds + `s</b>)`;
+        else btn.innerHTML = `<i class="fas fa-sync-alt me-1 shadow-none"></i> Gửi lại mã (<b class="text-danger">` + seconds + `s</b>)`;
+        
         timer = setInterval(() => {
             seconds--;
-            btn.innerHTML = `<i class="fas fa-sync-alt me-1 shadow-none"></i> Gửi lại mã (${seconds}s)`;
-            if (btn === sendBtn) btn.innerText = `Gửi mã OTP qua Mail (${seconds}s)`;
+            if (btn === sendBtn) btn.innerHTML = `Gửi mã OTP qua Mail (<b class="text-danger">` + seconds + `s</b>)`;
+            else btn.innerHTML = `<i class="fas fa-sync-alt me-1 shadow-none"></i> Gửi lại mã (<b class="text-danger">` + seconds + `s</b>)`;
             
             if (seconds <= 0) {
                 clearInterval(timer);
@@ -119,10 +137,12 @@
     }
 
     window.onload = function() {
-        <% if (request.getAttribute("msg") != null) { %>
-            if (resendBtn) startTimer(resendBtn);
-            if (sendBtn) startTimer(sendBtn);
-        <% } %>
+        // Tự động kích hoạt bộ đếm nếu vẫn còn trong thời gian chờ
+        let initialRemaining = <%= remainingSeconds %>;
+        if (initialRemaining > 0) {
+            if (resendBtn) startTimer(resendBtn, initialRemaining);
+            if (sendBtn) startTimer(sendBtn, initialRemaining);
+        }
     };
 </script>
 </body>

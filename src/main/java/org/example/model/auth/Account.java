@@ -1,8 +1,5 @@
 package org.example.model.auth;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import java.sql.Timestamp;
 
 public class Account {
@@ -16,9 +13,13 @@ public class Account {
     private boolean emailVerified;
     private Timestamp createdAt;
 
+    // Constructor không tham số
     public Account() {}
 
-    public Account(long accountId, int roleId, String email, String passwordHash, String fullName, String phone, boolean status, boolean emailVerified, Timestamp createdAt) {
+    // Constructor đầy đủ (để AccountDAO dùng new Account(...))
+    public Account(long accountId, int roleId, String email, String passwordHash,
+                   String fullName, String phone, boolean status,
+                   boolean emailVerified, Timestamp createdAt) {
         this.accountId = accountId;
         this.roleId = roleId;
         this.email = email;
@@ -30,6 +31,7 @@ public class Account {
         this.createdAt = createdAt;
     }
 
+    // Getters & Setters
     public long getAccountId() { return accountId; }
     public void setAccountId(long accountId) { this.accountId = accountId; }
     public int getRoleId() { return roleId; }

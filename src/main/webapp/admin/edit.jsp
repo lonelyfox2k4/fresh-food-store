@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <html>
 <head>
@@ -85,15 +85,15 @@
                                 <input type="email" class="form-control bg-light" value="${user.email}" readonly>
                             </div>
 
-                            <div class="col-12">
-                                <label class="form-label text-uppercase">Họ và tên</label>
-                                <input type="text" name="name" class="form-control" value="${user.fullName}" required placeholder="Nhập họ tên đầy đủ">
-                            </div>
-
-                            <div class="col-12">
-                                <label class="form-label text-uppercase">Số điện thoại</label>
-                                <input type="text" name="phone" class="form-control" value="${user.phone}" placeholder="Nhập số điện thoại">
-                            </div>
+                             <div class="col-12">
+                                 <label class="form-label text-uppercase">Họ và tên</label>
+                                 <input type="text" name="name" class="form-control" value="${user.fullName}" required placeholder="Nhập họ tên đầy đủ" minlength="3">
+                             </div>
+ 
+                             <div class="col-12">
+                                 <label class="form-label text-uppercase">Số điện thoại</label>
+                                 <input type="text" name="phone" class="form-control" value="${user.phone}" placeholder="Nhập số điện thoại" pattern="[0-9]{10}" title="Số điện thoại phải bao gồm đúng 10 chữ số">
+                             </div>
 
                             <div class="col-md-6">
                                 <label class="form-label text-uppercase">Quyền hạn</label>

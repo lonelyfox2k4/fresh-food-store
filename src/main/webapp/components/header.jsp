@@ -27,13 +27,31 @@
                         <i class="fas fa-user-circle me-1"></i>
                         Xin chào, <strong>${sessionScope.user.fullName}</strong>
                     </small>
-                    <c:if test="${sessionScope.user.roleId == 1}">
-                        <a href="${pageContext.request.contextPath}/admin/dashboard" class="text-decoration-none text-danger fw-bold small">
-                            <i class="fas fa-cogs"></i> Quản trị
-                        </a>
-                    </c:if>
-                    <a href="${pageContext.request.contextPath}/profile" class="text-decoration-none text-muted small">Hồ sơ</a>
-                    <a href="${pageContext.request.contextPath}/orders" class="text-decoration-none text-muted small">Đơn hàng</a>
+                    <c:choose>
+                        <c:when test="${sessionScope.user.roleId == 1}">
+                            <a href="${pageContext.request.contextPath}/admin/dashboard" class="text-decoration-none text-danger fw-bold small">
+                                <i class="fas fa-cogs"></i> Quản trị
+                            </a>
+                        </c:when>
+                        <c:when test="${sessionScope.user.roleId == 2}">
+                            <a href="${pageContext.request.contextPath}/manager/products" class="text-decoration-none text-danger fw-bold small">
+                                <i class="fas fa-cogs"></i> Quản trị
+                            </a>
+                        </c:when>
+                        <c:when test="${sessionScope.user.roleId == 3}">
+                            <a href="${pageContext.request.contextPath}/staff/voucher" class="text-decoration-none text-brand fw-bold small">
+                                <i class="fas fa-tasks"></i> Quản lý
+                            </a>
+                        </c:when>
+                        <c:when test="${sessionScope.user.roleId == 4}">
+                            <a href="${pageContext.request.contextPath}/shipper/orders" class="text-decoration-none text-primary fw-bold small">
+                                <i class="fas fa-truck"></i> Giao hàng
+                            </a>
+                        </c:when>
+                        <c:otherwise>
+                            <a href="${pageContext.request.contextPath}/order-history" class="text-decoration-none text-muted small">Đơn hàng</a>
+                        </c:otherwise>
+                    </c:choose>
                     <a href="${pageContext.request.contextPath}/logout" class="text-decoration-none text-muted small">Đăng xuất</a>
                 </c:when>
                 <c:otherwise>

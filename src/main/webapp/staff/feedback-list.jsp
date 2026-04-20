@@ -5,10 +5,23 @@
     <title>Quản lý Phản hồi</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="bg-light">
+<c:choose>
+    <c:when test="${sessionScope.user.roleId == 1 || sessionScope.user.roleId == 2}">
+        <jsp:include page="../components/admin-nav.jsp">
+            <jsp:param name="active" value="feedback" />
+        </jsp:include>
+    </c:when>
+    <c:otherwise>
+        <jsp:include page="../components/staff-nav.jsp">
+            <jsp:param name="active" value="feedback" />
+        </jsp:include>
+    </c:otherwise>
+</c:choose>
 
-<div class="container py-5">
+<div class="container pb-5">
     <h2 class="mb-4">Hồi đáp đánh giá sản phẩm</h2>
 
     <div class="card shadow-sm">

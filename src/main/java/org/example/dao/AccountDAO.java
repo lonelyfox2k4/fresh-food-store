@@ -273,6 +273,31 @@ public class AccountDAO {
         return false;
     }
 
+    public List<Account> getAccountsByRole(int roleId) {
+        List<Account> list = new ArrayList<>();
+        String sql = "SELECT * FROM dbo.Accounts WHERE roleId = ? AND status = 1";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, roleId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(new Account(
+                            rs.getLong("accountId"),
+                            rs.getInt("roleId"),
+                            rs.getString("email"),
+                            rs.getString("passwordHash"),
+                            rs.getString("fullName"),
+                            rs.getString("phone"),
+                            rs.getBoolean("status"),
+                            rs.getBoolean("emailVerified"),
+                            rs.getTimestamp("createdAt")
+                    ));
+                }
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return list;
+    }
+
     public Account getAccountById(long id) {
         String sql = "SELECT * FROM dbo.Accounts WHERE accountId = ?";
         try (Connection conn = DBConnection.getConnection();
@@ -320,5 +345,24 @@ public class AccountDAO {
             return ps.executeUpdate() > 0;
         } catch (Exception e) { e.printStackTrace(); }
         return false;
+    }
+
+    public java.util.Map<String, Integer> getUserSummaryStats() {
+        java.util.Map<String, Integer> stats = new java.util.HashMap<>();
+        String sql = "SELECT " +
+                     "SUM(CASE WHEN roleId IN (1, 2) THEN 1 ELSE 0 END) as totalAdminManager, " +
+                     "SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) as totalBanned, " +
+                     "SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) as totalActive " +
+                     "FROM dbo.Accounts";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                stats.put("adminManager", rs.getInt("totalAdminManager"));
+                stats.put("banned", rs.getInt("totalBanned"));
+                stats.put("active", rs.getInt("totalActive"));
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return stats;
     }
 }

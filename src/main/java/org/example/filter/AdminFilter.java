@@ -11,28 +11,46 @@ import java.io.IOException;
 
 @WebFilter(urlPatterns = {"/admin/*"})
 public class AdminFilter implements Filter {
-    @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
-    }
 
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+    public void init(FilterConfig filterConfig) throws ServletException {}
+
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+            throws IOException, ServletException {
+
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse resp = (HttpServletResponse) response;
         HttpSession session = req.getSession(false);
 
         Account user = (session != null) ? (Account) session.getAttribute("user") : null;
 
-        if (user != null && user.getRoleId() == 1) {
-            // Hợp lệ - cho qua
+        // 1. Chưa đăng nhập → về trang login
+        if (user == null) {
+            resp.sendRedirect(req.getContextPath() + "/login");
+            return;
+        }
+
+        // 2. Kiểm tra Role
+        int roleId = user.getRoleId();
+
+        // Admin (roleId=1) → Cho phép vào /admin/*
+        if (roleId == 1) {
             chain.doFilter(request, response);
+            return;
+        }
+
+        // Nếu là Manager (2), Staff (3) hoặc các role khác → Không được vào khu vực Admin
+        // Redirect về trang chủ hoặc trang riêng của họ
+        if (roleId == 2) {
+            resp.sendRedirect(req.getContextPath() + "/manager/products");
+        } else if (roleId == 3) {
+            resp.sendRedirect(req.getContextPath() + "/staff/voucher");
         } else {
-            // Không phải admin hoặc chưa đăng nhập -> văng về home
             resp.sendRedirect(req.getContextPath() + "/home");
         }
     }
 
     @Override
-    public void destroy() {
-    }
+    public void destroy() {}
 }

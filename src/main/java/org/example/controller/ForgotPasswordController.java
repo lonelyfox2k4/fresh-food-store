@@ -2,6 +2,7 @@ package org.example.controller;
 
 import org.example.dao.AccountDAO;
 import org.example.utils.EmailUtils;
+import org.example.utils.ValidationUtils;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -28,6 +29,8 @@ public class ForgotPasswordController extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        HttpSession session = req.getSession();
+        session.removeAttribute("resetEmail"); // Xóa email cũ để ô nhập luôn trống khi mới vào
         req.getRequestDispatcher("/main/forgot-password.jsp").forward(req, resp);
     }
 
@@ -40,6 +43,13 @@ public class ForgotPasswordController extends HttpServlet {
 
         if ("send-otp".equals(action)) {
             String email = req.getParameter("email");
+
+            if (!ValidationUtils.isValidEmail(email)) {
+                req.setAttribute("error", "Email không đúng định dạng!");
+                req.getRequestDispatcher("/main/forgot-password.jsp").forward(req, resp);
+                return;
+            }
+
             if (dao.getAccountByEmail(email) != null) {
                 // Kiểm tra thời gian chờ 60s
                 Long lastSentTime = (Long) session.getAttribute("lastOtpSentTime");

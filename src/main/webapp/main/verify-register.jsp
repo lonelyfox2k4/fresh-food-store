@@ -64,6 +64,18 @@
 <jsp:include page="../components/footer.jsp"/>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
+<%
+    // Lấy thời gian gửi OTP cuối cùng từ Session để tính toán bộ đếm ngược
+    Long lastSent = (Long) session.getAttribute("lastOtpSentTime");
+    long remainingSeconds = 0;
+    if (lastSent != null) {
+        long elapsed = System.currentTimeMillis() - lastSent;
+        if (elapsed < 60000) { // Cooldown 60 giây
+            remainingSeconds = (60000 - elapsed) / 1000;
+        }
+    }
+%>
+
 <script>
     const resendBtn = document.getElementById('resendBtn');
     const resendForm = document.getElementById('resendForm');
@@ -75,9 +87,12 @@
         resendBtn.classList.add('disabled');
         resendBtn.style.cursor = "not-allowed";
         
+        // Cập nhật giao diện ngay lập tức
+        resendBtn.innerHTML = `<i class="fas fa-sync-alt me-1 shadow-none"></i> Gửi lại mã (<b class="text-danger">` + countdown + `s</b>)`;
+        
         timer = setInterval(() => {
             countdown--;
-            resendBtn.innerHTML = `<i class="fas fa-sync-alt me-1 shadow-none"></i> Gửi lại mã (${countdown}s)`;
+            resendBtn.innerHTML = `<i class="fas fa-sync-alt me-1 shadow-none"></i> Gửi lại mã (<b class="text-danger">` + countdown + `s</b>)`;
             
             if (countdown <= 0) {
                 clearInterval(timer);
@@ -95,9 +110,11 @@
     };
 
     window.onload = function() {
-        <% if (request.getAttribute("msg") != null) { %>
-            startTimer(60);
-        <% } %>
+        // Tự động kích hoạt bộ đếm nếu vẫn còn trong thời gian chờ
+        let initialRemaining = <%= remainingSeconds %>;
+        if (initialRemaining > 0) {
+            startTimer(initialRemaining);
+        }
     };
 </script>
 </body>
