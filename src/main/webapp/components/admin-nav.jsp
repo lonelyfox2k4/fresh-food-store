@@ -33,17 +33,29 @@
         color: var(--primary);
         background-color: var(--primary-light);
     }
+    .role-badge {
+        font-size: 0.72rem;
+        font-weight: 700;
+        padding: 0.25rem 0.6rem;
+        border-radius: 20px;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+    }
+    .role-badge.admin   { background: #fee2e2; color: #E3000F; }
+    .role-badge.manager { background: #e0f2fe; color: #0284c7; }
 </style>
 <nav class="navbar navbar-expand-lg admin-navbar sticky-top">
     <div class="container-fluid px-4">
-        <a class="navbar-brand" href="${pageContext.request.contextPath}/admin/dashboard">
-            <i class="fas fa-leaf text-success me-2"></i>FFS Admin
+        <a class="navbar-brand" href="${pageContext.request.contextPath}${sessionScope.user.roleId == 1 ? '/admin/dashboard' : '/manager/products'}">
+            <i class="fas fa-leaf text-success me-2"></i>FFS ${sessionScope.user.roleId == 1 ? 'Admin' : 'Manager'}
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#adminNav">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="adminNav">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+                <%-- Dashboard & Nguoi dung: CHI Admin (roleId=1) --%>
                 <c:if test="${sessionScope.user.roleId == 1}">
                     <li class="nav-item">
                         <a class="nav-link ${param.active == 'dashboard' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/dashboard">
@@ -52,24 +64,24 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link ${param.active == 'users' ? 'active' : ''}" href="${pageContext.request.contextPath}/admin/users">
-                            <i class="fas fa-users-cog me-1"></i> Người dùng
+                            <i class="fas fa-users-cog me-1"></i> Nguoi dung
                         </a>
                     </li>
                 </c:if>
-                
-                <!-- Bán Hàng -->
+
+                <%-- Ban Hang: Admin & Manager --%>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                         <i class="fas fa-box-open me-1"></i> Bán hàng
                     </a>
                     <ul class="dropdown-menu border-0 shadow-sm">
-                        <li><a class="dropdown-item" href="${pageContext.request.contextPath}/admin/categories"><i class="fas fa-tags me-2 text-muted"></i> Danh mục</a></li>
-                        <li><a class="dropdown-item" href="${pageContext.request.contextPath}/admin/products"><i class="fas fa-boxes me-2 text-muted"></i> Sản phẩm</a></li>
-                        <li><a class="dropdown-item" href="${pageContext.request.contextPath}/admin/inventory-pricing"><i class="fas fa-money-bill-wave me-2 text-muted"></i> Bảng giá</a></li>
+                        <li><a class="dropdown-item" href="${pageContext.request.contextPath}/manager/categories"><i class="fas fa-tags me-2 text-muted"></i> Danh mục</a></li>
+                        <li><a class="dropdown-item" href="${pageContext.request.contextPath}/manager/products"><i class="fas fa-boxes me-2 text-muted"></i> Sản phẩm</a></li>
+                        <li><a class="dropdown-item" href="${pageContext.request.contextPath}/manager/inventory-pricing"><i class="fas fa-money-bill-wave me-2 text-muted"></i> Bảng giá</a></li>
                     </ul>
                 </li>
 
-                <!-- Nội dung & Marketing -->
+                <%-- Marketing: Admin & Manager --%>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                         <i class="fas fa-bullhorn me-1"></i> Marketing
@@ -77,17 +89,17 @@
                     <ul class="dropdown-menu border-0 shadow-sm">
                         <li><a class="dropdown-item" href="${pageContext.request.contextPath}/staff/news"><i class="fas fa-newspaper me-2 text-muted"></i> Tin tức</a></li>
                         <li><a class="dropdown-item" href="${pageContext.request.contextPath}/staff/voucher"><i class="fas fa-ticket-alt me-2 text-muted"></i> Mã giảm giá</a></li>
-                        <li><a class="dropdown-item" href="${pageContext.request.contextPath}/admin/policies"><i class="fas fa-shield-alt me-2 text-muted"></i> Chính sách</a></li>
+                        <li><a class="dropdown-item" href="${pageContext.request.contextPath}/manager/policies"><i class="fas fa-shield-alt me-2 text-muted"></i> Chính sách</a></li>
                     </ul>
                 </li>
 
-                <!-- Đối tác & CSKH -->
+                <%-- Doi tac & CSKH: Admin & Manager --%>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-handshake me-1"></i> Đối tác & CSKH
+                        <i class="fas fa-handshake me-1"></i> Đối tác &amp; CSKH
                     </a>
                     <ul class="dropdown-menu border-0 shadow-sm">
-                        <li><a class="dropdown-item" href="${pageContext.request.contextPath}/admin/suppliers"><i class="fas fa-truck me-2 text-muted"></i> Nhà cung cấp</a></li>
+                        <li><a class="dropdown-item" href="${pageContext.request.contextPath}/manager/suppliers"><i class="fas fa-truck me-2 text-muted"></i> Nhà cung cấp</a></li>
                         <li><a class="dropdown-item" href="${pageContext.request.contextPath}/staff/feedback"><i class="fas fa-comments me-2 text-muted"></i> Phản hồi</a></li>
                     </ul>
                 </li>
@@ -98,16 +110,25 @@
                     </a>
                 </li>
             </ul>
-            <div class="d-flex align-items-center">
+
+            <div class="d-flex align-items-center gap-2">
+                <%-- Badge vai tro --%>
+                <c:choose>
+                    <c:when test="${sessionScope.user.roleId == 1}">
+                        <span class="role-badge admin"><i class="fas fa-crown me-1"></i>Admin</span>
+                    </c:when>
+                    <c:otherwise>
+                        <span class="role-badge manager"><i class="fas fa-briefcase me-1"></i>Manager</span>
+                    </c:otherwise>
+                </c:choose>
+
                 <div class="dropdown">
                     <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
-                        <img src="https://ui-avatars.com/api/?name=Admin&background=E3000F&color=fff" alt="Admin" class="rounded-circle me-1" width="32" height="32">
-                        <span class="fw-semibold d-none d-xl-inline">Administrator</span>
+                        <img src="https://ui-avatars.com/api/?name=${sessionScope.user.fullName}&background=E3000F&color=fff"
+                             alt="User" class="rounded-circle me-1" width="32" height="32">
+                        <span class="fw-semibold d-none d-xl-inline">${sessionScope.user.fullName}</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2">
-                        <li><a class="dropdown-item" href="#"><i class="fas fa-user-circle me-2"></i> Hồ sơ</a></li>
-                        <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i> Cài đặt</a></li>
-                        <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item text-danger" href="${pageContext.request.contextPath}/logout"><i class="fas fa-sign-out-alt me-2"></i> Đăng xuất</a></li>
                     </ul>
                 </div>

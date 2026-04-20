@@ -346,4 +346,23 @@ public class AccountDAO {
         } catch (Exception e) { e.printStackTrace(); }
         return false;
     }
+
+    public java.util.Map<String, Integer> getUserSummaryStats() {
+        java.util.Map<String, Integer> stats = new java.util.HashMap<>();
+        String sql = "SELECT " +
+                     "SUM(CASE WHEN roleId IN (1, 2) THEN 1 ELSE 0 END) as totalAdminManager, " +
+                     "SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) as totalBanned, " +
+                     "SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) as totalActive " +
+                     "FROM dbo.Accounts";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                stats.put("adminManager", rs.getInt("totalAdminManager"));
+                stats.put("banned", rs.getInt("totalBanned"));
+                stats.put("active", rs.getInt("totalActive"));
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return stats;
+    }
 }

@@ -9,8 +9,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 
-@WebFilter(urlPatterns = {"/admin/*"})
-public class AdminFilter implements Filter {
+@WebFilter(urlPatterns = {"/manager/*"})
+public class ManagerFilter implements Filter {
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {}
@@ -34,17 +34,14 @@ public class AdminFilter implements Filter {
         // 2. Kiểm tra Role
         int roleId = user.getRoleId();
 
-        // Admin (roleId=1) → Cho phép vào /admin/*
-        if (roleId == 1) {
+        // Admin (1) và Manager (2) → Được phép vào /manager/*
+        if (roleId == 1 || roleId == 2) {
             chain.doFilter(request, response);
             return;
         }
 
-        // Nếu là Manager (2), Staff (3) hoặc các role khác → Không được vào khu vực Admin
-        // Redirect về trang chủ hoặc trang riêng của họ
-        if (roleId == 2) {
-            resp.sendRedirect(req.getContextPath() + "/manager/products");
-        } else if (roleId == 3) {
+        // Nếu là Staff (3) hoặc các role khác → Không được vào khu vực Manager
+        if (roleId == 3) {
             resp.sendRedirect(req.getContextPath() + "/staff/voucher");
         } else {
             resp.sendRedirect(req.getContextPath() + "/home");

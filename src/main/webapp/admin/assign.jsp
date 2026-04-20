@@ -1,4 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<!DOCTYPE html>
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -65,34 +68,40 @@
                     <p class="text-white-50 small mb-0 mt-1">Phân quyền người dùng vào hệ thống Fresh Food Store</p>
                 </div>
                 <div class="card-body p-4 p-md-5">
+                    <c:if test="${not empty error}">
+                        <div class="alert alert-danger px-3 py-2 small mb-3 rounded-3">
+                            <i class="fas fa-exclamation-circle me-1"></i> ${error}
+                        </div>
+                    </c:if>
+
                     <form action="${pageContext.request.contextPath}/admin/assign" method="post">
                         <div class="mb-3">
                             <label class="form-label">Họ và tên</label>
-                            <input type="text" name="name" class="form-control" required minlength="3">
+                            <input type="text" name="name" class="form-control" required minlength="3" value="${param.name}">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Email</label>
-                            <input type="email" name="email" class="form-control" required>
+                            <input type="email" name="email" class="form-control" required value="${param.email}">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Số điện thoại</label>
-                            <input type="text" name="phone" class="form-control" pattern="[0-9]{10,11}" title="Vui lòng nhập 10-11 số">
+                            <input type="text" name="phone" class="form-control" pattern="[0-9]{10}" title="Vui lòng nhập đúng 10 chữ số" value="${param.phone}">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Vai trò (Role)</label>
                             <select name="roleId" class="form-select" required>
                                 <option value="">-- Chọn Role --</option>
-                                <option value="1">Admin</option>
-                                <option value="2">Staff</option>
-                                <option value="3">Customer</option>
-                                <option value="4">Shipper</option>
-                                <option value="5">Manager</option>
+                                <option value="1" ${param.roleId == '1' ? 'selected' : ''}>Admin</option>
+                                <option value="2" ${param.roleId == '2' ? 'selected' : ''}>Staff</option>
+                                <option value="3" ${param.roleId == '3' ? 'selected' : ''}>Customer</option>
+                                <option value="4" ${param.roleId == '4' ? 'selected' : ''}>Shipper</option>
+                                <option value="5" ${param.roleId == '5' ? 'selected' : ''}>Manager</option>
                             </select>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Mật khẩu mặc định</label>
-                            <input type="password" name="password" class="form-control" value="123456" readonly>
-                            <small class="text-muted">Mật khẩu mặc định cho tài khoản mới là 123456</small>
+                            <input type="password" name="password" class="form-control" value="FreshFood123" readonly>
+                            <small class="text-muted">Mật khẩu mặc định mới là <b>FreshFood123</b> (có Hoa, thường, số)</small>
                         </div>
                         <div class="d-flex justify-content-between">
                             <a href="users" class="btn btn-outline-secondary px-4">Quay lại</a>

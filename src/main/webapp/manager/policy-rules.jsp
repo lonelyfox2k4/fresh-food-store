@@ -125,17 +125,9 @@
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark glass-nav sticky-top">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="../home">
-                <i class="bi bi-shield-check text-primary me-2 fs-3"></i>
-                <span class="fw-bold tracking-tight">FOODSTORE <span class="text-primary-light">ADMIN</span></span>
-            </a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link px-3" href="policies">Quay lại danh sách</a>
-            </div>
-        </div>
-    </nav>
+    <jsp:include page="../components/admin-nav.jsp">
+        <jsp:param name="active" value="policies" />
+    </jsp:include>
 
     <header class="header-section">
         <div class="container">

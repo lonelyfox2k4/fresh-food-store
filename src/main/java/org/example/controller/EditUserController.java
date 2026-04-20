@@ -2,10 +2,12 @@ package org.example.controller;
 
 import org.example.dao.AccountDAO;
 import org.example.model.auth.Account;
+import org.example.utils.ValidationUtils;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
 import java.io.IOException;
+import java.net.URLEncoder;
 
 @WebServlet("/admin/edit")
 public class EditUserController extends HttpServlet {
@@ -25,16 +27,31 @@ public class EditUserController extends HttpServlet {
         long id = Long.parseLong(req.getParameter("id"));
         String name = req.getParameter("name");
         String phone = req.getParameter("phone");
-        int roleId = Integer.parseInt(req.getParameter("roleId"));
-        boolean status = Boolean.parseBoolean(req.getParameter("status"));
+        String roleIdStr = req.getParameter("roleId");
+        String statusStr = req.getParameter("status");
+
+        // 1. Kiểm tra không để trống tên
+        if (name == null || name.trim().isEmpty()) {
+            resp.sendRedirect("users?error=" + URLEncoder.encode("Họ tên không được để trống", "UTF-8"));
+            return;
+        }
+
+        // 2. Kiểm tra số điện thoại (nếu có nhập)
+        if (phone != null && !phone.trim().isEmpty() && !ValidationUtils.isValidPhone(phone)) {
+            resp.sendRedirect("users?error=" + URLEncoder.encode("Số điện thoại không đúng định dạng (10 số)", "UTF-8"));
+            return;
+        }
+
+        int roleId = Integer.parseInt(roleIdStr);
+        boolean status = Boolean.parseBoolean(statusStr);
 
         // Gọi hàm update trong DAO
         boolean success = dao.updateAccountAdmin(id, name, phone, roleId, status);
 
         if (success) {
-            resp.sendRedirect("users?msg=Update success");
+            resp.sendRedirect("users?msg=" + URLEncoder.encode("Cập nhật thành công", "UTF-8"));
         } else {
-            resp.sendRedirect("users?error=Update failed");
+            resp.sendRedirect("users?error=" + URLEncoder.encode("Lỗi cập nhật dữ liệu", "UTF-8"));
         }
     }
 }

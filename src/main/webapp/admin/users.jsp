@@ -90,7 +90,7 @@
                 <div class="stat-icon bg-success bg-opacity-10 text-success"><i class="fas fa-user-check"></i></div>
                 <div>
                     <div class="text-muted small fw-600">Đang hoạt động</div>
-                    <div class="fw-800 fs-5">${stats.totalUsers - stats.totalBanned}</div> <%-- Placeholder logic --%>
+                    <div class="fw-800 fs-5">${userStats.active}</div>
                 </div>
             </div>
         </div>
@@ -99,7 +99,7 @@
                 <div class="stat-icon bg-info bg-opacity-10 text-info"><i class="fas fa-user-shield"></i></div>
                 <div>
                     <div class="text-muted small fw-600">Admin/Manager</div>
-                    <div class="fw-800 fs-5">5</div> <%-- Placeholder --%>
+                    <div class="fw-800 fs-5">${userStats.adminManager}</div>
                 </div>
             </div>
         </div>
@@ -108,7 +108,7 @@
                 <div class="stat-icon bg-danger bg-opacity-10 text-danger"><i class="fas fa-user-slash"></i></div>
                 <div>
                     <div class="text-muted small fw-600">Bị khóa</div>
-                    <div class="fw-800 fs-5">3</div> <%-- Placeholder --%>
+                    <div class="fw-800 fs-5">${userStats.banned}</div>
                 </div>
             </div>
         </div>
@@ -129,6 +129,7 @@
                     <option value="1" ${param.roleId == '1' ? 'selected' : ''}>Quản trị viên (Admin)</option>
                     <option value="2" ${param.roleId == '2' ? 'selected' : ''}>Quản lý (Manager)</option>
                     <option value="3" ${param.roleId == '3' ? 'selected' : ''}>Nhân viên (Staff)</option>
+                    <option value="4" ${param.roleId == '4' ? 'selected' : ''}>Giao hàng (Shipper)</option>
                     <option value="5" ${param.roleId == '5' ? 'selected' : ''}>Khách hàng (Customer)</option>
                 </select>
             </div>
@@ -184,6 +185,7 @@
                                 <c:when test="${u.roleId == 1}"><span class="badge-pill badge-role bg-dark text-white">Admin</span></c:when>
                                 <c:when test="${u.roleId == 2}"><span class="badge-pill badge-role bg-info border-0 text-white">Manager</span></c:when>
                                 <c:when test="${u.roleId == 3}"><span class="badge-pill badge-role bg-primary border-0 text-white">Staff</span></c:when>
+                                <c:when test="${u.roleId == 4}"><span class="badge-pill badge-role bg-warning text-dark border-0">Shipper</span></c:when>
                                 <c:otherwise><span class="badge-pill badge-role">Customer</span></c:otherwise>
                             </c:choose>
                         </td>
