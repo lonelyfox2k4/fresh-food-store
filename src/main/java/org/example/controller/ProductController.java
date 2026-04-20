@@ -26,7 +26,7 @@ public class ProductController extends HttpServlet {
     private final WishlistDAO    wishlistDAO = new WishlistDAO();
     private final ReviewDAO      reviewDAO   = new ReviewDAO();
 
-    private static final int PAGE_SIZE = 12;
+    private static final int PAGE_SIZE = 24;
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)

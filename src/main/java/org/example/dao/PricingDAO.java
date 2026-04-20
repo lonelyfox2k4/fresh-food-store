@@ -88,8 +88,8 @@ public class PricingDAO {
         String sql = "SELECT TOP 1 r.sellPricePercent " +
                      "FROM dbo.Products p " +
                      "JOIN dbo.ExpiryPricingPolicyRules r ON p.expiryPricingPolicyId = r.policyId " +
-                     "WHERE p.productId = ? AND r.minDaysRemaining <= ? " +
-                     "ORDER BY r.minDaysRemaining DESC";
+                     "WHERE p.productId = ? AND r.minDaysRemaining >= ? " +
+                     "ORDER BY r.minDaysRemaining ASC";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {

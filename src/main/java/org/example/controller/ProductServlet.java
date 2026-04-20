@@ -3,8 +3,11 @@ package org.example.controller;
 import org.example.dao.CategoryDAO;
 import org.example.dao.ProductDAO;
 import org.example.dao.SupplierDAO;
+import org.example.dto.ProductDTO;
 import org.example.dao.PolicyDAO;
+import org.example.model.auth.Account;
 import org.example.model.catalog.Product;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -15,11 +18,12 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @MultipartConfig(fileSizeThreshold = 1024 * 1024 * 2, // 2MB
-                 maxFileSize = 1024 * 1024 * 10,      // 10MB
-                 maxRequestSize = 1024 * 1024 * 50)   // 50MB
+        maxFileSize = 1024 * 1024 * 10, // 10MB
+        maxRequestSize = 1024 * 1024 * 50) // 50MB
 public class ProductServlet extends HttpServlet {
     private final ProductDAO productDAO = new ProductDAO();
     private final CategoryDAO categoryDAO = new CategoryDAO();
@@ -27,9 +31,11 @@ public class ProductServlet extends HttpServlet {
     private final PolicyDAO policyDAO = new PolicyDAO();
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         String action = request.getParameter("action");
-        if (action == null) action = "list";
+        if (action == null)
+            action = "list";
 
         switch (action) {
             case "new":
@@ -41,31 +47,46 @@ public class ProductServlet extends HttpServlet {
             case "delete":
                 deleteProduct(request, response);
                 break;
+            case "toggle-status":
+                toggleProductStatus(request, response);
+                break;
             default:
                 listProducts(request, response);
                 break;
         }
     }
 
-    private void listProducts(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        request.setAttribute("products", productDAO.getAllProducts());
+    private void listProducts(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        request.setAttribute("products", productDAO.getAllProductsAdmin());
         request.getRequestDispatcher("/manager/products.jsp").forward(request, response);
     }
 
-    private void showNewForm(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    private void showNewForm(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         request.setAttribute("categories", categoryDAO.getAllActiveCategories());
         request.setAttribute("suppliers", supplierDAO.getActiveSuppliers());
         request.setAttribute("policies", policyDAO.getAllPolicies());
+        request.setAttribute("today", java.time.LocalDate.now());
         request.getRequestDispatcher("/manager/product-form.jsp").forward(request, response);
     }
 
-    private void showEditForm(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    private void showEditForm(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         long id = Long.parseLong(request.getParameter("id"));
         Product existingProduct = productDAO.getProductById(id);
         request.setAttribute("product", existingProduct);
+
+        // Lấy thêm thông tin lô hàng để hiển thị lên Form Edit
+        ProductDTO batchInfo = productDAO.getAllProductsAdmin().stream()
+                .filter(pd -> pd.getProductId() == id)
+                .findFirst().orElse(null);
+        request.setAttribute("batchInfo", batchInfo);
+
         request.setAttribute("categories", categoryDAO.getAllActiveCategories());
         request.setAttribute("suppliers", supplierDAO.getActiveSuppliers());
         request.setAttribute("policies", policyDAO.getAllPolicies());
+        request.setAttribute("today", java.time.LocalDate.now());
         request.getRequestDispatcher("/manager/product-form.jsp").forward(request, response);
     }
 
@@ -75,32 +96,58 @@ public class ProductServlet extends HttpServlet {
         response.sendRedirect("products");
     }
 
+    private void toggleProductStatus(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        try {
+            long id = Long.parseLong(request.getParameter("id"));
+            String statusParam = request.getParameter("status");
+            System.out.println("Toggle Status - ID: " + id + ", Status Param: " + statusParam);
+            
+            // Parse status - có thể là "true"/"false" hoặc "1"/"0"
+            boolean newStatus = statusParam != null && (statusParam.equalsIgnoreCase("true") || statusParam.equals("1"));
+            System.out.println("New Status Value: " + newStatus);
+            
+            boolean updated = productDAO.updateStatus(id, newStatus);
+            System.out.println("Update Result: " + updated);
+            
+            response.sendRedirect("products");
+        } catch (Exception e) {
+            System.out.println("Error in toggleProductStatus: " + e.getMessage());
+            e.printStackTrace();
+            response.sendError(500, "Error toggling product status");
+        }
+    }
+
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
         String idStr = request.getParameter("id");
-        
+
         String productName = request.getParameter("productName");
         String basePriceStr = request.getParameter("basePriceAmount");
         String supIdStr = request.getParameter("supplierId");
         String catIdStr = request.getParameter("categoryId");
 
         // Basic Server-side Validation
-        if (productName == null || productName.trim().isEmpty() || 
-            basePriceStr == null || basePriceStr.isEmpty() ||
-            catIdStr == null || catIdStr.isEmpty()) {
-            
+        if (productName == null || productName.trim().isEmpty() ||
+                basePriceStr == null || basePriceStr.isEmpty() ||
+                catIdStr == null || catIdStr.isEmpty()) {
+
             request.setAttribute("error", "Vui lòng điền đầy đủ các thông tin bắt buộc (*)");
-            if (idStr == null || idStr.isEmpty()) showNewForm(request, response);
-            else showEditForm(request, response);
+            if (idStr == null || idStr.isEmpty())
+                showNewForm(request, response);
+            else
+                showEditForm(request, response);
             return;
         }
 
         BigDecimal basePrice = new BigDecimal(basePriceStr);
         if (basePrice.compareTo(BigDecimal.ZERO) <= 0) {
             request.setAttribute("error", "Giá niêm yết phải lớn hơn 0");
-            if (idStr == null || idStr.isEmpty()) showNewForm(request, response);
-            else showEditForm(request, response);
+            if (idStr == null || idStr.isEmpty())
+                showNewForm(request, response);
+            else
+                showEditForm(request, response);
             return;
         }
 
@@ -122,11 +169,12 @@ public class ProductServlet extends HttpServlet {
                 String newFileName = UUID.randomUUID().toString() + ext;
                 String uploadPath = getServletContext().getRealPath("") + File.separator + "uploads";
                 File uploadDir = new File(uploadPath);
-                if (!uploadDir.exists()) uploadDir.mkdir();
-                
+                if (!uploadDir.exists())
+                    uploadDir.mkdir();
+
                 String filePath = uploadPath + File.separator + newFileName;
                 filePart.write(filePath);
-                
+
                 // Lưu web path (ví dụ: /uploads/abc.png hoặc uploads/abc.png)
                 imageUrl = "uploads/" + newFileName;
             }
@@ -137,19 +185,47 @@ public class ProductServlet extends HttpServlet {
 
         p.setBasePriceAmount(basePrice);
         p.setPriceBaseWeightGram(Integer.parseInt(request.getParameter("priceBaseWeightGram")));
-        
+
         String policyId = request.getParameter("expiryPricingPolicyId");
         if (policyId != null && !policyId.isEmpty() && !policyId.equals("0")) {
             p.setExpiryPricingPolicyId(Integer.parseInt(policyId));
         }
-        
+
         p.setStatus(request.getParameter("status") != null);
 
+        String expiryStr = request.getParameter("expiryDate");
+        String manufactureStr = request.getParameter("manufactureDate");
+        LocalDate manufactureDate = (manufactureStr != null && !manufactureStr.isEmpty())
+                ? LocalDate.parse(manufactureStr)
+                : null;
+        LocalDate expiryDate = (expiryStr != null && !expiryStr.isEmpty()) ? LocalDate.parse(expiryStr) : null;
+
+        // Validation: Ngày nhập không được lớn hơn ngày hiện tại
+        if (manufactureDate != null && manufactureDate.isAfter(LocalDate.now())) {
+            request.setAttribute("error", "Ngày nhập hàng không được vượt quá ngày hôm nay (" + LocalDate.now() + ")");
+            if (idStr == null || idStr.isEmpty())
+                showNewForm(request, response);
+            else
+                showEditForm(request, response);
+            return;
+        }
+
+        Account user = (Account) request.getSession().getAttribute("user");
+        Long accountId = (user != null) ? user.getAccountId() : null;
+
         if (idStr == null || idStr.isEmpty()) {
-            productDAO.insertProduct(p);
+            if (productDAO.insertProduct(p)) {
+                productDAO.syncBatchInfo(p.getProductId(),
+                        (supIdStr != null && !supIdStr.isEmpty()) ? Long.parseLong(supIdStr) : null,
+                        manufactureDate, expiryDate, accountId);
+            }
         } else {
             p.setProductId(Long.parseLong(idStr));
-            productDAO.updateProduct(p);
+            if (productDAO.updateProduct(p)) {
+                productDAO.syncBatchInfo(p.getProductId(),
+                        (supIdStr != null && !supIdStr.isEmpty()) ? Long.parseLong(supIdStr) : null,
+                        manufactureDate, expiryDate, accountId);
+            }
         }
         response.sendRedirect("products");
     }

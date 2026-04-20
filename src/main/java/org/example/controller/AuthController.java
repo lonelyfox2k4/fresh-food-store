@@ -63,27 +63,12 @@ public class AuthController extends HttpServlet {
             req.changeSessionId(); // Bảo mật: Fix Session Fixation
             req.getSession().setAttribute("user", acc);
             req.getSession().setAttribute("cartCount", cartDAO.countCartLines(acc.getAccountId()));
-
-            String contextPath = req.getContextPath();
-            int roleId = acc.getRoleId();
-            System.out.println("[AuthController] Login success: " + acc.getEmail() + " (Role: " + roleId + ")");
-
-            switch (roleId) {
-                case 1: // Admin
-                    resp.sendRedirect(contextPath + "/admin/dashboard");
-                    break;
-                case 2: // Manager → vào trang quản lý sản phẩm (không có quyền vào dashboard/users)
-                    resp.sendRedirect(contextPath + "/manager/products");
-                    break;
-                case 3: // Staff → chỉ được vào khu vực staff
-                    resp.sendRedirect(contextPath + "/staff/voucher");
-                    break;
-                case 4: // Shipper
-                    resp.sendRedirect(contextPath + "/shipper/orders");
-                    break;
-                default: // Customer
-                    resp.sendRedirect(contextPath + "/home");
-                    break;
+            if (acc.getRoleId() == 1) {
+                resp.sendRedirect("admin/dashboard");
+            } else if (acc.getRoleId() == 2) {
+                resp.sendRedirect("manager/products");
+            } else {
+                resp.sendRedirect("home");
             }
         } else {
             req.setAttribute("errorMsg", "Tài khoản hoặc mật khẩu không chính xác!");
