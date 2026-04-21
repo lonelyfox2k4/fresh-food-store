@@ -8,34 +8,18 @@
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>${product != null ? 'Sửa' : 'Thêm'} Sản phẩm | Fresh Food</title>
             <!-- Google Fonts -->
-            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-                rel="stylesheet">
+            <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
             <!-- Bootstrap 5 -->
             <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-            <!-- Bootstrap Icons -->
+            <!-- FontAwesome -->
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
             <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
             <!-- Flatpickr Datepicker -->
             <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+            <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
+            <jsp:include page="../components/admin-style.jsp" />
 
             <style>
-                :root {
-                    --primary: #4f46e5;
-                    --primary-light: #818cf8;
-                    --slate-50: #f8fafc;
-                    --slate-100: #f1f5f9;
-                    --slate-200: #e2e8f0;
-                    --slate-700: #334155;
-                    --slate-800: #1e293b;
-                    --slate-900: #0f172a;
-                }
-
-                body {
-                    font-family: 'Inter', sans-serif;
-                    background-color: #f3f4f6;
-                    color: var(--slate-800);
-                    min-height: 100vh;
-                }
-
                 .main-card {
                     background: white;
                     border: none;

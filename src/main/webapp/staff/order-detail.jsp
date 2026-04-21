@@ -3,37 +3,62 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <html>
 <head>
-    <title>Chi tiết Đơn hàng #${order.orderCode} | Staff</title>
+    <title>Chi tiết Đơn hàng #${order.orderCode} | Fresh Food</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
+    <jsp:include page="../components/admin-style.jsp" />
     <style>
         .bill-header { background: #f8f9fa; border-bottom: 2px dashed #dee2e6; }
         .timeline-dot {
             width: 12px; height: 12px; border-radius: 50%;
-            background: #198754; flex-shrink: 0; margin-top: 4px;
+            background: var(--brand-color); flex-shrink: 0; margin-top: 4px;
         }
     </style>
 </head>
-<body class="bg-light">
-<c:import url="/staff/common/nav.jsp" />
+<body>
+<jsp:include page="../components/admin-nav.jsp">
+    <jsp:param name="active" value="${param.from == 'feedback' ? 'partners' : 'orders'}" />
+</jsp:include>
 
 <div class="container py-3">
-    <%-- Nút quay lại --%>
-    <div class="mb-4">
-        <c:choose>
-            <c:when test="${param.from == 'feedback'}">
-                <a href="${pageContext.request.contextPath}/staff/feedback"
-                   class="btn btn-sm btn-light border shadow-sm">
-                    <i class="bi bi-arrow-left me-1"></i>Quay lại Phản hồi
-                </a>
-            </c:when>
-            <c:otherwise>
-                <a href="${pageContext.request.contextPath}/staff/orders"
-                   class="btn btn-sm btn-light border shadow-sm">
-                    <i class="bi bi-arrow-left me-1"></i>Quay lại Danh sách đơn hàng
-                </a>
-            </c:otherwise>
-        </c:choose>
+    <div class="page-header mt-n2 mb-4">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1">
+                        <c:choose>
+                            <c:when test="${param.from == 'feedback'}">
+                                <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/staff/feedback">Phản hồi</a></li>
+                            </c:when>
+                            <c:otherwise>
+                                <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/staff/orders">Bán hàng</a></li>
+                                <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/staff/orders">Đơn hàng</a></li>
+                            </c:otherwise>
+                        </c:choose>
+                        <li class="breadcrumb-item active">Chi tiết</li>
+                    </ol>
+                </nav>
+                <h2 class="fw-800 mb-0">Hóa đơn #${order.orderCode}</h2>
+            </div>
+            <c:choose>
+                <c:when test="${param.from == 'feedback'}">
+                    <a href="${pageContext.request.contextPath}/staff/feedback" class="btn btn-outline-brand rounded-pill px-4 shadow-sm">
+                        <i class="fas fa-arrow-left me-2"></i>Quay lại Phản hồi
+                    </a>
+                </c:when>
+                <c:otherwise>
+                    <a href="${pageContext.request.contextPath}/staff/orders" class="btn btn-outline-brand rounded-pill px-4 shadow-sm">
+                        <i class="fas fa-arrow-left me-2"></i>Quay lại Danh sách
+                    </a>
+                </c:otherwise>
+            </c:choose>
+        </div>
     </div>
 
     <div class="row justify-content-center">
@@ -42,7 +67,7 @@
 
                 <%-- Header hóa đơn --%>
                 <div class="card-body p-4 bill-header text-center">
-                    <h3 class="fw-bold text-success mb-1">
+                    <h3 class="fw-bold text-brand mb-1">
                         <i class="bi bi-leaf me-1"></i>FRESH FOOD STORE
                     </h3>
                     <p class="text-muted mb-0 small text-uppercase">Hóa đơn bán lẻ</p>
@@ -160,7 +185,7 @@
                             <hr class="border-secondary opacity-25">
                             <div class="d-flex justify-content-between align-items-center">
                                 <span class="fw-bold text-uppercase">Tổng cộng:</span>
-                                <span class="fs-4 fw-bold text-danger">
+                                <span class="fs-4 fw-bold text-brand">
                                     <fmt:formatNumber value="${order.totalAmount}" type="number"/> đ
                                 </span>
                             </div>

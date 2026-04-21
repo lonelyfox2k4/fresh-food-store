@@ -7,53 +7,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cấu hình Quy tắc | Fresh Food</title>
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Bootstrap 5 -->
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
     
+    <jsp:include page="../components/admin-style.jsp" />
     <style>
-        :root {
-            --primary: #4f46e5;
-            --primary-light: #818cf8;
-            --slate-50: #f8fafc;
-            --slate-100: #f1f5f9;
-            --slate-200: #e2e8f0;
-            --slate-500: #64748b;
-            --slate-700: #334155;
-            --slate-800: #1e293b;
-            --slate-900: #0f172a;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-            color: var(--slate-800);
-            min-height: 100vh;
-        }
-
-        .glass-nav {
-            background: rgba(15, 23, 42, 0.9);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .header-section {
-            background: linear-gradient(135deg, var(--slate-900) 0%, var(--slate-800) 100%);
-            color: white;
-            padding: 4rem 0 6rem 0;
-            margin-bottom: -4rem;
-        }
-
-        .main-card {
-            background: white;
-            border: none;
-            border-radius: 1.25rem;
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.05);
-            overflow: hidden;
-        }
-
         .rule-row {
             background-color: white;
             border-bottom: 1px solid var(--slate-100);
@@ -129,26 +90,29 @@
         <jsp:param name="active" value="policies" />
     </jsp:include>
 
-    <header class="header-section">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-9">
-                    <h1 class="display-6 fw-bold mb-2">Cấu hình Quy tắc Giảm giá</h1>
-                    <p class="text-white-50 lead fs-6 mb-0">Thiết lập mốc thời gian và tỷ lệ phần trăm giá bán cho chính sách: <span class="text-white fw-semibold">${policy.policyName}</span></p>
-                </div>
-                <div class="col text-md-end mt-4 mt-md-0">
-                    <c:if test="${sessionScope.user.roleId != 1}">
-                        <button type="button" class="btn btn-outline-light rounded-pill px-4" onclick="addRow()">
-                            <i class="bi bi-plus-lg me-2"></i>Thêm mốc mới
-                        </button>
-                    </c:if>
-                </div>
+    <div class="page-header mt-n2">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1">
+                        <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/manager/products">Quản lý</a></li>
+                        <li class="breadcrumb-item"><a href="policies">Chính sách giảm giá</a></li>
+                        <li class="breadcrumb-item active">Cấu hình Quy tắc</li>
+                    </ol>
+                </nav>
+                <h2 class="fw-800 mb-0">Cấu hình Quy tắc Giảm giá</h2>
+                <p class="text-white-50 small mb-0 mt-1">Chính sách: <span class="text-white fw-semibold">${policy.policyName}</span></p>
             </div>
+            <c:if test="${sessionScope.user.roleId != 1}">
+                <button type="button" class="btn btn-brand shadow-sm rounded-pill" onclick="addRow()">
+                    <i class="fas fa-plus-circle me-2"></i>Thêm mốc mới
+                </button>
+            </c:if>
         </div>
-    </header>
+    </div>
 
     <main class="container mb-5">
-        <div class="main-card mb-4">
+        <div class="user-table-card mb-4" style="overflow: visible;">
             <form action="policies" method="post" id="rulesForm">
                 <input type="hidden" name="action" value="save-rules">
                 <input type="hidden" name="policyId" value="${policy.policyId}">
@@ -172,7 +136,7 @@
                             <div class="col-md-2 text-end">
                                 <c:if test="${sessionScope.user.roleId != 1}">
                                     <button type="button" class="btn btn-remove" onclick="removeRow(this)">
-                                        <i class="bi bi-trash3-fill"></i>
+                                        <i class="fas fa-trash-alt"></i>
                                     </button>
                                 </c:if>
                             </div>
@@ -180,23 +144,23 @@
                     </c:forEach>
                     <c:if test="${empty rules}">
                         <div class="p-5 text-center text-muted">
-                            <i class="bi bi-calendar-x fs-1 mb-3 d-block"></i>
+                            <i class="fas fa-calendar-times fs-1 mb-3 d-block text-muted opacity-50"></i>
                             Chưa có quy tắc nào được thiết lập. Hãy thêm mốc đầu tiên!
                         </div>
                     </c:if>
                 </div>
 
-                <div class="p-4 bg-light border-top d-flex justify-content-between align-items-center">
-                    <a href="policies" class="text-secondary text-decoration-none fw-medium"><i class="bi bi-arrow-left me-1"></i> Quay lại</a>
+                <div class="p-4 bg-light border-top d-flex justify-content-between align-items-center" style="border-radius: 0 0 1.25rem 1.25rem;">
+                    <a href="policies" class="text-secondary text-decoration-none fw-medium"><i class="fas fa-arrow-left me-1"></i> Quay lại</a>
                     <c:if test="${sessionScope.user.roleId != 1}">
-                        <button type="submit" class="btn btn-primary px-4 py-2 fw-bold">Lưu cấu hình</button>
+                        <button type="submit" class="btn btn-brand px-4 py-2 fw-bold rounded-pill shadow-sm">Lưu cấu hình</button>
                     </c:if>
                 </div>
             </form>
         </div>
 
         <div class="guide-alert alert p-4 border-0">
-            <h5 class="fw-bold mb-3"><i class="bi bi-lightbulb-fill text-warning me-2"></i>Hướng dẫn vận hành chính sách:</h5>
+            <h5 class="fw-bold mb-3"><i class="fas fa-lightbulb text-warning me-2"></i>Hướng dẫn vận hành chính sách:</h5>
             <div class="row">
                 <div class="col-md-7">
                     <ul class="mb-0 text-secondary" style="font-size: 0.95rem;">
@@ -240,7 +204,7 @@
                 </div>
                 <div class="col-md-2 text-end">
                     <button type="button" class="btn btn-remove" onclick="removeRow(this)">
-                        <i class="bi bi-trash3-fill"></i>
+                        <i class="fas fa-trash-alt"></i>
                     </button>
                 </div>
             `;

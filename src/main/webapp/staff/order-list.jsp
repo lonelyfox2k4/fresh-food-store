@@ -3,25 +3,43 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <html>
 <head>
-    <title>Quản lý Đơn hàng | Staff</title>
+    <title>Quản lý Đơn hàng | Fresh Food</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
+    <jsp:include page="../components/admin-style.jsp" />
 </head>
-<body class="bg-light">
-<c:import url="/staff/common/nav.jsp" />
+<body>
+    <jsp:include page="../components/admin-nav.jsp">
+        <jsp:param name="active" value="orders" />
+    </jsp:include>
 
-<div class="container-fluid py-3 px-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h3 class="fw-bold"><i class="bi bi-box-seam me-2"></i>Quản lý Đơn hàng</h3>
-            <p class="text-muted small">Danh sách toàn bộ đơn hàng trong hệ thống.</p>
-        </div>
-        <div class="d-flex gap-2">
-            <a href="${pageContext.request.contextPath}/staff/orders" class="btn btn-outline-secondary shadow-sm">
-                <i class="bi bi-arrow-clockwise"></i> Làm mới
-            </a>
+    <div class="page-header mt-n2 mb-4">
+        <div class="container-fluid px-4 d-flex justify-content-between align-items-center">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1">
+                        <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/staff/orders">Bán hàng</a></li>
+                        <li class="breadcrumb-item active">Đơn hàng</li>
+                    </ol>
+                </nav>
+                <h2 class="fw-800 mb-0">Quản lý Đơn hàng</h2>
+                <p class="text-white-50 small mb-0 mt-1">Danh sách toàn bộ đơn hàng trong hệ thống.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="${pageContext.request.contextPath}/staff/orders" class="btn btn-brand shadow-sm rounded-pill">
+                    <i class="fas fa-sync-alt me-2"></i> Làm mới
+                </a>
+            </div>
         </div>
     </div>
+
+    <div class="container-fluid px-4">
 
     <c:if test="${not empty param.msg}">
         <div class="alert alert-success border-0 shadow-sm alert-dismissible fade show">
@@ -50,11 +68,11 @@
         </div>
     </c:if>
 
-    <div class="card border-0 shadow-sm mb-4">
+    <div class="user-table-card mb-4">
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
-                    <thead class="table-success">
+                    <thead>
                     <tr>
                         <th class="ps-4">Mã Đơn / Khách hàng</th>
                         <th>Địa chỉ / Ghi chú</th>
@@ -62,7 +80,7 @@
                         <th>Trạng thái Đơn</th>
                         <th>Điều phối Shipper</th>
                         <th>Trạng thái Giao hàng</th>
-                        <th class="text-center">Thao tác</th>
+                        <th class="text-end pe-4">Thao tác</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -112,18 +130,18 @@
                             </td>
                             <td>
                                 <c:choose>
-                                    <c:when test="${o.orderStatus == 1}"><span class="badge bg-secondary opacity-75">Chờ xác nhận</span></c:when>
-                                    <c:when test="${o.orderStatus == 2}"><span class="badge bg-warning text-dark"><i class="bi bi-box-seam"></i> Đã xác nhận</span></c:when>
-                                    <c:when test="${o.orderStatus == 3}"><span class="badge bg-primary text-white"><i class="bi bi-box-seam"></i> Đang đóng gói</span></c:when>
-                                    <c:when test="${o.orderStatus == 4}"><span class="badge bg-info text-dark"><i class="bi bi-truck"></i> Đang giao hàng</span></c:when>
-                                    <c:when test="${o.orderStatus == 5}"><span class="badge bg-success"><i class="bi bi-check-all"></i> Đã hoàn tất</span></c:when>
+                                    <c:when test="${o.orderStatus == 1}"><span class="badge-pill badge-role"><i class="fas fa-clock fs-8 me-1"></i>Chờ xác nhận</span></c:when>
+                                    <c:when test="${o.orderStatus == 2}"><span class="badge-pill" style="background:#fff7ed;color:#c2410c;border:1px solid #ffd8a8"><i class="fas fa-box-open fs-8 me-1"></i> Đã xác nhận</span></c:when>
+                                    <c:when test="${o.orderStatus == 3}"><span class="badge-pill badge-active"><i class="fas fa-box fs-8 me-1"></i> Đang đóng gói</span></c:when>
+                                    <c:when test="${o.orderStatus == 4}"><span class="badge-pill" style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe"><i class="fas fa-truck fs-8 me-1"></i> Đang giao hàng</span></c:when>
+                                    <c:when test="${o.orderStatus == 5}"><span class="badge-pill badge-active"><i class="fas fa-check-double fs-8 me-1"></i> Đã hoàn tất</span></c:when>
                                     <c:when test="${o.orderStatus == 6}">
-                                        <span class="badge bg-danger">Đã hủy</span>
+                                        <span class="badge-pill" style="background:#fef2f2;color:#b91c1c;border:1px solid #fecaca"><i class="fas fa-times fs-8 me-1"></i> Đã hủy</span>
                                         <c:if test="${not empty o.cancelledReason}">
                                             <div class="small text-danger mt-1" style="font-size: 0.75rem;">Lý do: ${o.cancelledReason}</div>
                                         </c:if>
                                     </c:when>
-                                    <c:otherwise>Không xác định</c:otherwise>
+                                    <c:otherwise><span class="badge-pill badge-role">Không xác định</span></c:otherwise>
                                 </c:choose>
                             </td>
                             
@@ -170,14 +188,14 @@
                                 </c:choose>
                             </td>
 
-                            <td class="text-center">
+                            <td class="text-end pe-4">
                                 <div class="dropdown">
-                                  <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                    <i class="bi bi-three-dots-vertical"></i>
+                                  <button class="btn btn-sm btn-outline-secondary dropdown-toggle rounded-pill" type="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-ellipsis-v"></i>
                                   </button>
-                                  <ul class="dropdown-menu dropdown-menu-end shadow">
+                                  <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius: 0.75rem;">
                                     <li>
-                                        <a class="dropdown-item py-2" href="${pageContext.request.contextPath}/staff/orders?action=detail&id=${o.orderId}"><i class="bi bi-eye text-primary me-2"></i> Chi tiết</a>
+                                        <a class="dropdown-item py-2 fw-medium text-brand" href="${pageContext.request.contextPath}/staff/orders?action=detail&id=${o.orderId}"><i class="fas fa-eye me-2"></i> Chi tiết</a>
                                     </li>
                                     <li><hr class="dropdown-divider"></li>
                                     
@@ -186,7 +204,7 @@
                                             <li>
                                                 <form action="${pageContext.request.contextPath}/staff/orders" method="post" class="m-0">
                                                     <input type="hidden" name="action" value="confirm"><input type="hidden" name="orderId" value="${o.orderId}">
-                                                    <button type="submit" class="dropdown-item text-primary py-2"><i class="bi bi-check-circle me-2"></i> Xác nhận & Đóng gói</button>
+                                                    <button type="submit" class="dropdown-item text-primary py-2 fw-medium"><i class="fas fa-check-circle me-2"></i> Xác nhận & Đóng gói</button>
                                                 </form>
                                             </li>
                                         </c:when>
@@ -195,7 +213,7 @@
                                                 <li>
                                                     <form action="${pageContext.request.contextPath}/staff/orders" method="post" class="m-0">
                                                         <input type="hidden" name="action" value="ready"><input type="hidden" name="orderId" value="${o.orderId}">
-                                                        <button type="submit" class="dropdown-item text-info py-2"><i class="bi bi-box-arrow-right me-2"></i> Hoàn tất đóng gói</button>
+                                                        <button type="submit" class="dropdown-item text-info py-2 fw-medium"><i class="fas fa-box-open me-2"></i> Hoàn tất đóng gói</button>
                                                     </form>
                                                 </li>
                                             </c:if>
@@ -205,7 +223,7 @@
                                                 <li>
                                                     <form action="orders" method="post" class="m-0" onsubmit="return confirm('Xác nhận Đóng đơn?');">
                                                         <input type="hidden" name="action" value="complete"><input type="hidden" name="orderId" value="${o.orderId}">
-                                                        <button type="submit" class="dropdown-item text-success fw-bold py-2"><i class="bi bi-flag-fill me-2"></i> Lưu kho & Hoàn thành</button>
+                                                        <button type="submit" class="dropdown-item text-success fw-bold py-2"><i class="fas fa-flag me-2"></i> Lưu kho & Hoàn thành</button>
                                                     </form>
                                                 </li>
                                             </c:if>
@@ -216,7 +234,7 @@
                                         <li>
                                             <form action="${pageContext.request.contextPath}/staff/orders" method="post" class="m-0">
                                                 <input type="hidden" name="action" value="updatePayment"><input type="hidden" name="paymentStatus" value="2"><input type="hidden" name="orderId" value="${o.orderId}">
-                                                <button type="submit" class="dropdown-item text-success py-2"><i class="bi bi-cash me-2"></i> Đã thu tiền (COD)</button>
+                                                <button type="submit" class="dropdown-item text-success fw-medium py-2"><i class="fas fa-money-bill-wave me-2"></i> Đã thu tiền (COD)</button>
                                             </form>
                                         </li>
                                     </c:if>
@@ -224,8 +242,8 @@
                                     <c:if test="${o.orderStatus != 4 && o.orderStatus != 5 && o.orderStatus != 6}">
                                         <li><hr class="dropdown-divider"></li>
                                         <li>
-                                            <button type="button" class="dropdown-item text-danger py-2" data-bs-toggle="modal" data-bs-target="#cancelModal${o.orderId}">
-                                                <i class="bi bi-x-circle me-2"></i> Hủy đơn
+                                            <button type="button" class="dropdown-item text-danger py-2 fw-medium" data-bs-toggle="modal" data-bs-target="#cancelModal${o.orderId}">
+                                                <i class="fas fa-times-circle me-2"></i> Hủy đơn
                                             </button>
                                         </li>
                                     </c:if>

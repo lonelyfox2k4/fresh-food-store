@@ -2,12 +2,55 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <html>
 <head>
-    <title>Thiết lập Voucher | Staff</title>
+    <title>Thiết lập Voucher | Fresh Food</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
+    <jsp:include page="../components/admin-style.jsp" />
+    <style>
+        .main-card {
+            background: white;
+            border: none;
+            border-radius: 1.25rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+        .form-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--slate-500);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+        .form-control, .form-select {
+            border: 1px solid var(--slate-200);
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            background-color: var(--slate-50);
+            transition: all 0.2s;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-light);
+            background-color: white;
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
+        .btn-premium {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+    </style>
 </head>
 <body class="bg-light">
-<c:import url="/staff/common/nav.jsp" />
+<jsp:include page="../components/admin-nav.jsp">
+    <jsp:param name="active" value="voucher" />
+</jsp:include>
 
 <div class="container py-4">
     <div class="mb-3">
@@ -19,13 +62,15 @@
 
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <div class="card border-0 shadow">
-                <div class="card-header bg-success text-white py-3">
-                    <h5 class="mb-0 fw-bold">
-                        <i class="bi bi-ticket-perforated me-2"></i>Tạo Chiến Dịch Voucher Mới
-                    </h5>
+            <div class="main-card p-4 p-md-5">
+                <div class="mb-5 text-center">
+                    <div class="bg-primary-subtle text-primary d-inline-flex align-items-center justify-content-center rounded-4 p-3 mb-3">
+                        <i class="fas fa-ticket-alt fs-3"></i>
+                    </div>
+                    <h2 class="fw-bold fs-3 text-dark mb-1">Tạo Chiến Dịch Voucher Mới</h2>
+                    <p class="text-secondary small">Điền các thông số chính sách để phát hành voucher.</p>
                 </div>
-                <div class="card-body p-4">
+                <div>
                     <form action="${pageContext.request.contextPath}/staff/voucher" method="POST">
                         <input type="hidden" name="action" value="create">
 
@@ -85,14 +130,17 @@
                             </div>
                         </div>
 
-                        <div class="d-flex justify-content-between mt-4 pt-3 border-top">
-                            <a href="${pageContext.request.contextPath}/staff/voucher"
-                               class="btn btn-light px-4">
-                                <i class="bi bi-x me-1"></i>Hủy bỏ
-                            </a>
-                            <button type="submit" class="btn btn-success px-5 fw-bold">
-                                <i class="bi bi-send-fill me-1"></i>Phát hành Voucher
-                            </button>
+                        <div class="row g-3 mt-4">
+                            <div class="col-md-4">
+                                <a href="${pageContext.request.contextPath}/staff/voucher" class="btn btn-light w-100 btn-premium border-0">
+                                    Hủy bỏ
+                                </a>
+                            </div>
+                            <div class="col-md-8">
+                                <button type="submit" class="btn btn-primary w-100 btn-premium shadow-lg fw-bold">
+                                    <i class="fas fa-paper-plane me-2"></i>Phát hành Voucher
+                                </button>
+                            </div>
                         </div>
                     </form>
                 </div>

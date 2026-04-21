@@ -7,163 +7,75 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý Loại sản phẩm | Fresh Food</title>
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Bootstrap 5 -->
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
     
-    <style>
-        :root {
-            --primary: #4f46e5;
-            --primary-light: #818cf8;
-            --slate-50: #f8fafc;
-            --slate-100: #f1f5f9;
-            --slate-200: #e2e8f0;
-            --slate-700: #334155;
-            --slate-800: #1e293b;
-            --slate-900: #0f172a;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-            color: var(--slate-800);
-            min-height: 100vh;
-        }
-
-        .glass-nav {
-            background: rgba(15, 23, 42, 0.9);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .header-section {
-            background: linear-gradient(135deg, var(--slate-900) 0%, var(--slate-800) 100%);
-            color: white;
-            padding: 4rem 0 6rem 0;
-            margin-bottom: -4rem;
-        }
-
-        .main-card {
-            background: white;
-            border: none;
-            border-radius: 1.25rem;
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.05);
-            overflow: hidden;
-        }
-
-        .table thead th {
-            background-color: var(--slate-50);
-            border-bottom: 2px solid var(--slate-100);
-            text-transform: uppercase;
-            font-size: 0.7rem;
-            font-weight: 700;
-            color: var(--slate-500);
-            letter-spacing: 0.05em;
-            padding: 1.25rem 1.5rem;
-        }
-
-        .table tbody td {
-            padding: 1.25rem 1.5rem;
-            border-bottom: 1px solid var(--slate-100);
-            vertical-align: middle;
-        }
-
-        .status-badge {
-            padding: 0.35rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .status-active { background: #dcfce7; color: #166534; }
-        .status-inactive { background: #f1f5f9; color: #475569; }
-
-        .action-btn {
-            width: 32px;
-            height: 32px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 0.5rem;
-            transition: all 0.2s;
-            border: 1px solid var(--slate-200);
-            background: white;
-            color: var(--slate-600);
-        }
-
-        .action-btn:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-            background: #eef2ff;
-        }
-
-        .modal-content {
-            border: none;
-            border-radius: 1rem;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-        }
-    </style>
+    <jsp:include page="../components/admin-style.jsp" />
 </head>
 <body>
     <jsp:include page="../components/admin-nav.jsp">
         <jsp:param name="active" value="categories" />
     </jsp:include>
 
-    <header class="header-section">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-8">
-                    <h1 class="display-6 fw-bold mb-2">Quản lý Phân loại</h1>
-                    <p class="text-white-50 lead fs-6 mb-0">Thiết lập các danh mục sản phẩm để tối ưu hóa việc phân phối và hiển thị hàng hóa.</p>
-                </div>
-                <div class="col-md-4 text-md-end mt-4 mt-md-0">
-                    <c:if test="${sessionScope.user.roleId != 1}">
-                        <button type="button" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold shadow-lg" data-bs-toggle="modal" data-bs-target="#categoryModal">
-                            <i class="bi bi-plus-lg me-2"></i>Thêm phân loại mới
-                        </button>
-                    </c:if>
-                </div>
+    <div class="page-header mt-n2">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1">
+                        <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/manager/products">Quản lý</a></li>
+                        <li class="breadcrumb-item active">Danh mục</li>
+                    </ol>
+                </nav>
+                <h2 class="fw-800 mb-0">Quản lý Phân loại</h2>
             </div>
+            <c:if test="${sessionScope.user.roleId != 1}">
+                <button type="button" class="btn btn-brand shadow-sm rounded-pill" data-bs-toggle="modal" data-bs-target="#categoryModal">
+                    <i class="fas fa-plus-circle me-2"></i>Thêm phân loại
+                </button>
+            </c:if>
         </div>
-    </header>
+    </div>
 
     <main class="container mb-5">
-        <div class="main-card">
+        <div class="user-table-card">
             <div class="table-responsive">
-                <table class="table table-hover align-middle">
+                <table class="table table-hover align-middle mb-0">
                     <thead>
                         <tr>
-                            <th style="width: 100px;">Mã số</th>
+                            <th style="width: 120px;">Mã số</th>
                             <th>Tên phân loại</th>
                             <th>Trạng thái hiển thị</th>
                             <c:if test="${sessionScope.user.roleId != 1}">
-                                <th class="text-end">Hành động</th>
+                                <th class="text-end pe-4">Hành động</th>
                             </c:if>
                         </tr>
                     </thead>
                     <tbody>
                         <c:forEach var="c" items="${categories}">
                             <tr>
-                                <td class="text-muted fw-medium">#CAT-${c.categoryId}</td>
+                                <td class="text-muted fw-600">#CAT-${c.categoryId}</td>
                                 <td>
                                     <div class="fw-bold text-dark fs-6">${c.categoryName}</div>
                                 </td>
                                 <td>
                                     <c:choose>
-                                        <c:when test="${c.status}"><span class="status-badge status-active"><i class="bi bi-eye-fill me-1"></i>Đang hiển thị</span></c:when>
-                                        <c:otherwise><span class="status-badge status-inactive"><i class="bi bi-eye-slash-fill me-1"></i>Đã ẩn</span></c:otherwise>
+                                        <c:when test="${c.status}"><span class="badge-pill badge-active"><i class="fas fa-eye me-1"></i>Đang hiển thị</span></c:when>
+                                        <c:otherwise><span class="badge-pill badge-role"><i class="fas fa-eye-slash me-1"></i>Đã ẩn</span></c:otherwise>
                                     </c:choose>
                                 </td>
                                 <c:if test="${sessionScope.user.roleId != 1}">
-                                    <td class="text-end">
-                                        <button class="action-btn me-1" onclick="editCategory(${c.categoryId}, '${c.categoryName}', ${c.status})" title="Chỉnh sửa">
-                                            <i class="bi bi-pencil-square"></i>
-                                        </button>
-                                        <a href="categories?action=delete&id=${c.categoryId}" class="action-btn delete" title="Ẩn phân loại" onclick="return confirm('Bạn có muốn ẩn phân loại này khỏi danh mục bán hàng?')">
-                                            <i class="bi bi-trash"></i>
-                                        </a>
+                                    <td class="text-end pe-4">
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <button class="btn-action btn-action-edit" onclick="editCategory(${c.categoryId}, '${c.categoryName}', ${c.status})" title="Chỉnh sửa">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <a href="categories?action=delete&id=${c.categoryId}" class="btn-action btn-action-delete" title="Ẩn phân loại" onclick="return confirm('Bạn có muốn ẩn phân loại này khỏi danh mục bán hàng?')">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </a>
+                                        </div>
                                     </td>
                                 </c:if>
                             </tr>
