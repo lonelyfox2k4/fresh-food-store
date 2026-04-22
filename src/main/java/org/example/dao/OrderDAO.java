@@ -206,7 +206,7 @@ public class OrderDAO {
                 // Mark order as cancelled (status 6)
                 try (PreparedStatement ps = conn.prepareStatement(
                         "UPDATE dbo.Orders SET orderStatus = 6, cancelledAt = SYSUTCDATETIME(), " +
-                        "cancelledReason = N'Khách hàng hủy đơn' WHERE orderId = ?")) {
+                        "cancelledReason = N'Kh\u00e1ch h\u00e0ng h\u1ee7y \u0111\u01a1n' WHERE orderId = ?")) {
                     ps.setLong(1, orderId);
                     ps.executeUpdate();
                 }
@@ -388,10 +388,10 @@ public class OrderDAO {
             ps.setBigDecimal(4, discount);   // updated later
             ps.setBigDecimal(5, shippingFee);
             ps.setBigDecimal(6, preliminary); // updated later
-            ps.setString(7, name);
-            ps.setString(8, phone);
-            ps.setString(9, address);
-            ps.setString(10, note);
+            ps.setNString(7, name);
+            ps.setNString(8, phone);
+            ps.setNString(9, address);
+            ps.setNString(10, note);
             ps.executeUpdate();
             try (ResultSet rs = ps.getGeneratedKeys()) {
                 if (rs.next()) return rs.getLong(1);
@@ -630,6 +630,31 @@ public class OrderDAO {
         return list;
     }
 
+    public List<Order> getAvailableOrders() {
+        List<Order> list = new ArrayList<>();
+        // Lấy các đơn hàng đã đóng gói (orderStatus=3, shippingStatus=1) và chưa có shipperId
+        String sql = "SELECT * FROM dbo.Orders WHERE shipperId IS NULL AND shippingStatus = 1 AND orderStatus = 3 ORDER BY placedAt ASC";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) list.add(mapOrder(rs));
+        } catch (Exception e) { e.printStackTrace(); }
+        return list;
+    }
+
+    public boolean claimOrder(long orderId, long shipperId) {
+        // Chỉ cập nhật nếu shipperId vẫn đang là NULL (phòng trường hợp 2 shipper cùng nhấn nhận 1 lúc)
+        String sql = "UPDATE dbo.Orders SET shipperId = ? WHERE orderId = ? AND shipperId IS NULL";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, shipperId);
+            ps.setLong(2, orderId);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) { e.printStackTrace(); }
+        return false;
+    }
+
+
     public Order getOrderById(long orderId) {
         String sql = "SELECT * FROM dbo.Orders WHERE orderId = ?";
         try (Connection conn = DBConnection.getConnection();
@@ -709,14 +734,14 @@ public class OrderDAO {
     }
 
     public boolean updateDeliveryFailure(long orderId, String reason) {
+        // Chỉ cập nhật lý do hủy vào cancelledReason, không làm rối cột note
         String sql = "UPDATE dbo.Orders SET shippingStatus = 4, orderStatus = 6, "
-                   + "cancelledAt = SYSUTCDATETIME(), cancelledReason = CONCAT('Shipper báo lỗi: ', ?), "
-                   + "note = CONCAT(ISNULL(note, ''), ' | Giao thất bại: ', ?) WHERE orderId = ?";
+                   + "cancelledAt = SYSUTCDATETIME(), cancelledReason = CONCAT(N'Shipper b\u00e1o l\u1ed7i: ', ?) "
+                   + "WHERE orderId = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, reason);
-            ps.setString(2, reason);
-            ps.setLong(3, orderId);
+            ps.setNString(1, reason);
+            ps.setLong(2, orderId);
             return ps.executeUpdate() > 0;
         } catch (Exception e) { e.printStackTrace(); }
         return false;
@@ -726,7 +751,7 @@ public class OrderDAO {
         String sql = "UPDATE dbo.Orders SET note = ? WHERE orderId = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, note);
+            ps.setNString(1, note);
             ps.setLong(2, orderId);
             return ps.executeUpdate() > 0;
         } catch (Exception e) { e.printStackTrace(); }
@@ -737,8 +762,31 @@ public class OrderDAO {
         String sql = "UPDATE dbo.Orders SET orderStatus = 6, cancelledAt = SYSUTCDATETIME(), cancelledReason = ? WHERE orderId = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, reason);
+            ps.setNString(1, reason);
             ps.setLong(2, orderId);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) { e.printStackTrace(); }
+        return false;
+    }
+
+    public boolean refundOrder(long orderId) {
+        String sql = "UPDATE dbo.Orders SET paymentStatus = 4 WHERE orderId = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, orderId);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) { e.printStackTrace(); }
+        return false;
+    }
+
+    public boolean redeliverOrder(long orderId) {
+        // Chuyển thẳng sang trạng thái Đã đóng gói (3) để chờ gán Shipper đi giao lại luôn
+        // Xóa sạch các dấu vết cũ của lần giao thất bại (cancelledAt, cancelledReason, shipperId)
+        String sql = "UPDATE dbo.Orders SET orderStatus = 3, shippingStatus = 1, shipperId = NULL, "
+                   + "cancelledAt = NULL, cancelledReason = NULL WHERE orderId = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, orderId);
             return ps.executeUpdate() > 0;
         } catch (Exception e) { e.printStackTrace(); }
         return false;

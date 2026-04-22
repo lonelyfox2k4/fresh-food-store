@@ -51,6 +51,8 @@
                 <c:when test="${param.msg == 'payment_updated'}">Đã cập nhật trạng thái thanh toán.</c:when>
                 <c:when test="${param.msg == 'completed'}">Đơn hàng đã được hoàn thành.</c:when>
                 <c:when test="${param.msg == 'cancelled'}">Đơn hàng đã được hủy bỏ.</c:when>
+                <c:when test="${param.msg == 'refunded'}">Đã xác nhận hoàn tiền thành công.</c:when>
+                <c:when test="${param.msg == 'redelivered'}">Đã chuyển đơn hàng xang trạng thái giao lại.</c:when>
                 <c:otherwise>Thao tác dữ liệu thành công!</c:otherwise>
             </c:choose>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
@@ -120,19 +122,41 @@
                                             <span class="badge rounded-pill bg-success fw-normal"><i class="bi bi-credit-card"></i> Đã TT Online</span>
                                         </c:when>
                                         <c:when test="${o.paymentStatus == 2}">
-                                            <span class="badge rounded-pill bg-success fw-normal"><i class="bi bi-cash-coin"></i> Đã thu (COD)</span>
+                                            <c:choose>
+                                                <c:when test="${o.orderStatus == 5 or o.shippingStatus == 3}">
+                                                    <span class="badge rounded-pill bg-success fw-normal"><i class="bi bi-cash-coin"></i> Đã thu (COD)</span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span class="badge rounded-pill bg-info text-dark fw-normal"><i class="bi bi-clock"></i> Chờ đối soát</span>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </c:when>
+                                        <c:when test="${o.paymentStatus == 4}">
+                                            <span class="badge rounded-pill bg-info text-dark fw-normal"><i class="bi bi-arrow-left-right"></i> Đã hoàn trả</span>
                                         </c:when>
                                         <c:otherwise>
-                                            <span class="badge rounded-pill bg-light text-dark border fw-normal text-muted"><i class="bi bi-clock"></i> Chờ thanh toán</span>
+                                            <c:if test="${o.orderStatus != 6}">
+                                                <span class="badge rounded-pill bg-light text-dark border fw-normal text-muted"><i class="bi bi-clock"></i> Chờ thanh toán</span>
+                                            </c:if>
+                                            <c:if test="${o.orderStatus == 6}">
+                                                <span class="text-muted small italic">-- Không phát sinh --</span>
+                                            </c:if>
                                         </c:otherwise>
                                     </c:choose>
+                                    <c:if test="${o.orderStatus == 6 && (o.paymentStatus == 1 || o.paymentStatus == 2)}">
+                                        <div class="mt-2 text-center">
+                                            <span class="badge bg-danger p-2" style="font-size: 0.7rem; border: 1px solid #ff0000;">
+                                                <i class="bi bi-exclamation-diamond-fill"></i> CẦN HOÀN TIỀN
+                                            </span>
+                                        </div>
+                                    </c:if>
                                 </div>
                             </td>
                             <td>
                                 <c:choose>
                                     <c:when test="${o.orderStatus == 1}"><span class="badge-pill badge-role"><i class="fas fa-clock fs-8 me-1"></i>Chờ xác nhận</span></c:when>
                                     <c:when test="${o.orderStatus == 2}"><span class="badge-pill" style="background:#fff7ed;color:#c2410c;border:1px solid #ffd8a8"><i class="fas fa-box-open fs-8 me-1"></i> Đã xác nhận</span></c:when>
-                                    <c:when test="${o.orderStatus == 3}"><span class="badge-pill badge-active"><i class="fas fa-box fs-8 me-1"></i> Đang đóng gói</span></c:when>
+                                    <c:when test="${o.orderStatus == 3}"><span class="badge-pill badge-active"><i class="fas fa-box fs-8 me-1"></i> Đã đóng gói</span></c:when>
                                     <c:when test="${o.orderStatus == 4}"><span class="badge-pill" style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe"><i class="fas fa-truck fs-8 me-1"></i> Đang giao hàng</span></c:when>
                                     <c:when test="${o.orderStatus == 5}"><span class="badge-pill badge-active"><i class="fas fa-check-double fs-8 me-1"></i> Đã hoàn tất</span></c:when>
                                     <c:when test="${o.orderStatus == 6}">
@@ -145,36 +169,38 @@
                                 </c:choose>
                             </td>
                             
-                            <!-- Cột Shipper -->
+                            <!-- Cột Shipper: Chế độ Shipper tự nhận đơn -->
                             <td>
-                                <c:if test="${o.orderStatus < 5}">
-                                    <c:choose>
-                                        <c:when test="${o.shippingStatus >= 1}">
-                                            <form action="${pageContext.request.contextPath}/staff/orders" method="post" class="d-flex align-items-center m-0">
-                                                <input type="hidden" name="action" value="assignShipper">
-                                                <input type="hidden" name="orderId" value="${o.orderId}">
-                                                <select name="shipperId" class="form-select form-select-sm me-1 shadow-none" style="min-width: 120px;">
-                                                    <option value="">-- Gán Shipper --</option>
-                                                    <c:forEach items="${shipperList}" var="s">
-                                                        <option value="${s.accountId}" ${o.shipperId == s.accountId ? 'selected' : ''}>${s.fullName}</option>
-                                                    </c:forEach>
-                                                </select>
-                                                <button type="submit" class="btn btn-sm btn-primary py-1" title="Giao phó Shipper"><i class="bi bi-send"></i></button>
-                                            </form>
-                                        </c:when>
-                                        <c:otherwise>
-                                            <span class="text-muted small italic"><i class="bi bi-hourglass-split"></i> Đợi đóng gói...</span>
-                                        </c:otherwise>
-                                    </c:choose>
-                                </c:if>
-                                <c:if test="${o.orderStatus >= 5}">
-                                    <small class="text-muted">
-                                        <c:forEach items="${shipperList}" var="s">
-                                            <c:if test="${o.shipperId == s.accountId}"><i class="bi bi-truck"></i> ${s.fullName}</c:if>
-                                        </c:forEach>
-                                        <c:if test="${empty o.shipperId}">N/A</c:if>
-                                    </small>
-                                </c:if>
+                                <c:choose>
+                                    <c:when test="${not empty o.shipperId}">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-shrink-0 me-2 text-primary">
+                                                <i class="bi bi-person-check-fill fs-5"></i>
+                                            </div>
+                                            <div>
+                                                <c:forEach items="${shipperList}" var="s">
+                                                    <c:if test="${o.shipperId == s.accountId}">
+                                                        <div class="small fw-bold text-dark">${s.fullName}</div>
+                                                    </c:if>
+                                                </c:forEach>
+                                                <div class="badge bg-success bg-opacity-10 text-success p-1 px-2" style="font-size: 0.65rem;">
+                                                    <i class="bi bi-check2"></i> Đã nhận đơn
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </c:when>
+                                    <c:when test="${o.shippingStatus == 1}">
+                                        <div class="text-center">
+                                            <span class="badge rounded-pill bg-light text-muted border py-2 px-3 fw-normal" style="font-size: 0.75rem;">
+                                                <span class="spinner-grow spinner-grow-sm text-primary me-1" style="width: 0.7rem; height: 0.7rem;"></span>
+                                                Đang đợi Shipper...
+                                            </span>
+                                        </div>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <span class="text-muted small italic">--</span>
+                                    </c:otherwise>
+                                </c:choose>
                             </td>
 
                             <!-- Cột Trạng thái Giao -->
@@ -204,7 +230,7 @@
                                             <li>
                                                 <form action="${pageContext.request.contextPath}/staff/orders" method="post" class="m-0">
                                                     <input type="hidden" name="action" value="confirm"><input type="hidden" name="orderId" value="${o.orderId}">
-                                                    <button type="submit" class="dropdown-item text-primary py-2 fw-medium"><i class="fas fa-check-circle me-2"></i> Xác nhận & Đóng gói</button>
+                                                    <button type="submit" class="dropdown-item text-primary py-2 fw-medium"><i class="fas fa-check-circle me-2"></i> Duyệt đơn (Đang xử lý)</button>
                                                 </form>
                                             </li>
                                         </c:when>
@@ -213,7 +239,7 @@
                                                 <li>
                                                     <form action="${pageContext.request.contextPath}/staff/orders" method="post" class="m-0">
                                                         <input type="hidden" name="action" value="ready"><input type="hidden" name="orderId" value="${o.orderId}">
-                                                        <button type="submit" class="dropdown-item text-info py-2 fw-medium"><i class="fas fa-box-open me-2"></i> Hoàn tất đóng gói</button>
+                                                        <button type="submit" class="dropdown-item text-info py-2 fw-medium"><i class="fas fa-box-open me-2"></i> Đóng gói xong (Chờ giao)</button>
                                                     </form>
                                                 </li>
                                             </c:if>
@@ -230,14 +256,30 @@
                                         </c:when>
                                     </c:choose>
 
-                                    <c:if test="${o.paymentStatus != 2 && o.orderStatus != 6}">
-                                        <li>
-                                            <form action="${pageContext.request.contextPath}/staff/orders" method="post" class="m-0">
-                                                <input type="hidden" name="action" value="updatePayment"><input type="hidden" name="paymentStatus" value="2"><input type="hidden" name="orderId" value="${o.orderId}">
-                                                <button type="submit" class="dropdown-item text-success fw-medium py-2"><i class="fas fa-money-bill-wave me-2"></i> Đã thu tiền (COD)</button>
-                                            </form>
-                                        </li>
+                                    <%-- Giao lại/Hoàn tiền cho đơn lỗi --%>
+                                    <c:if test="${o.orderStatus == 6}">
+                                        <%-- Chỉ cho phép giao lại nếu trạng thái là lỗi giao hàng VÀ chưa được hoàn tiền --%>
+                                        <c:if test="${o.shippingStatus == 4 && o.paymentStatus != 4}">
+                                            <li>
+                                                <form action="${pageContext.request.contextPath}/staff/orders" method="post" class="m-0" onsubmit="return confirm('Giao lại đơn hàng này?');">
+                                                    <input type="hidden" name="action" value="redeliver">
+                                                    <input type="hidden" name="orderId" value="${o.orderId}">
+                                                    <button type="submit" class="dropdown-item text-primary py-2 fw-medium"><i class="fas fa-redo me-2"></i> Thử giao hàng lại</button>
+                                                </form>
+                                            </li>
+                                        </c:if>
+                                        <c:if test="${o.paymentStatus == 1 || o.paymentStatus == 2}">
+                                            <li>
+                                                <form action="${pageContext.request.contextPath}/staff/orders" method="post" class="m-0" onsubmit="return confirm('Xác nhận đã thủ công hoàn trả tiền cho khách?');">
+                                                    <input type="hidden" name="action" value="refund">
+                                                    <input type="hidden" name="orderId" value="${o.orderId}">
+                                                    <button type="submit" class="dropdown-item text-warning py-2 fw-medium"><i class="fas fa-undo me-2"></i> Xác nhận Hoàn tiền</button>
+                                                </form>
+                                            </li>
+                                        </c:if>
                                     </c:if>
+
+
 
                                     <c:if test="${o.orderStatus != 4 && o.orderStatus != 5 && o.orderStatus != 6}">
                                         <li><hr class="dropdown-divider"></li>
