@@ -12,19 +12,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * OrderDAO — handles full order creation with FEFO (First Expired, First Out)
- * inventory allocation in a single ACID transaction.
- *
- * Inventory transaction types:
- *   1 = GOODS_RECEIPT (IN)
- *   2 = RESERVE       (order placed)
- *   3 = RELEASE       (order cancelled)
- *   4 = DEDUCT        (order delivered)
- *
- * Order status codes: 1=PENDING, 2=CONFIRMED, 3=PROCESSING, 4=SHIPPING, 5=DELIVERED, 6=CANCELLED
- * Payment status:     1=PENDING, 2=PAID, 3=FAILED, 4=REFUNDED
- */
+
 public class OrderDAO {
 
     // ─── Inner class ────────────────────────────────────────────────────────
@@ -36,9 +24,6 @@ public class OrderDAO {
         String batchCode;
     }
 
-    // ────────────────────────────────────────────────────────────────────────
-    // CREATE ORDER  (FEFO allocation, full transaction)
-    // ────────────────────────────────────────────────────────────────────────
 
     /**
      * Place an order from the cart contents.
@@ -58,7 +43,7 @@ public class OrderDAO {
                             String recipientName, String recipientPhone,
                             String shippingAddress, String note,
                             List<CartItemDTO> cartItems,
-                            Voucher voucher, long cartId) throws Exception {
+                            Voucher voucher, long cartId, String paymentMethod) throws Exception {
 
         if (cartItems == null || cartItems.isEmpty()) {
             throw new Exception("Giỏ hàng trống!");
@@ -176,8 +161,8 @@ public class OrderDAO {
                     .max(BigDecimal.ZERO);
             updateOrderAmounts(conn, orderId, totalDiscountAmount, totalAmount);
 
-            // ── 7. Insert Payment record (COD) ───────────────────────────────
-            insertPayment(conn, orderId, totalAmount);
+            // ── 7. Insert Payment record ─────────────────────────────────────
+            insertPayment(conn, orderId, totalAmount, paymentMethod);
 
             // ── 8. Record voucher usage ──────────────────────────────────────
             if (voucher != null && voucherDiscount.compareTo(BigDecimal.ZERO) > 0) {
@@ -502,14 +487,56 @@ public class OrderDAO {
         }
     }
 
-    private void insertPayment(Connection conn, long orderId, BigDecimal amount) throws SQLException {
+    private void insertPayment(Connection conn, long orderId, BigDecimal amount, String provider) throws SQLException {
         try (PreparedStatement ps = conn.prepareStatement(
                 "INSERT INTO dbo.Payments (orderId, provider, amount, paymentStatus) " +
-                "VALUES (?, 'COD', ?, 1)")) {
+                "VALUES (?, ?, ?, 1)")) {
             ps.setLong(1, orderId);
-            ps.setBigDecimal(2, amount);
+            ps.setString(2, provider);
+            ps.setBigDecimal(3, amount);
             ps.executeUpdate();
         }
+    }
+
+    public boolean updatePaymentStatus(long orderId, byte paymentStatus, byte orderStatus) {
+        String sql = "UPDATE dbo.Orders SET paymentStatus = ?, orderStatus = ?, "
+                   + "paidAt = CASE WHEN ? = 2 THEN SYSUTCDATETIME() ELSE paidAt END "
+                   + "WHERE orderId = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setByte(1, paymentStatus);
+            ps.setByte(2, orderStatus);
+            ps.setByte(3, paymentStatus);
+            ps.setLong(4, orderId);
+
+            int affected = ps.executeUpdate();
+            
+            // Also update the Payments table
+            updatePaymentRecord(orderId, paymentStatus);
+
+            return affected > 0;
+        } catch (Exception e) { e.printStackTrace(); }
+        return false;
+    }
+
+    private void updatePaymentRecord(long orderId, byte status) throws SQLException {
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                     "UPDATE dbo.Payments SET paymentStatus = ?, updatedAt = SYSUTCDATETIME() WHERE orderId = ?")) {
+            ps.setByte(1, status);
+            ps.setLong(2, orderId);
+            ps.executeUpdate();
+        }
+    }
+
+    public void updatePaymentTransaction(long orderId, String transactionNo) {
+        String sql = "UPDATE dbo.Payments SET transactionId = ?, updatedAt = SYSUTCDATETIME() WHERE orderId = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, transactionNo);
+            ps.setLong(2, orderId);
+            ps.executeUpdate();
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     private void insertOrderVoucher(Connection conn, long orderId, long voucherId,

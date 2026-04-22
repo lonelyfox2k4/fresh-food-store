@@ -2,19 +2,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <c:set var="uri" value="${pageContext.request.servletPath}" />
 <c:set var="isAuthPage" value="${uri.contains('login') || uri.contains('register') || uri.contains('forgot-password') || uri.contains('resend-otp') || uri.contains('verify-register')}" />
-<style>
-    .bg-brand   { background-color: #E3000F !important; }
-    .text-brand { color: #E3000F !important; }
-    .nav-link   { font-weight: 500; }
-    .nav-link:hover { color: #f8d7da !important; }
-    .cart-badge-pill {
-        position: absolute; top: -6px; right: -6px;
-        background: #ffc107; color: #000;
-        font-size: .65rem; font-weight: 700;
-        border-radius: 50%; min-width: 18px; height: 18px;
-        display: flex; align-items: center; justify-content: center;
-    }
-</style>
+<%-- Header info and navigation --%>
 
 <%-- Top info bar --%>
 <div class="bg-light py-1 border-bottom">
@@ -49,7 +37,7 @@
                             </a>
                         </c:when>
                         <c:otherwise>
-                            <a href="${pageContext.request.contextPath}/order-history" class="text-decoration-none text-muted small">Đơn hàng</a>
+                            <a href="${pageContext.request.contextPath}/orders" class="text-decoration-none text-muted small">Đơn hàng</a>
                         </c:otherwise>
                     </c:choose>
                     <a href="${pageContext.request.contextPath}/profile" class="text-decoration-none text-muted small"><i class="fas fa-user me-1"></i>Hồ sơ</a>
@@ -127,3 +115,6 @@
         </div>
     </div>
 </nav>
+
+<%-- Flash messages via Toasts --%>
+<jsp:include page="toast-notifier.jsp" />

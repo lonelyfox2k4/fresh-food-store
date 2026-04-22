@@ -23,18 +23,6 @@
         </a>
     </div>
 
-    <%-- Flash messages --%>
-    <c:if test="${not empty sessionScope.orderMsg}">
-        <c:set var="oMsg" value="${sessionScope.orderMsg}"/>
-        <c:set var="oType" value="${fn:startsWith(oMsg,'success') ? 'success' : 'danger'}"/>
-        <div class="alert alert-${oType} alert-dismissible mb-4 shadow-sm border-0">
-            <i class="fas fa-info-circle me-2"></i>
-            ${fn:substringAfter(oMsg, ':')}
-            <button class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-        <c:remove var="orderMsg" scope="session"/>
-    </c:if>
-
     <c:choose>
         <c:when test="${empty orders}">
             <div class="text-center py-5 bg-white rounded-3 shadow-sm">
