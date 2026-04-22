@@ -132,10 +132,22 @@ public class StaffOrderServlet extends HttpServlet {
                     // Chuyển orderStatus = 6 (Đã hủy) với lý do
                     String cancelReason = request.getParameter("reason");
                     if (cancelReason == null || cancelReason.trim().isEmpty()) {
-                        cancelReason = "Nhân viên hủy đơn";
+                        cancelReason = "Nh\u00e2n vi\u00ean h\u1ee7y \u0111\u01a1n";
                     }
                     orderDAO.updateOrderCancelReason(orderId, cancelReason);
                     response.sendRedirect("orders?action=list&msg=cancelled");
+                    break;
+
+                case "refund":
+                    // Chuyển paymentStatus = 4 (Refunded)
+                    orderDAO.refundOrder(orderId);
+                    response.sendRedirect("orders?action=list&msg=refunded");
+                    break;
+
+                case "redeliver":
+                    // Chuyển orderStatus = 2, shippingStatus = 0
+                    orderDAO.redeliverOrder(orderId);
+                    response.sendRedirect("orders?action=list&msg=redelivered");
                     break;
 
                 default:
