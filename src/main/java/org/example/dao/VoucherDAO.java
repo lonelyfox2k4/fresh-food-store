@@ -141,6 +141,22 @@ public class VoucherDAO {
         return null;
     }
 
+    // New: Check if voucher code already exists
+    public boolean isVoucherCodeExists(String code) {
+        String sql = "SELECT COUNT(*) FROM Vouchers WHERE voucherCode = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, code.trim().toUpperCase());
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     // ==================== CUSTOMER METHODS ====================
     public Voucher getValidVoucherByCode(String code, java.math.BigDecimal orderAmount) {
         String sql = "SELECT * FROM dbo.Vouchers " +

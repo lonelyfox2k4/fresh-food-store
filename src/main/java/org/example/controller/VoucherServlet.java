@@ -70,41 +70,81 @@ public class VoucherServlet extends HttpServlet {
 
         if ("create".equals(action)) {
             try {
-                Voucher v = new Voucher();
                 // 1. Lấy thông tin cơ bản
-                v.setVoucherCode(request.getParameter("voucherCode"));
-                v.setVoucherName(request.getParameter("voucherName"));
-                v.setDiscountType(Byte.parseByte(request.getParameter("discountType")));
-
-                // 2. Xử lý BigDecimal
-                v.setDiscountValue(new BigDecimal(request.getParameter("discountValue")));
-                v.setMinOrderAmount(new BigDecimal(request.getParameter("minOrderAmount")));
-                v.setMaxDiscountAmount(new BigDecimal(request.getParameter("maxDiscountAmount")));
-
-                // 3. Xử lý số lượng
+                String code = request.getParameter("voucherCode").trim().toUpperCase();
+                String name = request.getParameter("voucherName");
+                byte type = Byte.parseByte(request.getParameter("discountType"));
+                BigDecimal value = new BigDecimal(request.getParameter("discountValue"));
+                BigDecimal minOrder = new BigDecimal(request.getParameter("minOrderAmount"));
+                BigDecimal maxDiscountValue = new BigDecimal(request.getParameter("maxDiscountAmount"));
                 String usageLimitStr = request.getParameter("usageLimit");
-                v.setUsageLimit((usageLimitStr != null && !usageLimitStr.isEmpty()) ? Integer.parseInt(usageLimitStr) : null);
-                v.setUsedCount(0);
-
-                // 4. Xử lý thời gian (Xử lý chuỗi từ datetime-local)
                 String startAtStr = request.getParameter("startAt");
                 String endAtStr = request.getParameter("endAt");
-                v.setStartAt(LocalDateTime.parse(startAtStr.length() == 16 ? startAtStr + ":00" : startAtStr));
-                v.setEndAt(LocalDateTime.parse(endAtStr.length() == 16 ? endAtStr + ":00" : endAtStr));
+                
+                // --- LOGIC VALIDATION ---
+                
+                // Rule 1: Voucher Code Length (5-15)
+                if (code.length() < 5 || code.length() > 15) {
+                    response.sendRedirect("voucher?action=create&error=code_length");
+                    return;
+                }
+                
+                // Rule 2: Uniqueness
+                if (voucherDAO.isVoucherCodeExists(code)) {
+                    response.sendRedirect("voucher?action=create&error=duplicate_code");
+                    return;
+                }
+                
+                // Rule 3: Discount Value Logic
+                if (type == 1) { // Percentage
+                    if (value.compareTo(BigDecimal.ONE) < 0 || value.compareTo(new BigDecimal(100)) > 0) {
+                        response.sendRedirect("voucher?action=create&error=invalid_percent");
+                        return;
+                    }
+                } else { // Flat Amount
+                    if (value.compareTo(BigDecimal.ZERO) <= 0 || value.compareTo(minOrder) > 0) {
+                        response.sendRedirect("voucher?action=create&error=discount_too_high");
+                        return;
+                    }
+                }
+                
+                // Rule 4: Dates Logic
+                LocalDateTime start = LocalDateTime.parse(startAtStr.length() == 16 ? startAtStr + ":00" : startAtStr);
+                LocalDateTime end = LocalDateTime.parse(endAtStr.length() == 16 ? endAtStr + ":00" : endAtStr);
+                
+                if (end.isBefore(start) || end.isEqual(start)) {
+                    response.sendRedirect("voucher?action=create&error=invalid_dates");
+                    return;
+                }
+                
+                if (start.isBefore(LocalDateTime.now().minusMinutes(5))) { // Allow 5min buffer for server lag
+                    response.sendRedirect("voucher?action=create&error=start_in_past");
+                    return;
+                }
 
-                // 5. Trạng thái và Người tạo (Lấy từ Session)
+                // --- DATA PREPARATION ---
+                Voucher v = new Voucher();
+                v.setVoucherCode(code);
+                v.setVoucherName(name);
+                v.setDiscountType(type);
+                v.setDiscountValue(value);
+                v.setMinOrderAmount(minOrder);
+                v.setMaxDiscountAmount(type == 1 ? maxDiscountValue : value); // Auto-set for flat amount
+                v.setUsageLimit((usageLimitStr != null && !usageLimitStr.isEmpty()) ? Integer.parseInt(usageLimitStr) : null);
+                v.setUsedCount(0);
+                v.setStartAt(start);
+                v.setEndAt(end);
                 v.setStatus((byte) 0); 
+                
                 HttpSession session = request.getSession();
                 Account user = (Account) session.getAttribute("user");
                 v.setCreatedByAccountId(user != null ? user.getAccountId() : 1L);
 
-                // 6. Lấy lời nhắn gửi Admin cho bảng VoucherRequests
                 String requestNote = request.getParameter("requestNote");
                 if (requestNote == null || requestNote.isEmpty()) {
                     requestNote = "Staff yêu cầu tạo voucher mới";
                 }
 
-                // GỌI HÀM TRANSACTION 2 TRONG 1
                 if (voucherDAO.createVoucherWithRequest(v, requestNote)) {
                     response.sendRedirect("voucher?action=list&msg=requested");
                 } else {

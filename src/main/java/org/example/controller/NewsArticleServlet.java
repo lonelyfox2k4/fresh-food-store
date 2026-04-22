@@ -5,6 +5,7 @@ import org.example.model.content.NewsArticle;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
+import org.example.model.auth.Account;
 import java.io.IOException;
 import java.util.List;
 
