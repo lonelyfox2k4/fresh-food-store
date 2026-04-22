@@ -1,6 +1,8 @@
 package org.example.controller;
 
+import org.example.dao.AccountDAO;
 import org.example.dao.VoucherDAO;
+import org.example.model.auth.Account;
 import org.example.model.marketing.Voucher;
 
 import javax.servlet.ServletException;
@@ -8,6 +10,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -83,13 +86,17 @@ public class VoucherServlet extends HttpServlet {
                 v.setUsageLimit((usageLimitStr != null && !usageLimitStr.isEmpty()) ? Integer.parseInt(usageLimitStr) : null);
                 v.setUsedCount(0);
 
-                // 4. Xử lý thời gian
-                v.setStartAt(LocalDateTime.parse(request.getParameter("startAt")));
-                v.setEndAt(LocalDateTime.parse(request.getParameter("endAt")));
+                // 4. Xử lý thời gian (Xử lý chuỗi từ datetime-local)
+                String startAtStr = request.getParameter("startAt");
+                String endAtStr = request.getParameter("endAt");
+                v.setStartAt(LocalDateTime.parse(startAtStr.length() == 16 ? startAtStr + ":00" : startAtStr));
+                v.setEndAt(LocalDateTime.parse(endAtStr.length() == 16 ? endAtStr + ":00" : endAtStr));
 
-                // 5. Trạng thái và Người tạo (Dùng ID 1 đã có trong DB)
-                v.setStatus((byte) 0); // Để 0 (Chờ duyệt) vì phải qua bảng Request
-                v.setCreatedByAccountId(1L);
+                // 5. Trạng thái và Người tạo (Lấy từ Session)
+                v.setStatus((byte) 0); 
+                HttpSession session = request.getSession();
+                Account user = (Account) session.getAttribute("user");
+                v.setCreatedByAccountId(user != null ? user.getAccountId() : 1L);
 
                 // 6. Lấy lời nhắn gửi Admin cho bảng VoucherRequests
                 String requestNote = request.getParameter("requestNote");
