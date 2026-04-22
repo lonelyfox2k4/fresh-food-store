@@ -14,7 +14,7 @@ public class FeedbackDAO {
                 "JOIN Accounts a ON f.accountId = a.accountId " +
                 "LEFT JOIN Orders o ON f.orderId = o.orderId " +
                 "ORDER BY f.createdAt DESC";
-        try (Connection conn = new DBConnection().getConnection();
+        try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
@@ -45,7 +45,7 @@ public class FeedbackDAO {
         // Staff trả lời trực tiếp, status chuyển sang 1 (Đã phản hồi) ngay lập tức
         String sql = "UPDATE Feedbacks SET response = ?, respondedByAccountId = ?, " +
                 "status = 1, respondedAt = GETDATE() WHERE feedbackId = ?";
-        try (Connection conn = new DBConnection().getConnection();
+        try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, responseText);
             ps.setLong(2, staffId);

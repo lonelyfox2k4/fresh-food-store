@@ -33,7 +33,7 @@ public class NewsArticleDAO {
     public List<NewsArticle> getAllNews() {
         List<NewsArticle> list = new ArrayList<>();
         String sql = "SELECT * FROM NewsArticles ORDER BY createdAt DESC";
-        try (Connection conn = new DBConnection().getConnection();
+        try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {

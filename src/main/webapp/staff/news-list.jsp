@@ -2,12 +2,21 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <html>
 <head>
-    <title>Quản lý tin tức | Staff</title>
+    <title>Quản lý tin tức | Fresh Food</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
+    <jsp:include page="../components/admin-style.jsp" />
 </head>
-<body class="bg-light">
-<c:import url="/staff/common/nav.jsp" />
+<body>
+<jsp:include page="../components/admin-nav.jsp">
+    <jsp:param name="active" value="news" />
+</jsp:include>
 
 <div class="container-fluid py-3 px-4">
     <div class="d-flex justify-content-between align-items-center mb-4">

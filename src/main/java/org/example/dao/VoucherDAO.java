@@ -13,7 +13,7 @@ public class VoucherDAO {
     public List<Voucher> getAllVouchers() {
         List<Voucher> list = new ArrayList<>();
         String sql = "SELECT * FROM Vouchers ORDER BY createdAt DESC";
-        try (Connection conn = new DBConnection().getConnection();
+        try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
@@ -55,7 +55,7 @@ public class VoucherDAO {
 
         Connection conn = null;
         try {
-            conn = new DBConnection().getConnection();
+            conn = DBConnection.getConnection();
             conn.setAutoCommit(false); // Chặn tự động lưu để bắt đầu Transaction
 
             // 1. Chèn Voucher và lấy ID tự tăng
@@ -103,7 +103,7 @@ public class VoucherDAO {
     // 3. Xóa Voucher
     public boolean deleteVoucher(long id) {
         String sql = "DELETE FROM Vouchers WHERE voucherId = ?";
-        try (Connection conn = new DBConnection().getConnection();
+        try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, id);
             return ps.executeUpdate() > 0;
@@ -116,7 +116,7 @@ public class VoucherDAO {
     // 4. Lấy chi tiết 1 Voucher (Dùng cho chức năng Edit)
     public Voucher getVoucherById(long id) {
         String sql = "SELECT * FROM Vouchers WHERE voucherId = ?";
-        try (Connection conn = new DBConnection().getConnection();
+        try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, id);
             ResultSet rs = ps.executeQuery();
@@ -204,7 +204,7 @@ public class VoucherDAO {
                      "JOIN Accounts a ON vr.accountId = a.accountId " +
                      "WHERE vr.requestStatus = 0 " + // 0 = Pending
                      "ORDER BY vr.requestedAt DESC";
-        try (Connection conn = new DBConnection().getConnection();
+        try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
@@ -234,7 +234,7 @@ public class VoucherDAO {
         
         Connection conn = null;
         try {
-            conn = new DBConnection().getConnection();
+            conn = DBConnection.getConnection();
             conn.setAutoCommit(false);
 
             // 1. Update Request Status

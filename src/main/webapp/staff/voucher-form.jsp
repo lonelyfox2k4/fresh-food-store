@@ -1,11 +1,22 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <html>
 <head>
-    <title>Thiết lập Voucher mới | Staff</title>
+    <title>Thiết lập Voucher | Fresh Food</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
+    <jsp:include page="../components/admin-style.jsp" />
 </head>
-<body class="bg-light">
-<c:import url="/staff/common/nav.jsp" />
+<body>
+<jsp:include page="../components/admin-nav.jsp">
+    <jsp:param name="active" value="voucher" />
+</jsp:include>
 
 <div class="container py-3">
     <div class="mb-4">
