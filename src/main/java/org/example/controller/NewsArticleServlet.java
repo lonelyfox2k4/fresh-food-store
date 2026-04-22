@@ -53,7 +53,10 @@ public class NewsArticleServlet extends HttpServlet {
                 n.setSummary(request.getParameter("summary"));
                 n.setContent(request.getParameter("content"));
                 n.setImageUrl(request.getParameter("imageUrl"));
-                n.setCreatedByAccountId(1L); // Giả định ID Staff login
+                n.setCreatedByAccountId(1L); 
+                HttpSession session = request.getSession();
+                Account user = (Account) session.getAttribute("user");
+                if (user != null) n.setCreatedByAccountId(user.getAccountId());
 
                 // Kiểm tra nút bấm: publish (đăng ngay) hay draft (lưu nháp)
                 String btn = request.getParameter("submitBtn");
