@@ -36,6 +36,7 @@ public class OrderDAO {
      * @param cartItems      items from CartDAO.getCartItems (must NOT be empty)
      * @param voucher        nullable – validated voucher to apply
      * @param cartId         cart to clear after success
+     * @param shouldClearCart whether to clear the cart after success
      * @return orderId on success
      * @throws Exception with a Vietnamese user-facing message on any failure
      */
@@ -43,7 +44,8 @@ public class OrderDAO {
                             String recipientName, String recipientPhone,
                             String shippingAddress, String note,
                             List<CartItemDTO> cartItems,
-                            Voucher voucher, long cartId, String paymentMethod) throws Exception {
+                            Voucher voucher, long cartId, String paymentMethod,
+                            boolean shouldClearCart) throws Exception {
 
         if (cartItems == null || cartItems.isEmpty()) {
             throw new Exception("Giỏ hàng trống!");
@@ -172,7 +174,9 @@ public class OrderDAO {
             }
 
             // ── 9. Clear cart ────────────────────────────────────────────────
-            clearCartItems(conn, cartId);
+            if (shouldClearCart) {
+                clearCartItems(conn, cartId);
+            }
 
             conn.commit();
             return orderId;

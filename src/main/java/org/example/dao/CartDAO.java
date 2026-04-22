@@ -284,4 +284,16 @@ public class CartDAO {
         } catch (Exception e) { e.printStackTrace(); }
         return list;
     }
+
+    public boolean clearCart(long cartId) {
+        String sql = "DELETE FROM dbo.CartItems WHERE cartId = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, cartId);
+            return ps.executeUpdate() >= 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 }

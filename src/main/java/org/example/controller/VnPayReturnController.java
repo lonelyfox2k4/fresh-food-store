@@ -1,6 +1,8 @@
 package org.example.controller;
 
+import org.example.dao.CartDAO;
 import org.example.dao.OrderDAO;
+import org.example.model.auth.Account;
 import org.example.utils.VnPayConfig;
 
 import javax.servlet.ServletException;
@@ -8,9 +10,8 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -20,10 +21,14 @@ import java.util.*;
 public class VnPayReturnController extends HttpServlet {
 
     private final OrderDAO orderDAO = new OrderDAO();
+    private final CartDAO  cartDAO  = new CartDAO();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
+        
+        HttpSession session = req.getSession();
+        Account user = (Account) session.getAttribute("user");
         
         Map<String, String> fields = new HashMap<>();
         for (Enumeration<String> params = req.getParameterNames(); params.hasMoreElements();) {
@@ -52,15 +57,25 @@ public class VnPayReturnController extends HttpServlet {
                 orderDAO.updatePaymentStatus(orderId, (byte) 2, (byte) 2);
                 orderDAO.updatePaymentTransaction(orderId, transactionNo);
                 
+                // Clear cart now that payment is confirmed
+                if (user != null) {
+                    long cartId = cartDAO.findOrCreateCartIdByAccountId(user.getAccountId());
+                    cartDAO.clearCart(cartId);
+                }
+                
                 resp.sendRedirect(req.getContextPath() + "/order-success?id=" + orderId);
             } else {
-                // Payment Failed
-                req.getSession().setAttribute("checkoutError", "Thanh toán không thành công. Mã lỗi: " + vnp_ResponseCode);
+                // Payment Failed or Cancelled - Release Inventory
+                if (user != null) {
+                    orderDAO.cancelOrder(orderId, user.getAccountId());
+                }
+                
+                session.setAttribute("checkoutError", "Thanh toán không thành công hoặc đã bị hủy. Mã lỗi: " + vnp_ResponseCode);
                 resp.sendRedirect(req.getContextPath() + "/checkout");
             }
         } else {
             // Invalid Signature
-            req.getSession().setAttribute("checkoutError", "Chữ ký không hợp lệ. Giao dịch có thể đã bị can thiệp.");
+            session.setAttribute("checkoutError", "Chữ ký không hợp lệ. Giao dịch có thể đã bị can thiệp.");
             resp.sendRedirect(req.getContextPath() + "/checkout");
         }
     }
