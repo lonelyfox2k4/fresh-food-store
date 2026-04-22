@@ -38,10 +38,10 @@ public class PlaceOrderController extends HttpServlet {
         }
 
         // --- 1. Extract shipping info ---
-        String recipientName   = req.getParameter("recipientName");
-        String recipientPhone  = req.getParameter("recipientPhone");
-        String shippingAddress = req.getParameter("shippingAddress");
-        String note            = req.getParameter("note");
+        String recipientName   = req.getParameter("recipientName") != null ? req.getParameter("recipientName").trim() : "";
+        String recipientPhone  = req.getParameter("recipientPhone") != null ? req.getParameter("recipientPhone").trim() : "";
+        String shippingAddress = req.getParameter("shippingAddress") != null ? req.getParameter("shippingAddress").trim() : "";
+        String note            = req.getParameter("note") != null ? req.getParameter("note").trim() : "";
         String paymentMethod   = req.getParameter("paymentMethod");
         if (paymentMethod == null) paymentMethod = "COD";
 
@@ -58,9 +58,12 @@ public class PlaceOrderController extends HttpServlet {
 
         try {
             // --- 3. Create order ---
+            // Clear cart immediately for COD, but delay for VNPAY until payment success
+            boolean shouldClearCart = !"VNPAY".equalsIgnoreCase(paymentMethod);
             long orderId = orderDAO.createOrder(
                     accountId, recipientName, recipientPhone,
-                    shippingAddress, note, cartItems, voucher, cartId, paymentMethod
+                    shippingAddress, note, cartItems, voucher, cartId, paymentMethod,
+                    shouldClearCart
             );
 
             // --- 4. Clean up session ---
@@ -155,12 +158,12 @@ public class PlaceOrderController extends HttpServlet {
             String name  = entry.getKey();
             String value = entry.getValue();
             if (value != null && !value.isEmpty()) {
-                // VALUE bắt buộc phải được encode trước khi đưa vào hashData
-                String encodedValue = vnpEncode(value);
-                String encodedName  = vnpEncode(name);
+                // ✅ Gọi hàm vnpEncode từ VnPayConfig
+                String encodedValue = VnPayConfig.vnpEncode(value);
+                String encodedName  = VnPayConfig.vnpEncode(name);
 
-                hashParts.add(name + "=" + encodedValue); // Hash data: key raw = value encoded
-                queryParts.add(encodedName + "=" + encodedValue); // Query url: key encoded = value encoded
+                hashParts.add(name + "=" + encodedValue);
+                queryParts.add(encodedName + "=" + encodedValue);
             }
         }
 
@@ -172,14 +175,4 @@ public class PlaceOrderController extends HttpServlet {
                 + "?" + queryString
                 + "&vnp_SecureHash=" + secureHash;
     }
-
-    /**
-     * URL-encodes a value using VNPAY's encoding rules (space → %20, ~ stays ~).
-     */
-    public static String vnpEncode(String input) throws Exception {
-        return URLEncoder.encode(input, "UTF-8")
-                .replace("+", "%20")
-                .replace("%7E", "~");
-    }
-
 }
