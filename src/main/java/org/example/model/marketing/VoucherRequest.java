@@ -15,4 +15,8 @@ public class VoucherRequest {
     private Long reviewedByAccountId;
     private LocalDateTime requestedAt;
     private LocalDateTime reviewedAt;
+
+    // Additional fields for display
+    private Voucher voucher;
+    private String requesterName;
 }

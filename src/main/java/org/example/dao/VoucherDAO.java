@@ -189,6 +189,79 @@ public class VoucherDAO {
         v.setUsageLimit(rs.wasNull() ? null : usageLimit);
         v.setUsedCount(rs.getInt("usedCount"));
         v.setStatus(rs.getByte("status"));
+        if (rs.getTimestamp("startAt") != null) v.setStartAt(rs.getTimestamp("startAt").toLocalDateTime());
+        if (rs.getTimestamp("endAt") != null) v.setEndAt(rs.getTimestamp("endAt").toLocalDateTime());
         return v;
+    }
+
+    // ==================== MANAGER METHODS ====================
+
+    public List<org.example.model.marketing.VoucherRequest> getPendingVoucherRequests() {
+        List<org.example.model.marketing.VoucherRequest> list = new ArrayList<>();
+        String sql = "SELECT vr.*, v.*, a.fullName as requesterName " +
+                     "FROM VoucherRequests vr " +
+                     "JOIN Vouchers v ON vr.voucherId = v.voucherId " +
+                     "JOIN Accounts a ON vr.accountId = a.accountId " +
+                     "WHERE vr.requestStatus = 0 " + // 0 = Pending
+                     "ORDER BY vr.requestedAt DESC";
+        try (Connection conn = new DBConnection().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                org.example.model.marketing.VoucherRequest vr = new org.example.model.marketing.VoucherRequest();
+                vr.setVoucherRequestId(rs.getLong("voucherRequestId"));
+                vr.setVoucherId(rs.getLong("voucherId"));
+                vr.setAccountId(rs.getLong("accountId"));
+                vr.setRequestStatus(rs.getByte("requestStatus"));
+                vr.setRequestNote(rs.getString("requestNote"));
+                if (rs.getTimestamp("requestedAt") != null)
+                    vr.setRequestedAt(rs.getTimestamp("requestedAt").toLocalDateTime());
+                
+                vr.setRequesterName(rs.getString("requesterName"));
+                vr.setVoucher(mapRow(rs));
+                
+                list.add(vr);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public boolean handleVoucherRequest(long requestId, int newStatus, long managerId) {
+        String sqlUpdateReq = "UPDATE VoucherRequests SET requestStatus = ?, reviewedByAccountId = ?, reviewedAt = GETDATE() WHERE voucherRequestId = ?";
+        String sqlUpdateVoucher = "UPDATE Vouchers SET status = ? WHERE voucherId = (SELECT voucherId FROM VoucherRequests WHERE voucherRequestId = ?)";
+        
+        Connection conn = null;
+        try {
+            conn = new DBConnection().getConnection();
+            conn.setAutoCommit(false);
+
+            // 1. Update Request Status
+            PreparedStatement ps1 = conn.prepareStatement(sqlUpdateReq);
+            ps1.setInt(1, newStatus);
+            ps1.setLong(2, managerId);
+            ps1.setLong(3, requestId);
+            ps1.executeUpdate();
+
+            // 2. Update Voucher Status (If approved (1), set voucher to 1. If rejected (2), set voucher to 2 or keep 0)
+            PreparedStatement ps2 = conn.prepareStatement(sqlUpdateVoucher);
+            if (newStatus == 1) {
+                ps2.setInt(1, 1); // Active
+            } else {
+                ps2.setInt(1, 2); // Rejected/Inactive
+            }
+            ps2.setLong(2, requestId);
+            ps2.executeUpdate();
+
+            conn.commit();
+            return true;
+        } catch (Exception e) {
+            if (conn != null) try { conn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+            e.printStackTrace();
+            return false;
+        } finally {
+            if (conn != null) try { conn.close(); } catch (SQLException e) { e.printStackTrace(); }
+        }
     }
 }
