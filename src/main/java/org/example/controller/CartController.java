@@ -66,21 +66,28 @@ public class CartController extends HttpServlet {
 
     private void handleAdd(HttpServletRequest req, HttpServletResponse resp, Account currentUser) throws IOException {
         long accountId = currentUser.getAccountId();
+        String packIdRaw = req.getParameter("productPackId");
         String productIdRaw = req.getParameter("productId");
         String quantityRaw = req.getParameter("quantity");
 
         int quantity = parsePositiveInt(quantityRaw);
-        long productId = parsePositiveLong(productIdRaw);
-
-        if (productId <= 0 || quantity <= 0) {
-            setFlash(req, "cartErrorMsg", "Dữ liệu thêm giỏ hàng không hợp lệ.");
+        if (quantity <= 0) {
+            setFlash(req, "cartErrorMsg", "Số lượng sản phẩm không hợp lệ.");
             resp.sendRedirect(resolveReturnUrl(req));
             return;
         }
 
-        Long productPackId = cartDAO.getDefaultPackIdByProductId(productId);
-        if (productPackId == null) {
-            setFlash(req, "cartErrorMsg", "Sản phẩm hiện chưa có quy cách bán.");
+        Long productPackId = parsePositiveLong(packIdRaw);
+        if (productPackId <= 0) {
+            // Fallback to productId (e.g. from Home page quick-add)
+            long productId = parsePositiveLong(productIdRaw);
+            if (productId > 0) {
+                productPackId = cartDAO.getDefaultPackIdByProductId(productId);
+            }
+        }
+
+        if (productPackId == null || productPackId <= 0) {
+            setFlash(req, "cartErrorMsg", "Dữ liệu sản phẩm không hợp lệ hoặc chưa có quy cách bán.");
             resp.sendRedirect(resolveReturnUrl(req));
             return;
         }
