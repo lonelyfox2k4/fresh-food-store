@@ -824,4 +824,17 @@ public class OrderDAO {
         } catch (Exception e) { e.printStackTrace(); }
         return false;
     }
+    public List<Order> getLatestOrdersByAccount(long accountId, int limit) {
+        List<Order> list = new ArrayList<>();
+        String sql = "SELECT TOP (?) * FROM dbo.Orders WHERE accountId = ? ORDER BY placedAt DESC";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, limit);
+            ps.setLong(2, accountId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) list.add(mapOrder(rs));
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return list;
+    }
 }

@@ -143,7 +143,7 @@
 
 <div class="chatbot-window" id="chatWindow">
     <div class="chatbot-header">
-        <span><i class="fas fa-robot me-2"></i> Trợ lý FFS</span>
+        <span><i class="fas fa-robot me-2"></i> Bé Bot Tươi Xanh</span>
         <i class="fas fa-times" style="cursor:pointer;" onclick="toggleChat()"></i>
     </div>
     <div class="chatbot-body" id="chatBody">
@@ -169,20 +169,41 @@
             win.style.display = 'flex';
             toggler.innerHTML = '<i class="fas fa-times fs-3"></i>';
             if (!initialGreetingDone) {
-                showBotMessage("Xin chào! 👋 Mình là trợ lý ảo của Fresh Food Store. Bạn cần tìm hiểu thông tin gì hôm nay?", true);
+                processInitialGreeting();
                 initialGreetingDone = true;
             }
         }
     }
 
+    function processInitialGreeting() {
+        const body = document.getElementById('chatBody');
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'chat-msg bot loading';
+        loadingDiv.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Đang khởi động...';
+        body.appendChild(loadingDiv);
+
+        fetch('${pageContext.request.contextPath}/api/chatbot', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: "" })
+        })
+        .then(res => res.json())
+        .then(data => {
+            body.removeChild(loadingDiv);
+            showBotMessage(data.reply, true);
+        })
+        .catch(err => {
+            if (loadingDiv.parentNode) body.removeChild(loadingDiv);
+            showBotMessage("Dạ chào bạn! Mình là Bé Bot Tươi Xanh, bạn cần mình giúp gì hông nè? ✨");
+        });
+    }
+
     function showBotMessage(text, showChips = false) {
         const body = document.getElementById('chatBody');
         
-        // Add text message
         const msgDiv = document.createElement('div');
         msgDiv.className = 'chat-msg bot';
         
-        // Parse basic markdown like **bold** in bot response
         let formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
         msgDiv.innerHTML = formattedText;
         body.appendChild(msgDiv);
@@ -191,9 +212,10 @@
             const chipsDiv = document.createElement('div');
             chipsDiv.className = 'chat-chips bot';
             chipsDiv.innerHTML = `
-                <div class="chat-chip" onclick="sendChipMessage('Xem danh mục')">Xem danh mục</div>
-                <div class="chat-chip" onclick="sendChipMessage('Liên hệ')">Liên hệ</div>
-                <div class="chat-chip" onclick="sendChipMessage('Giá thịt heo')">Giá thịt heo</div>
+                <div class="chat-chip" onclick="sendChipMessage('Đơn hàng')">📦 Đơn hàng</div>
+                <div class="chat-chip" onclick="sendChipMessage('Voucher')">🎁 Mã giảm giá</div>
+                <div class="chat-chip" onclick="sendChipMessage('Có gì ngon')">🆕 Hàng mới về</div>
+                <div class="chat-chip" onclick="sendChipMessage('Liên hệ')">📞 Liên hệ</div>
             `;
             body.appendChild(chipsDiv);
         }

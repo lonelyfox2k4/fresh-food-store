@@ -447,4 +447,19 @@ public class ProductDAO {
         }
         return list;
     }
+
+    public List<Product> getNewestProducts(int limit) {
+        List<Product> list = new ArrayList<>();
+        String sql = "SELECT TOP (?) * FROM dbo.Products WHERE status = 1 ORDER BY createdAt DESC";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, limit);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapRowToProduct(rs));
+                }
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return list;
+    }
 }
