@@ -43,10 +43,10 @@ body {
 }
 .product-card:hover {
     transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
+    box-shadow: 0 10px 20px rgba(227, 0, 15, 0.1);
 }
 .product-img {
-    height: 200px;
+    height: 220px;
     object-fit: cover;
     width: 100%;
 }
@@ -111,6 +111,14 @@ body {
 /* ── Responsive tweaks ── */
 @media (max-width: 576px) {
     .product-img { height: 160px; }
+}
+
+/* ── Unified Navbar ── */
+.navbar {
+    padding: 10px 0;
+}
+.nav-item {
+    margin: 0 10px;
 }
 
 /* ── Merged Navbar Styles ── */
@@ -212,3 +220,29 @@ body {
     box-shadow: 0 2px 4px rgba(0,0,0,.05);
 }
 
+
+/* ── Toast Notifications ── */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+}
+
+.toast {
+    border-radius: var(--radius);
+    border: none;
+    box-shadow: var(--shadow-md);
+    background: #fff;
+    min-width: 300px;
+}
+
+.toast-header {
+    border-bottom: 1px solid var(--border);
+    border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.toast-body {
+    padding: 15px;
+    font-size: 0.95rem;
+}

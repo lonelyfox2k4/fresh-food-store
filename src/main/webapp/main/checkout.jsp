@@ -17,12 +17,6 @@
 <main class="container py-5 flex-grow-1">
     <h2 class="mb-4">Thông tin thanh toán</h2>
 
-    <c:if test="${not empty checkoutError}">
-        <div class="alert alert-danger mb-4 rounded-3 shadow-sm border-0">
-            <i class="fas fa-exclamation-triangle me-2"></i>${checkoutError}
-        </div>
-    </c:if>
-
     <div class="row g-4">
         <%-- Left Column: Form Info --%>
         <div class="col-lg-7">
@@ -61,13 +55,24 @@
                         <i class="fa-solid fa-credit-card me-2 text-primary"></i>Phương thức thanh toán
                     </h5>
                     
-                    <div class="form-check p-3 border rounded-3 mb-2 bg-light">
+                    <div class="form-check p-3 border rounded-3 mb-3 bg-light">
                         <input class="form-check-input ms-0 me-3" type="radio" name="paymentMethod" id="paymentCOD" value="COD" checked>
                         <label class="form-check-label d-flex align-items-center" for="paymentCOD">
                             <i class="fa-solid fa-money-bill-wave me-3 text-success fs-4"></i>
                             <div>
                                 <div class="fw-bold">Thanh toán khi nhận hàng (COD)</div>
                                 <div class="small text-muted">Thanh toán trực tiếp bằng tiền mặt khi nhận được hàng.</div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="form-check p-3 border rounded-3 border-primary-subtle bg-primary-subtle bg-opacity-10">
+                        <input class="form-check-input ms-0 me-3" type="radio" name="paymentMethod" id="paymentVNPAY" value="VNPAY">
+                        <label class="form-check-label d-flex align-items-center" for="paymentVNPAY">
+                            <img src="https://sandbox.vnpayment.vn/paymentv2/Images/design/logo_vnpay.png" alt="VNPAY" height="30" class="me-3">
+                            <div>
+                                <div class="fw-bold text-primary">Thanh toán Online qua VNPAY</div>
+                                <div class="small text-muted">Hỗ trợ ATM, Thẻ quốc tế, QR Code ngân hàng.</div>
                             </div>
                         </label>
                     </div>
