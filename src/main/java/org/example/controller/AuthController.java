@@ -77,17 +77,38 @@ public class AuthController extends HttpServlet {
             return;
         }
 
+        // Kiểm tra xác thực Email
+        if (!acc.isEmailVerified()) {
+            req.setAttribute("errorMsg", "Email của bạn chưa được xác thực! Vui lòng kiểm tra hộp thư.");
+            req.getRequestDispatcher("/main/login.jsp").forward(req, resp);
+            return;
+        }
+
         // Kiểm tra mật khẩu
         if (acc.getPasswordHash().equals(dao.encodePassword(password))) {
-            req.changeSessionId(); // Bảo mật: Fix Session Fixation
+            req.changeSessionId();
             req.getSession().setAttribute("user", acc);
             req.getSession().setAttribute("cartCount", cartDAO.countCartLines(acc.getAccountId()));
-            if (acc.getRoleId() == 1) {
-                resp.sendRedirect("admin/dashboard");
-            } else if (acc.getRoleId() == 2) {
-                resp.sendRedirect("manager/products");
-            } else {
-                resp.sendRedirect("home");
+            
+            String contextPath = req.getContextPath();
+            int roleId = acc.getRoleId();
+            
+            switch (roleId) {
+                case 1: // Admin
+                    resp.sendRedirect(contextPath + "/admin/dashboard");
+                    break;
+                case 2: // Manager
+                    resp.sendRedirect(contextPath + "/manager/products");
+                    break;
+                case 3: // Staff
+                    resp.sendRedirect(contextPath + "/staff/orders");
+                    break;
+                case 4: // Shipper
+                    resp.sendRedirect(contextPath + "/shipper/orders");
+                    break;
+                default: // Customer/Others
+                    resp.sendRedirect(contextPath + "/home");
+                    break;
             }
         } else {
             req.setAttribute("errorMsg", "Tài khoản hoặc mật khẩu không chính xác!");
@@ -138,7 +159,7 @@ public class AuthController extends HttpServlet {
 
         Account tempUser = new Account();
         tempUser.setEmail(email);
-        tempUser.setPasswordHash(dao.encodePassword(password));
+        tempUser.setPasswordHash(password); // Lưu mật khẩu thô để DAO tự băm khi lưu DB (Tránh lỗi double hash)
         tempUser.setFullName(name);
         tempUser.setPhone(phone);
         

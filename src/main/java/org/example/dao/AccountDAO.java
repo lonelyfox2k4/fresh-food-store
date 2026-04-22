@@ -208,7 +208,6 @@ public class AccountDAO {
 
     public List<Account> searchUsers(String txtSearch, String roleId, String status, String sortBy, String sortDir, int offset, int limit) {
         List<Account> list = new ArrayList<>();
-        // Mẹo dùng 1=1 để nối AND liên tục mà không lo lỗi cú pháp
         StringBuilder sql = new StringBuilder("SELECT * FROM dbo.Accounts WHERE 1=1 ");
 
         if (txtSearch != null && !txtSearch.trim().isEmpty()) {

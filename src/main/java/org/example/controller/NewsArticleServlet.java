@@ -1,6 +1,7 @@
 package org.example.controller;
 
 import org.example.dao.NewsArticleDAO;
+import org.example.model.auth.Account;
 import org.example.model.content.NewsArticle;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;

@@ -153,10 +153,22 @@
             <h1 class="fw-bold mb-1">Tổng quan cửa hàng</h1>
             <p class="text-muted mb-0">Theo dõi các chỉ số quan trọng của Fresh Food Store hôm nay.</p>
         </div>
-        <div>
-            <button class="btn btn-outline-danger shadow-sm rounded-pill px-4" onclick="alert('Tính năng xuất báo cáo doanh thu ra file Excel/CSV đang được phát triển.')">
-                <i class="fas fa-download me-1"></i> Xuất báo cáo doanh thu
-            </button>
+        <div class="bg-white p-3 rounded-4 shadow-sm border">
+            <form action="${pageContext.request.contextPath}/admin/export-revenue" method="get" class="row g-2 align-items-center">
+                <div class="col-auto">
+                    <label class="small fw-bold text-muted d-block">Từ ngày</label>
+                    <input type="date" name="startDate" class="form-control form-control-sm rounded-pill">
+                </div>
+                <div class="col-auto">
+                    <label class="small fw-bold text-muted d-block">Đến ngày</label>
+                    <input type="date" name="endDate" class="form-control form-control-sm rounded-pill">
+                </div>
+                <div class="col-auto align-self-end">
+                    <button type="submit" class="btn btn-danger btn-sm shadow-sm rounded-pill px-4">
+                        <i class="fas fa-download me-1"></i> Xuất báo cáo
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 

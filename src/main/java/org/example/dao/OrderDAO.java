@@ -621,6 +621,35 @@ public class OrderDAO {
         return list;
     }
 
+    public List<Order> getOrdersByDateRange(String startDate, String endDate) {
+        List<Order> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("SELECT * FROM dbo.Orders WHERE 1=1 ");
+        
+        if (startDate != null && !startDate.isEmpty()) {
+            sql.append(" AND placedAt >= ? ");
+        }
+        if (endDate != null && !endDate.isEmpty()) {
+            sql.append(" AND placedAt <= ? ");
+        }
+        sql.append(" ORDER BY placedAt DESC");
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            int paramIndex = 1;
+            if (startDate != null && !startDate.isEmpty()) {
+                ps.setTimestamp(paramIndex++, java.sql.Timestamp.valueOf(startDate + " 00:00:00"));
+            }
+            if (endDate != null && !endDate.isEmpty()) {
+                ps.setTimestamp(paramIndex++, java.sql.Timestamp.valueOf(endDate + " 23:59:59"));
+            }
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) list.add(mapOrder(rs));
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return list;
+    }
+
     public List<Order> getOrdersByShipper(long shipperId) {
         List<Order> list = new ArrayList<>();
         String sql = "SELECT * FROM dbo.Orders WHERE shipperId = ? ORDER BY placedAt DESC";
