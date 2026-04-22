@@ -46,6 +46,13 @@ public class LoginGoogleController extends HttpServlet {
 
         // 4. LƯU LIÊN KẾT GOOGLE (Để bảng AccountGoogleLinks nảy số)
         if (acc != null) {
+            // KIỂM TRA TRẠNG THÁI TÀI KHOẢN (BAN)
+            if (!acc.isStatus()) {
+                req.setAttribute("errorMsg", "Tài khoản của bạn đã bị khóa! Vui lòng liên hệ quản trị viên.");
+                req.getRequestDispatcher("/main/login.jsp").forward(req, resp);
+                return;
+            }
+
             dao.linkGoogleAccount(acc.getAccountId(), googleId, email);
 
             // 5. Thiết lập session và chuyển trang

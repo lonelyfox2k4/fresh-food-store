@@ -24,10 +24,19 @@ public class AdminFilter implements Filter {
         HttpSession session = req.getSession(false);
 
         Account user = (session != null) ? (Account) session.getAttribute("user") : null;
+        org.example.dao.AccountDAO dao = new org.example.dao.AccountDAO();
 
         // 1. Chưa đăng nhập → về trang login
         if (user == null) {
             resp.sendRedirect(req.getContextPath() + "/login");
+            return;
+        }
+
+        // 2. Kiểm tra trạng thái tài khoản (Đề phòng bị Ban khi đang online)
+        Account currentAcc = dao.getAccountById(user.getAccountId());
+        if (currentAcc == null || !currentAcc.isStatus()) {
+            if (session != null) session.invalidate();
+            resp.sendRedirect(req.getContextPath() + "/login?errorMsg=banned");
             return;
         }
 

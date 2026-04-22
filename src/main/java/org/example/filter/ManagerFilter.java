@@ -26,12 +26,27 @@ public class ManagerFilter implements Filter {
         HttpSession session = req.getSession(false);
 
         Account user = (session != null) ? (Account) session.getAttribute("user") : null;
-https://github.com/lonelyfox2k4/fresh-food-store/pull/20/conflict?name=src%252Fmain%252Fwebapp%252Fmanager%252Fproducts.jsp&ancestor_oid=e36c97f19fa0feda2d34335d474690f1d5e67c06&base_oid=530a20869c17743d65165383024e5d69b90755eb&head_oid=79f94b8956f93041c324ea653cc93732d1642b9c
-        // Allow Admin (1) and Manager (2)
-        if (user != null && (user.getRoleId() == 1 || user.getRoleId() == 2)) {
+        org.example.dao.AccountDAO dao = new org.example.dao.AccountDAO();
+
+        // 1. Kiểm tra đăng nhập
+        if (user == null) {
+            resp.sendRedirect(req.getContextPath() + "/login");
+            return;
+        }
+
+        // 2. Kiểm tra trạng thái tài khoản
+        Account currentAcc = dao.getAccountById(user.getAccountId());
+        if (currentAcc == null || !currentAcc.isStatus()) {
+            if (session != null) session.invalidate();
+            resp.sendRedirect(req.getContextPath() + "/login?errorMsg=banned");
+            return;
+        }
+
+        // 3. Cho phép Admin (1) và Manager (2)
+        if (user.getRoleId() == 1 || user.getRoleId() == 2) {
             chain.doFilter(request, response);
         } else {
-            // Unauthorized or not logged in -> redirect to home
+            // Không có quyền -> về trang chủ
             resp.sendRedirect(req.getContextPath() + "/home");
         }
     }

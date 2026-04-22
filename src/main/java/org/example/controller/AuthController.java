@@ -19,6 +19,10 @@ public class AuthController extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String path = req.getServletPath();
         if ("/login".equals(path)) {
+            String errorParam = req.getParameter("errorMsg");
+            if ("banned".equals(errorParam)) {
+                req.setAttribute("errorMsg", "Tài khoản của bạn đã bị khóa bởi quản trị viên!");
+            }
             req.getRequestDispatcher("/main/login.jsp").forward(req, resp);
         } else if ("/register".equals(path)) {
             req.getRequestDispatcher("/main/register.jsp").forward(req, resp);
@@ -58,8 +62,23 @@ public class AuthController extends HttpServlet {
             return;
         }
 
-        Account acc = dao.login(email, password);
-        if (acc != null) {
+        Account acc = dao.getAccountByEmail(email);
+        
+        if (acc == null) {
+            req.setAttribute("errorMsg", "Tài khoản hoặc mật khẩu không chính xác!");
+            req.getRequestDispatcher("/main/login.jsp").forward(req, resp);
+            return;
+        }
+
+        // Kiểm tra trạng thái tài khoản
+        if (!acc.isStatus()) {
+            req.setAttribute("errorMsg", "Tài khoản của bạn đã bị khóa! Vui lòng liên hệ quản trị viên.");
+            req.getRequestDispatcher("/main/login.jsp").forward(req, resp);
+            return;
+        }
+
+        // Kiểm tra mật khẩu
+        if (acc.getPasswordHash().equals(dao.encodePassword(password))) {
             req.changeSessionId(); // Bảo mật: Fix Session Fixation
             req.getSession().setAttribute("user", acc);
             req.getSession().setAttribute("cartCount", cartDAO.countCartLines(acc.getAccountId()));
