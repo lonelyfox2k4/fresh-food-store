@@ -6,6 +6,7 @@ import org.example.dao.ProductPackDAO;
 import org.example.dao.ReviewDAO;
 import org.example.dao.WishlistDAO;
 import org.example.dto.ReviewDTO;
+import org.example.dto.ProductDTO;
 import org.example.model.auth.Account;
 import org.example.model.catalog.Category;
 import org.example.model.catalog.Product;
@@ -61,7 +62,7 @@ public class ProductController extends HttpServlet {
         int totalCount = productDAO.countProducts(keyword, categoryId);
         int totalPages = (int) Math.ceil((double) totalCount / PAGE_SIZE);
 
-        List<Product>  products   = productDAO.searchProducts(keyword, categoryId, offset, PAGE_SIZE);
+        List<ProductDTO>  products   = productDAO.searchProducts(keyword, categoryId, offset, PAGE_SIZE);
         List<Category> categories = categoryDAO.getAllActiveCategories();
 
         req.setAttribute("products",       products);
@@ -87,7 +88,7 @@ public class ProductController extends HttpServlet {
         try { productId = Long.parseLong(idParam); }
         catch (NumberFormatException e) { resp.sendRedirect("products"); return; }
 
-        Product product = productDAO.getActiveProductById(productId);
+        ProductDTO product = productDAO.getActiveProductById(productId);
         if (product == null) { resp.sendRedirect("products"); return; }
 
         List<ProductPack> packs    = packDAO.getPacksByProductId(productId);

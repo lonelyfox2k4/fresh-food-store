@@ -64,7 +64,6 @@ public class VnPayConfig {
         for (String fieldName : fieldNames) {
             String fieldValue = fields.get(fieldName);
             if (fieldValue != null && !fieldValue.isEmpty()) {
-                // ✅ SỬA LỖI: Bắt buộc phải URL Encode lại value trước khi băm
                 joined.add(fieldName + "=" + fieldValue);
             }
         }

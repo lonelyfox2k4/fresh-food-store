@@ -7,6 +7,7 @@ import org.example.dao.WishlistDAO;
 import org.example.model.auth.Account;
 import org.example.model.catalog.Category;
 import org.example.model.catalog.Product;
+import org.example.dto.ProductDTO;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -39,8 +40,8 @@ public class HomeController extends HttpServlet {
 
         try {
             // 1. Gọi DAO lấy dữ liệu THẬT từ Database
-            List<Product> flashSaleList = productDAO.getFlashSaleProducts();
-            List<Product> bestSellerList = productDAO.getBestSellerProducts();
+            List<ProductDTO> flashSaleList = productDAO.getFlashSaleProducts();
+            List<ProductDTO> bestSellerList = productDAO.getBestSellerProducts();
             List<Category> categoryList = categoryDAO.getAllActiveCategories();
 
 
