@@ -31,6 +31,19 @@
                                 ${news != null ? 'Chỉnh sửa bài viết' : 'Soạn bài mới'}
                             </h2>
 
+                            <c:if test="${not empty error}">
+                                <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm rounded-4 mb-4" role="alert">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
+                                        <div>
+                                            <div class="fw-bold">Lỗi nhập liệu</div>
+                                            ${error}
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            </c:if>
+
                             <form action="news" method="POST">
                                 <input type="hidden" name="action" value="${news != null ? 'update' : 'create'}">
 
@@ -41,13 +54,16 @@
                                 <div class="mb-4">
                                     <label class="form-label">Tiêu đề <span class="text-danger">*</span></label>
                                     <input type="text" name="title" class="form-control form-control-lg"
-                                        value="<c:out value='${news.title}'/>" required>
+                                        value="<c:out value='${news.title}'/>" 
+                                        maxlength="150" required placeholder="Nhập tiêu đề (5 - 150 ký tự)">
+                                    <div class="form-text">Tiêu đề nên súc tích để không bị tràn dòng trên di động.</div>
                                 </div>
 
                                 <div class="mb-4">
                                     <label class="form-label">Tóm tắt ngắn <span class="text-danger">*</span></label>
                                     <textarea name="summary" class="form-control" rows="2"
-                                        required><c:out value='${news.summary}'/></textarea>
+                                        maxlength="300" required placeholder="Mô tả ngắn gọn nội dung bài viết..."><c:out value='${news.summary}'/></textarea>
+                                    <div class="form-text">Tối đa 300 ký tự.</div>
                                 </div>
 
                                 <div class="mb-4">
@@ -59,8 +75,7 @@
                                 <div class="mb-4">
                                     <label class="form-label">Nội dung chi tiết <span
                                             class="text-danger">*</span></label>
-                                    <textarea name="content" class="form-control" rows="12"
-                                        required><c:out value='${news.content}'/></textarea>
+                                    <textarea name="content" id="newsContent" class="form-control" rows="12"><c:out value='${news.content}'/></textarea>
                                 </div>
 
                                 <hr class="my-4">
@@ -92,12 +107,35 @@
             <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
             <script>
                 tinymce.init({
-                    selector: 'textarea[name="content"]',
+                    selector: '#newsContent',
                     plugins: 'advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table help wordcount',
                     toolbar: 'undo redo | formatselect | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help',
                     height: 500,
                     menubar: false,
                     branding: false
+                });
+
+                // Validation Script
+                document.querySelector('form').addEventListener('submit', function(e) {
+                    const title = this.title.value.trim();
+                    const summary = this.summary.value.trim();
+                    const content = tinymce.get('newsContent').getContent().trim();
+
+                    if (title.length < 5 || title.length > 150) {
+                        alert("Tiêu đề phải từ 5 đến 150 ký tự!");
+                        e.preventDefault();
+                        return;
+                    }
+                    if (summary.length < 10 || summary.length > 300) {
+                        alert("Tóm tắt phải từ 10 đến 300 ký tự!");
+                        e.preventDefault();
+                        return;
+                    }
+                    if (content === "") {
+                        alert("Nội dung bài viết không được để trống!");
+                        e.preventDefault();
+                        return;
+                    }
                 });
             </script>
         </body>

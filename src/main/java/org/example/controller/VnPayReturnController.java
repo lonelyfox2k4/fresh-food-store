@@ -53,8 +53,8 @@ public class VnPayReturnController extends HttpServlet {
 
             if ("00".equals(vnp_ResponseCode)) {
                 // Payment Success
-                // paymentStatus = 2 (PAID), orderStatus = 2 (PROCESSING)
-                orderDAO.updatePaymentStatus(orderId, (byte) 2, (byte) 2);
+                // paymentStatus = 1 (PAID), orderStatus = 2 (PROCESSING)
+                orderDAO.updatePaymentStatus(orderId, (byte) 1, (byte) 2);
                 orderDAO.updatePaymentTransaction(orderId, transactionNo);
                 
                 resp.sendRedirect(req.getContextPath() + "/order-success?id=" + orderId);

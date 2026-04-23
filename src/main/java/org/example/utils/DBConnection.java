@@ -13,7 +13,7 @@ public class DBConnection {
             HikariConfig config = new HikariConfig();
             config.setJdbcUrl("jdbc:sqlserver://localhost:1433;databaseName=fresh_food_store;encrypt=false");
             config.setUsername("sa");
-            config.setPassword("a");
+            config.setPassword("123");
             config.setDriverClassName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
 
             // Cấu hình tối ưu cho Connection Pool

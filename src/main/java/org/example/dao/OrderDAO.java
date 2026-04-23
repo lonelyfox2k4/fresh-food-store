@@ -86,7 +86,7 @@ public class OrderDAO {
             String orderCode = "ORD" + System.currentTimeMillis() + (int)(Math.random() * 1000);
             long orderId = insertOrder(conn, orderCode, accountId,
                     subtotalAmount, voucherDiscount, shippingFee,
-                    recipientName, recipientPhone, shippingAddress, note);
+                    recipientName, recipientPhone, shippingAddress, note, (byte) 0);
 
             // ── 5. FEFO allocation loop ──────────────────────────────────────
             BigDecimal totalExpiryDiscount = BigDecimal.ZERO;
@@ -406,24 +406,25 @@ public class OrderDAO {
 
     private long insertOrder(Connection conn, String orderCode, long accountId,
                               BigDecimal subtotal, BigDecimal discount, BigDecimal shippingFee,
-                              String name, String phone, String address, String note) throws SQLException {
+                              String name, String phone, String address, String note, byte paymentStatus) throws SQLException {
         String sql = "INSERT INTO dbo.Orders " +
                 "(orderCode, accountId, orderStatus, paymentStatus, " +
                 " subtotalAmount, discountAmount, shippingFee, totalAmount, " +
                 " recipientNameSnapshot, recipientPhoneSnapshot, shippingAddressSnapshot, note) " +
-                "VALUES (?, ?, 1, 1, ?, ?, ?, ?, ?, ?, ?, ?)";
+                "VALUES (?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         BigDecimal preliminary = subtotal.subtract(discount).add(shippingFee).max(BigDecimal.ZERO);
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, orderCode);
             ps.setLong(2, accountId);
-            ps.setBigDecimal(3, subtotal);
-            ps.setBigDecimal(4, discount);   // updated later
-            ps.setBigDecimal(5, shippingFee);
-            ps.setBigDecimal(6, preliminary); // updated later
-            ps.setNString(7, name);
-            ps.setNString(8, phone);
-            ps.setNString(9, address);
-            ps.setNString(10, note);
+            ps.setByte(3, paymentStatus);
+            ps.setBigDecimal(4, subtotal);
+            ps.setBigDecimal(5, discount);   // updated later
+            ps.setBigDecimal(6, shippingFee);
+            ps.setBigDecimal(7, preliminary); // updated later
+            ps.setNString(8, name);
+            ps.setNString(9, phone);
+            ps.setNString(10, address);
+            ps.setNString(11, note);
             ps.executeUpdate();
             try (ResultSet rs = ps.getGeneratedKeys()) {
                 if (rs.next()) return rs.getLong(1);
@@ -522,7 +523,7 @@ public class OrderDAO {
     private void insertPayment(Connection conn, long orderId, BigDecimal amount, String provider) throws SQLException {
         try (PreparedStatement ps = conn.prepareStatement(
                 "INSERT INTO dbo.Payments (orderId, provider, amount, paymentStatus) " +
-                "VALUES (?, ?, ?, 1)")) {
+                "VALUES (?, ?, ?, 0)")) {
             ps.setLong(1, orderId);
             ps.setString(2, provider);
             ps.setBigDecimal(3, amount);
