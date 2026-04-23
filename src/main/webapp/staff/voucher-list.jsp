@@ -35,9 +35,11 @@
                 <a href="?action=list" class="btn btn-brand-outline shadow-sm rounded-pill bg-white text-dark">
                     <i class="fas fa-sync-alt"></i> Làm mới
                 </a>
-                <a href="?action=create" class="btn btn-brand shadow-sm rounded-pill">
-                    <i class="fas fa-plus-circle me-2"></i> Thêm Voucher mới
-                </a>
+                <c:if test="${sessionScope.user.roleId == 3}">
+                    <a href="?action=create" class="btn btn-brand shadow-sm rounded-pill">
+                        <i class="fas fa-plus-circle me-2"></i> Thêm Voucher mới
+                    </a>
+                </c:if>
             </div>
         </div>
     </div>
@@ -115,11 +117,18 @@
                                 </td>
                                 <td class="text-end pe-4">
                                     <div class="btn-group shadow-sm rounded-pill overflow-hidden">
-                                        <a href="${pageContext.request.contextPath}/staff/voucher?action=delete&id=${v.voucherId}" 
-                                           class="btn btn-light btn-sm text-danger border-0"
-                                           onclick="return confirm('Bạn có chắc chắn muốn xóa voucher này?')">
-                                            <i class="fas fa-trash-alt"></i>
-                                        </a>
+                                        <c:if test="${v.status == 0}">
+                                            <a href="${pageContext.request.contextPath}/staff/voucher?action=delete&id=${v.voucherId}" 
+                                               class="btn btn-light btn-sm text-danger border-0"
+                                               onclick="return confirm('Bạn có chắc chắn muốn xóa voucher này?')">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </a>
+                                        </c:if>
+                                        <c:if test="${v.status != 0}">
+                                            <button type="button" class="btn btn-light btn-sm text-muted border-0" style="opacity: 0.5; cursor: not-allowed;" title="Không thể xóa voucher đang ở trạng thái này">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </c:if>
                                     </div>
                                 </td>
                             </tr>

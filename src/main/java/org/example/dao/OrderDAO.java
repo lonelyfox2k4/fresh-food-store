@@ -775,7 +775,10 @@ public class OrderDAO {
     }
 
     public boolean updateDeliverySuccess(long orderId) {
-        String sql = "UPDATE dbo.Orders SET shippingStatus = 3, orderStatus = 5, paymentStatus = 2, paidAt = SYSUTCDATETIME() WHERE orderId = ?";
+        String sql = "UPDATE dbo.Orders SET shippingStatus = 3, orderStatus = 5, "
+                   + "paymentStatus = CASE WHEN paymentStatus = 1 THEN 1 ELSE 2 END, "
+                   + "paidAt = CASE WHEN paidAt IS NULL THEN SYSUTCDATETIME() ELSE paidAt END "
+                   + "WHERE orderId = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, orderId);
@@ -852,6 +855,54 @@ public class OrderDAO {
         } catch (Exception e) { e.printStackTrace(); }
         return false;
     }
+
+    public java.util.Map<String, Object> getShipperStats(long shipperId) {
+        java.util.Map<String, Object> stats = new java.util.HashMap<>();
+        stats.put("totalOrders", 0);
+        stats.put("successOrders", 0);
+        stats.put("totalEarnings", java.math.BigDecimal.ZERO);
+        stats.put("totalIncome", java.math.BigDecimal.ZERO);
+        stats.put("totalRemitted", java.math.BigDecimal.ZERO);
+        stats.put("activeOrders", 0);
+
+        String sql = "SELECT " +
+                     "  COUNT(*) AS totalOrders, " +
+                     "  SUM(CASE WHEN shippingStatus = 3 THEN 1 ELSE 0 END) AS successOrders, " +
+                     "  SUM(CASE WHEN shippingStatus = 3 AND paymentStatus = 2 THEN totalAmount ELSE 0 END) AS totalEarnings, " +
+                     "  SUM(CASE WHEN shippingStatus = 3 THEN shippingFee ELSE 0 END) AS totalIncome, " +
+                     "  SUM(CASE WHEN shippingStatus = 3 AND paymentStatus = 3 THEN totalAmount ELSE 0 END) AS totalRemitted, " +
+                     "  SUM(CASE WHEN shippingStatus IN (1, 2) THEN 1 ELSE 0 END) AS activeOrders " +
+                     "FROM dbo.Orders WHERE shipperId = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, shipperId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    stats.put("totalOrders", rs.getInt("totalOrders"));
+                    stats.put("successOrders", rs.getInt("successOrders"));
+                    java.math.BigDecimal earnings = rs.getBigDecimal("totalEarnings");
+                    stats.put("totalEarnings", earnings != null ? earnings : java.math.BigDecimal.ZERO);
+                    java.math.BigDecimal income = rs.getBigDecimal("totalIncome");
+                    stats.put("totalIncome", income != null ? income : java.math.BigDecimal.ZERO);
+                    java.math.BigDecimal remitted = rs.getBigDecimal("totalRemitted");
+                    stats.put("totalRemitted", remitted != null ? remitted : java.math.BigDecimal.ZERO);
+                    stats.put("activeOrders", rs.getInt("activeOrders"));
+                }
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return stats;
+    }
+
+    public boolean remitCOD(long shipperId) {
+        String sql = "UPDATE dbo.Orders SET paymentStatus = 3 WHERE shipperId = ? AND shippingStatus = 3 AND paymentStatus = 2";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, shipperId);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) { e.printStackTrace(); }
+        return false;
+    }
+
     public List<Order> getLatestOrdersByAccount(long accountId, int limit) {
         List<Order> list = new ArrayList<>();
         String sql = "SELECT TOP (?) * FROM dbo.Orders WHERE accountId = ? ORDER BY placedAt DESC";
@@ -864,5 +915,6 @@ public class OrderDAO {
             }
         } catch (Exception e) { e.printStackTrace(); }
         return list;
+>>>>>>> 31efb674256d8be0d88796c7fcb04a0980c6e366
     }
 }

@@ -280,6 +280,53 @@
     </section>
 </c:if>
 
+<%-- ══ Latest News Section ═══════════════════════════════════════════════ --%>
+<c:if test="${not empty latestNews}">
+    <section class="py-5 bg-white border-top">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-5">
+                <div>
+                    <h2 class="fw-bold mb-1">Tin Tức & <span class="text-brand">Cẩm Nang</span></h2>
+                    <p class="text-muted mb-0">Bí quyết chọn thực phẩm và sống khỏe mỗi ngày</p>
+                </div>
+                <a href="${pageContext.request.contextPath}/news" class="btn btn-outline-brand rounded-pill px-4 fw-bold">
+                    Tất cả bài viết <i class="fas fa-arrow-right ms-2"></i>
+                </a>
+            </div>
+
+            <div class="row g-4">
+                <c:forEach var="news" items="${latestNews}">
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden" style="transition: transform 0.3s ease;">
+                            <a href="${pageContext.request.contextPath}/news?id=${news.newsId}" class="position-relative overflow-hidden">
+                                <img src="${not empty news.imageUrl ? news.imageUrl : 'https://via.placeholder.com/600x400?text=Fresh+Food'}" 
+                                     class="card-img-top" alt="${news.title}" style="height: 180px; object-fit: cover;">
+                                <div class="position-absolute top-0 start-0 m-2">
+                                    <span class="badge bg-brand backdrop-blur bg-opacity-75">Hữu ích</span>
+                                </div>
+                            </a>
+                            <div class="card-body p-3">
+                                <div class="small text-muted mb-2">
+                                    <i class="far fa-calendar-alt me-1"></i>
+                                    <fmt:parseDate value="${news.publishedAt}" pattern="yyyy-MM-dd'T'HH:mm" var="homePDate" type="both" />
+                                    <fmt:formatDate value="${homePDate}" pattern="dd/MM, yyyy" />
+                                </div>
+                                <a href="${pageContext.request.contextPath}/news?id=${news.newsId}" class="text-decoration-none text-dark">
+                                    <h6 class="fw-bold mb-2 text-truncate-2" style="min-height: 48px;">${news.title}</h6>
+                                </a>
+                                <p class="small text-muted mb-3 text-truncate-3" style="min-height: 60px;">${news.summary}</p>
+                                <a href="${pageContext.request.contextPath}/news?id=${news.newsId}" class="small fw-bold text-brand text-decoration-none">
+                                    Chi tiết <i class="fas fa-chevron-right ms-1" style="font-size: 0.7rem;"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </c:forEach>
+            </div>
+        </div>
+    </section>
+</c:if>
+
 <%-- ══ Why choose us ════════════════════════════════════════════════════ --%>
 <section class="py-5 bg-light">
     <div class="container text-center">

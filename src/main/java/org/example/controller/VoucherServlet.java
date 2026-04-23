@@ -41,11 +41,21 @@ public class VoucherServlet extends HttpServlet {
                     break;
 
                 case "create":
+                    Account u = (Account) request.getSession().getAttribute("user");
+                    if (u == null || u.getRoleId() != 3) {
+                        response.sendRedirect("voucher?error=unauthorized");
+                        break;
+                    }
                     request.getRequestDispatcher("/staff/voucher-form.jsp").forward(request, response);
                     break;
 
                 case "delete":
                     long id = Long.parseLong(request.getParameter("id"));
+                    Voucher targetVoucher = voucherDAO.getVoucherById(id);
+                    if (targetVoucher == null || targetVoucher.getStatus() != 0) {
+                        response.sendRedirect("voucher?error=unauthorized_delete");
+                        break;
+                    }
                     if (voucherDAO.deleteVoucher(id)) {
                         response.sendRedirect("voucher?msg=deleted");
                     } else {
@@ -70,6 +80,11 @@ public class VoucherServlet extends HttpServlet {
 
         if ("create".equals(action)) {
             try {
+                Account creator = (Account) request.getSession().getAttribute("user");
+                if (creator == null || creator.getRoleId() != 3) {
+                    response.sendRedirect("voucher?error=unauthorized");
+                    return;
+                }
                 // 1. Lấy thông tin cơ bản
                 String code = request.getParameter("voucherCode").trim().toUpperCase();
                 String name = request.getParameter("voucherName");

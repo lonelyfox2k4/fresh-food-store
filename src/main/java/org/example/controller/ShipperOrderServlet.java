@@ -38,8 +38,11 @@ public class ShipperOrderServlet extends HttpServlet {
             if ("list".equals(action)) {
                 List<Order> orders = orderDAO.getOrdersByShipper(shipperId);
                 List<Order> availableOrders = orderDAO.getAvailableOrders();
+                java.util.Map<String, Object> stats = orderDAO.getShipperStats(shipperId);
+                
                 request.setAttribute("orderList", orders);
                 request.setAttribute("availableList", availableOrders);
+                request.setAttribute("stats", stats);
                 request.getRequestDispatcher("/shipper/order-list.jsp").forward(request, response);
             } else if ("detail".equals(action)) {
                 long orderId = Long.parseLong(request.getParameter("id"));
@@ -76,6 +79,12 @@ public class ShipperOrderServlet extends HttpServlet {
         long currentShipperId = (user != null) ? user.getAccountId() : 2L; // Mock fallback for test
 
         try {
+            if ("remit".equals(action)) {
+                orderDAO.remitCOD(currentShipperId);
+                response.sendRedirect("orders?action=list&msg=remitted");
+                return;
+            }
+
             long orderId = Long.parseLong(request.getParameter("orderId"));
             Order order = orderDAO.getOrderById(orderId);
 

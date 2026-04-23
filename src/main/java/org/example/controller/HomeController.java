@@ -2,9 +2,11 @@ package org.example.controller;
 
 import org.example.dao.CategoryDAO;
 import org.example.dao.CartDAO;
+import org.example.dao.NewsArticleDAO;
 import org.example.dao.ProductDAO;
 import org.example.dao.WishlistDAO;
 import org.example.model.auth.Account;
+import org.example.model.content.NewsArticle;
 import org.example.model.catalog.Category;
 import org.example.model.catalog.Product;
 import org.example.dto.ProductDTO;
@@ -29,6 +31,7 @@ public class HomeController extends HttpServlet {
     private final CategoryDAO categoryDAO = new CategoryDAO();
     private final CartDAO cartDAO = new CartDAO();
     private final WishlistDAO wishlistDAO = new WishlistDAO();
+    private final NewsArticleDAO newsDAO = new NewsArticleDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -43,12 +46,13 @@ public class HomeController extends HttpServlet {
             List<ProductDTO> flashSaleList = productDAO.getFlashSaleProducts();
             List<ProductDTO> bestSellerList = productDAO.getBestSellerProducts();
             List<Category> categoryList = categoryDAO.getAllActiveCategories();
-
+            List<NewsArticle> latestNews = newsDAO.getLatestPublishedNews(4);
 
             // 2. Gắn vào Request để ném sang JSP
             request.setAttribute("flashSaleProducts", flashSaleList);
             request.setAttribute("bestSellerProducts", bestSellerList);
             request.setAttribute("categories", categoryList);
+            request.setAttribute("latestNews", latestNews);
 
             Object userObj = request.getSession().getAttribute("user");
             if (userObj instanceof Account) {
