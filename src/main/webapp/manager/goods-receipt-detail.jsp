@@ -35,7 +35,7 @@
                         </nav>
                         <h2 class="fw-800 mb-0">Chi tiết ${receipt.receiptCode}</h2>
                     </div>
-                    <c:if test="${receipt.editable}">
+                    <c:if test="${receipt.editable && sessionScope.user.roleId != 1}">
                         <a href="${pageContext.request.contextPath}/manager/goods-receipts?action=edit&id=${receipt.receiptId}" class="btn btn-brand rounded-pill">
                             <i class="fas fa-edit me-2"></i>Chỉnh sửa phiếu
                         </a>
@@ -51,17 +51,19 @@
                         <div class="fw-semibold mb-3">${receipt.supplierName}</div>
                         <div class="small text-muted mb-2">Thời điểm nhận</div>
                         <div class="fw-semibold mb-3">${receipt.receivedAt}</div>
-                        <div class="small text-muted mb-2">Tình trạng sửa</div>
-                        <div>
-                            <c:choose>
-                                <c:when test="${receipt.editable}">
-                                    <span class="badge-pill badge-active">Có thể sửa</span>
-                                </c:when>
-                                <c:otherwise>
-                                    <span class="badge-pill badge-role">Đã khóa</span>
-                                </c:otherwise>
-                            </c:choose>
-                        </div>
+                        <c:if test="${sessionScope.user.roleId != 1}">
+                            <div class="small text-muted mb-2">Tình trạng sửa</div>
+                            <div>
+                                <c:choose>
+                                    <c:when test="${receipt.editable}">
+                                        <span class="badge-pill badge-active">Có thể sửa</span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <span class="badge-pill badge-role">Đã khóa</span>
+                                    </c:otherwise>
+                                </c:choose>
+                            </div>
+                        </c:if>
                     </div>
                 </div>
                 <div class="col-lg-8">
@@ -137,5 +139,6 @@
         </c:otherwise>
     </c:choose>
 </main>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

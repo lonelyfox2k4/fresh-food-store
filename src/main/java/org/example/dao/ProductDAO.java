@@ -137,6 +137,7 @@ public class ProductDAO {
                     dto.setDiscountPercent(new BigDecimal(100));
                     dto.setCurrentPrice(dto.getBasePriceAmount());
                 }
+                dto.setTotalAvailableStock(fetchTotalStock(conn, dto.getProductId()));
                 list.add(dto);
             }
         } catch (Exception e) {
@@ -202,7 +203,22 @@ public class ProductDAO {
             dto.setDiscountPercent(new BigDecimal(100));
             dto.setCurrentPrice(dto.getBasePriceAmount());
         }
+        dto.setTotalAvailableStock(fetchTotalStock(conn, dto.getProductId()));
         return dto;
+    }
+
+    private int fetchTotalStock(Connection conn, long productId) {
+        String sql = "SELECT ISNULL(SUM(ib.quantityOnHand - ib.quantityReserved), 0) FROM dbo.InventoryBatches ib " +
+                     "JOIN dbo.GoodsReceiptItems gri ON ib.receiptItemId = gri.receiptItemId " +
+                     "JOIN dbo.ProductPacks pp ON gri.productPackId = pp.productPackId " +
+                     "WHERE pp.productId = ? AND ib.status = 1 AND gri.expiryDate >= CAST(GETDATE() AS DATE)";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, productId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return 0;
     }
 
     public int countProducts(String keyword, Integer categoryId) {

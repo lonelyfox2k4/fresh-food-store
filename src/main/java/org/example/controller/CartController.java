@@ -1,6 +1,7 @@
 package org.example.controller;
 
 import org.example.dao.CartDAO;
+import org.example.dao.InventoryDAO;
 import org.example.model.auth.Account;
 import org.example.model.order.CartItemView;
 
@@ -17,6 +18,7 @@ import java.util.List;
 @WebServlet(urlPatterns = {"/cart", "/cart/add", "/cart/update", "/cart/remove"})
 public class CartController extends HttpServlet {
     private final CartDAO cartDAO = new CartDAO();
+    private final InventoryDAO inventoryDAO = new InventoryDAO();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -92,6 +94,20 @@ public class CartController extends HttpServlet {
             return;
         }
 
+        int currentInCart = cartDAO.getCartItemQuantity(accountId, productPackId);
+        int availableStock = inventoryDAO.getAvailableStockByPackId(productPackId);
+
+        if (currentInCart + quantity > availableStock) {
+            int canAdd = availableStock - currentInCart;
+            if (canAdd <= 0) {
+                setFlash(req, "cartErrorMsg", "Sản phẩm này đã hết hàng hoặc bạn đã có số lượng tối đa trong giỏ.");
+            } else {
+                setFlash(req, "cartErrorMsg", "Số lượng trong kho không đủ. Bạn chỉ có thể thêm tối đa " + canAdd + " sản phẩm nữa.");
+            }
+            resp.sendRedirect(resolveReturnUrl(req));
+            return;
+        }
+
         boolean ok = cartDAO.addOrIncreaseItem(accountId, productPackId, quantity);
         if (ok) {
             refreshCartCount(req, accountId);
@@ -112,6 +128,27 @@ public class CartController extends HttpServlet {
             setFlash(req, "cartErrorMsg", "Không tìm thấy item cần cập nhật.");
             resp.sendRedirect(req.getContextPath() + "/cart");
             return;
+        }
+
+        if (quantity > 0) {
+            // Need to check stock for update
+            long productPackId = -1;
+            List<CartItemView> items = cartDAO.getCartItemsByAccountId(accountId);
+            for (CartItemView item : items) {
+                if (item.getCartItemId() == cartItemId) {
+                    productPackId = item.getProductPackId();
+                    break;
+                }
+            }
+
+            if (productPackId > 0) {
+                int availableStock = inventoryDAO.getAvailableStockByPackId(productPackId);
+                if (quantity > availableStock) {
+                    setFlash(req, "cartErrorMsg", "Số lượng cập nhật vượt quá tồn kho hiện có (Tối đa: " + availableStock + ").");
+                    resp.sendRedirect(req.getContextPath() + "/cart");
+                    return;
+                }
+            }
         }
 
         boolean ok;

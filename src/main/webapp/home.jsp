@@ -77,8 +77,8 @@
                 </div>
             </div>
             <div class="col-lg-6 text-center d-none d-lg-block">
-                <img src="https://via.placeholder.com/520x320/fff/E3000F?text=🥩+Fresh+Food+Store"
-                     class="img-fluid rounded-4 shadow-lg" alt="Fresh Food">
+                <img src="${pageContext.request.contextPath}/uploads/hero_banner.png"
+                     class="img-fluid rounded-4 shadow-lg" alt="Fresh Food Store">
             </div>
         </div>
     </div>
@@ -152,7 +152,7 @@
                                 <i class="fas fa-bolt me-1"></i>Giá sốc
                             </span>
                             <a href="${pageContext.request.contextPath}/product-detail?id=${p.productId}">
-                                <img src="${not empty p.imageUrl ? p.imageUrl : 'https://via.placeholder.com/400x300/fdf2f2/E3000F?text=Fresh+Food'}"
+                                <img src="${not empty p.imageUrl ? (p.imageUrl.startsWith('http') ? p.imageUrl : pageContext.request.contextPath.concat('/').concat(p.imageUrl)) : 'https://via.placeholder.com/400x300/fdf2f2/E3000F?text=Fresh+Food'}"
                                      class="card-img-top product-img" alt="${p.productName}">
                             </a>
                             <div class="card-body d-flex flex-column">
@@ -191,8 +191,8 @@
                                             <input type="hidden" name="productId" value="${p.productId}">
                                             <input type="hidden" name="quantity" value="1">
                                             <input type="hidden" name="returnUrl" value="${pageContext.request.contextPath}/home">
-                                            <button type="submit" class="btn btn-brand w-100 fw-bold">
-                                                <i class="fas fa-cart-plus me-1"></i>Thêm giỏ
+                                            <button type="submit" class="btn btn-brand w-100 fw-bold" ${p.totalAvailableStock == 0 ? 'disabled' : ''}>
+                                                <i class="fas fa-cart-plus me-1"></i>${p.totalAvailableStock == 0 ? 'Hết hàng' : 'Thêm giỏ'}
                                             </button>
                                         </form>
                                         <form method="post" action="${pageContext.request.contextPath}/wishlist/add">
@@ -236,7 +236,7 @@
                     <div class="col-6 col-md-4 col-lg-3">
                         <div class="card product-card h-100">
                             <a href="${pageContext.request.contextPath}/product-detail?id=${p.productId}">
-                                <img src="${not empty p.imageUrl ? p.imageUrl : 'https://via.placeholder.com/400x300/fdf2f2/E3000F?text=Fresh+Food'}"
+                                <img src="${not empty p.imageUrl ? (p.imageUrl.startsWith('http') ? p.imageUrl : pageContext.request.contextPath.concat('/').concat(p.imageUrl)) : 'https://via.placeholder.com/400x300/fdf2f2/E3000F?text=Fresh+Food'}"
                                      class="card-img-top product-img" alt="${p.productName}">
                             </a>
                             <div class="card-body d-flex flex-column">
@@ -257,8 +257,8 @@
                                             <input type="hidden" name="productId" value="${p.productId}">
                                             <input type="hidden" name="quantity" value="1">
                                             <input type="hidden" name="returnUrl" value="${pageContext.request.contextPath}/home">
-                                            <button type="submit" class="btn btn-outline-danger w-100 fw-bold">
-                                                <i class="fas fa-cart-plus me-1"></i>Thêm giỏ
+                                            <button type="submit" class="btn btn-outline-danger w-100 fw-bold" ${p.totalAvailableStock == 0 ? 'disabled' : ''}>
+                                                <i class="fas fa-cart-plus me-1"></i>${p.totalAvailableStock == 0 ? 'Hết hàng' : 'Thêm giỏ'}
                                             </button>
                                         </form>
                                         <form method="post" action="${pageContext.request.contextPath}/wishlist/add">

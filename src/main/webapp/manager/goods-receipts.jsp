@@ -29,9 +29,11 @@
             </nav>
             <h2 class="fw-800 mb-0">Danh sách phiếu nhập kho</h2>
         </div>
-        <a href="${pageContext.request.contextPath}/manager/goods-receipts?action=new" class="btn btn-brand rounded-pill shadow-sm">
-            <i class="fas fa-plus-circle me-2"></i>Tạo phiếu nhập
-        </a>
+        <c:if test="${sessionScope.user.roleId != 1}">
+            <a href="${pageContext.request.contextPath}/manager/goods-receipts?action=new" class="btn btn-brand rounded-pill shadow-sm">
+                <i class="fas fa-plus-circle me-2"></i>Tạo phiếu nhập
+            </a>
+        </c:if>
     </div>
 </div>
 
@@ -46,7 +48,9 @@
                     <th>Thời điểm nhận</th>
                     <th>Số dòng</th>
                     <th>Tổng SL</th>
-                    <th>Trạng thái sửa</th>
+                    <c:if test="${sessionScope.user.roleId != 1}">
+                        <th>Trạng thái sửa</th>
+                    </c:if>
                     <th class="text-end pe-4">Chi tiết</th>
                 </tr>
                 </thead>
@@ -66,16 +70,18 @@
                         <td class="small text-muted">${r.receivedAt}</td>
                         <td><span class="badge bg-light text-dark">${r.totalLines}</span></td>
                         <td><span class="fw-semibold">${r.totalQuantity}</span></td>
-                        <td>
-                            <c:choose>
-                                <c:when test="${r.editable}">
-                                    <span class="badge-pill badge-active"><i class="fas fa-pen me-1"></i>Có thể sửa</span>
-                                </c:when>
-                                <c:otherwise>
-                                    <span class="badge-pill badge-role"><i class="fas fa-lock me-1"></i>Đã khóa</span>
-                                </c:otherwise>
-                            </c:choose>
-                        </td>
+                        <c:if test="${sessionScope.user.roleId != 1}">
+                            <td>
+                                <c:choose>
+                                    <c:when test="${r.editable}">
+                                        <span class="badge-pill badge-active"><i class="fas fa-pen me-1"></i>Có thể sửa</span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <span class="badge-pill badge-role"><i class="fas fa-lock me-1"></i>Đã khóa</span>
+                                    </c:otherwise>
+                                </c:choose>
+                            </td>
+                        </c:if>
                         <td class="text-end pe-4">
                             <a href="${pageContext.request.contextPath}/manager/goods-receipts?action=detail&id=${r.receiptId}" class="btn-action btn-action-edit d-inline-flex" title="Xem chi tiết">
                                 <i class="fas fa-eye"></i>
@@ -85,7 +91,7 @@
                 </c:forEach>
                 <c:if test="${empty receipts}">
                     <tr>
-                        <td colspan="7" class="text-center py-5 text-muted">Chưa có phiếu nhập nào.</td>
+                        <td colspan="${sessionScope.user.roleId == 1 ? 6 : 7}" class="text-center py-5 text-muted">Chưa có phiếu nhập nào.</td>
                     </tr>
                 </c:if>
                 </tbody>
@@ -93,5 +99,6 @@
         </div>
     </div>
 </main>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -45,6 +45,13 @@ public class EditUserController extends HttpServlet {
         int roleId = Integer.parseInt(roleIdStr);
         boolean status = Boolean.parseBoolean(statusStr);
 
+        // Bảo vệ Admin: Nếu account là Admin, không cho phép đổi Role hoặc Status
+        Account target = dao.getAccountById(id);
+        if (target != null && target.getRoleId() == 1) {
+            roleId = 1;      // Luôn là Admin
+            status = true;   // Luôn là Active
+        }
+
         // Gọi hàm update trong DAO
         boolean success = dao.updateAccountAdmin(id, name, phone, roleId, status);
 

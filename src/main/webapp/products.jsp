@@ -116,7 +116,7 @@
                                     </c:if>
 
                                     <a href="${pageContext.request.contextPath}/product-detail?id=${p.productId}">
-                                        <img src="${not empty p.imageUrl ? p.imageUrl : 'https://via.placeholder.com/400x300/fdf2f2/E3000F?text=Fresh+Food'}"
+                                        <img src="${not empty p.imageUrl ? (p.imageUrl.startsWith('http') ? p.imageUrl : pageContext.request.contextPath.concat('/').concat(p.imageUrl)) : 'https://via.placeholder.com/400x300/fdf2f2/E3000F?text=Fresh+Food'}"
                                              class="card-img-top product-img" alt="${p.productName}">
                                     </a>
 

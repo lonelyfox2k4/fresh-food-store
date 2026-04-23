@@ -30,6 +30,7 @@ public class ProductDTO {
     private int daysRemaining;
     private BigDecimal discountPercent; // % giá bán (ví dụ 80% là giảm 20%)
     private BigDecimal currentPrice;
+    private int totalAvailableStock;
 
     // Getters/Setters thủ công để đảm bảo hoạt động
     public long getProductId() {
@@ -166,5 +167,13 @@ public class ProductDTO {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public int getTotalAvailableStock() {
+        return totalAvailableStock;
+    }
+
+    public void setTotalAvailableStock(int totalAvailableStock) {
+        this.totalAvailableStock = totalAvailableStock;
     }
 }

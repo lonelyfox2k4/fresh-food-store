@@ -30,7 +30,7 @@
         <%-- ══ Product image ═══════════════════════════════════════════════ --%>
         <div class="col-lg-5">
             <div class="rounded-3 overflow-hidden shadow">
-                <img src="${not empty product.imageUrl ? product.imageUrl : 'https://via.placeholder.com/600x500/fdf2f2/E3000F?text=Fresh+Food'}"
+                <img src="${not empty product.imageUrl ? (product.imageUrl.startsWith('http') ? product.imageUrl : pageContext.request.contextPath.concat('/').concat(product.imageUrl)) : 'https://via.placeholder.com/600x500/fdf2f2/E3000F?text=Fresh+Food'}"
                      class="img-fluid w-100" style="max-height:480px;object-fit:cover;"
                      alt="${product.productName}" id="mainProductImg">
             </div>
