@@ -57,9 +57,14 @@ public class LoginGoogleController extends HttpServlet {
 
             // 5. Thiết lập session và chuyển trang
             req.getSession().setAttribute("user", acc);
-            // Chỉ RoleId 1 (Admin) mới vào được dashboard
             if (acc.getRoleId() == 1) {
                 resp.sendRedirect("admin/dashboard");
+            } else if (acc.getRoleId() == 2) {
+                resp.sendRedirect("manager/products");
+            } else if (acc.getRoleId() == 3) {
+                resp.sendRedirect("staff/orders");
+            } else if (acc.getRoleId() == 4) {
+                resp.sendRedirect("shipper/orders");
             } else {
                 resp.sendRedirect("home");
             }

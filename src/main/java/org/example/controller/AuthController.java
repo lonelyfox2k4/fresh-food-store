@@ -86,6 +86,10 @@ public class AuthController extends HttpServlet {
                 resp.sendRedirect("admin/dashboard");
             } else if (acc.getRoleId() == 2) {
                 resp.sendRedirect("manager/products");
+            } else if (acc.getRoleId() == 3) {
+                resp.sendRedirect("staff/orders");
+            } else if (acc.getRoleId() == 4) {
+                resp.sendRedirect("shipper/orders");
             } else {
                 resp.sendRedirect("home");
             }

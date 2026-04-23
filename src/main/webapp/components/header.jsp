@@ -27,7 +27,7 @@
                             </a>
                         </c:when>
                         <c:when test="${sessionScope.user.roleId == 3}">
-                            <a href="${pageContext.request.contextPath}/staff/voucher" class="text-decoration-none text-brand fw-bold small bg-brand-light px-2 py-1 rounded">
+                            <a href="${pageContext.request.contextPath}/staff/orders" class="text-decoration-none text-brand fw-bold small bg-brand-light px-2 py-1 rounded">
                                 <i class="fas fa-user-shield me-1"></i> Quản lý Staff
                             </a>
                         </c:when>
