@@ -22,7 +22,7 @@ public class VnPayConfig {
     public static String vnpEncode(String input) {
         try {
             return URLEncoder.encode(input, StandardCharsets.UTF_8.toString())
-                    .replace(" ", "%20")
+                    .replace("+", "%20")
                     .replace("%7E", "~");
         } catch (Exception e) {
             return "";
@@ -64,8 +64,7 @@ public class VnPayConfig {
         for (String fieldName : fieldNames) {
             String fieldValue = fields.get(fieldName);
             if (fieldValue != null && !fieldValue.isEmpty()) {
-                // ✅ SỬA LỖI: Bắt buộc phải URL Encode lại value trước khi băm
-                joined.add(fieldName + "=" + vnpEncode(fieldValue));
+                joined.add(fieldName + "=" + fieldValue);
             }
         }
         return hmacSHA512(VNP_HASH_SECRET, String.join("&", joined));

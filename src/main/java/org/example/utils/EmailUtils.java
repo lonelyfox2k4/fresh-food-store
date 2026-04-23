@@ -2,11 +2,12 @@ package org.example.utils;
 
 import javax.mail.*;
 import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage; // Thêm dòng này
+import javax.mail.internet.MimeMessage;
+import java.io.UnsupportedEncodingException;
 import java.util.Properties;
 
 public class EmailUtils {
-    public static void sendEmail(String to, String subject, String content) throws MessagingException {
+    public static void sendEmail(String to, String subject, String content) throws MessagingException, UnsupportedEncodingException {
         final String user = "quyenlinh13102003@gmail.com";
         final String pass = "txxp uyct sjbb ogyl";
 
@@ -26,7 +27,7 @@ public class EmailUtils {
         // ĐỔI DÒNG NÀY:
         MimeMessage message = new MimeMessage(session);
 
-        message.setFrom(new InternetAddress(user));
+        message.setFrom(new InternetAddress(user, "Fresh Food Store", "UTF-8"));
         message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
         message.setSubject(subject, "UTF-8"); // Thêm UTF-8 để không lỗi font tiêu đề
         message.setContent(content, "text/html; charset=utf-8"); // Gửi dạng HTML cho đẹp

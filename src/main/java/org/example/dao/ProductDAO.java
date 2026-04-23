@@ -15,15 +15,27 @@ import java.util.List;
 
 public class ProductDAO {
 
-    // 1. Lấy danh sách hàng Flash Sale
-    public List<Product> getFlashSaleProducts() {
-        List<Product> list = new ArrayList<>();
-        String sql = "SELECT TOP 4 * FROM dbo.Products WHERE expiryPricingPolicyId IS NOT NULL AND status = 1 ORDER BY productId DESC";
+    // 1. Lấy danh sách hàng Flash Sale (Kèm theo tính toán giá giảm theo HSD)
+    public List<ProductDTO> getFlashSaleProducts() {
+        List<ProductDTO> list = new ArrayList<>();
+        String sql = "SELECT TOP 4 p.*, " +
+                "       b.manufactureDate, b.expiryDate " +
+                "FROM dbo.Products p " +
+                "OUTER APPLY ( " +
+                "    SELECT TOP 1 gri.manufactureDate, gri.expiryDate " +
+                "    FROM dbo.ProductPacks pp " +
+                "    JOIN dbo.GoodsReceiptItems gri ON pp.productPackId = gri.productPackId " +
+                "    WHERE pp.productId = p.productId " +
+                "    ORDER BY gri.expiryDate ASC " +
+                ") AS b " +
+                "WHERE p.expiryPricingPolicyId IS NOT NULL AND p.status = 1 " +
+                "ORDER BY b.expiryDate ASC";
+
         try (Connection conn = DBConnection.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql);
                 ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                list.add(mapRowToProduct(rs));
+                list.add(mapRowToProductDTO(conn, rs));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -31,15 +43,30 @@ public class ProductDAO {
         return list;
     }
 
-    // 2. Lấy danh sách hàng Bán chạy
-    public List<Product> getBestSellerProducts() {
-        List<Product> list = new ArrayList<>();
-        String sql = "SELECT TOP 4 * FROM dbo.Products WHERE expiryPricingPolicyId IS NULL AND status = 1 ORDER BY productId ASC";
+    // 2. Lấy danh sách hàng Bán chạy (Dựa trên số lượng đã bán và kèm giá thực tế)
+    public List<ProductDTO> getBestSellerProducts() {
+        List<ProductDTO> list = new ArrayList<>();
+        String sql = "SELECT TOP 4 p.*, " +
+                "       b.manufactureDate, b.expiryDate " +
+                "FROM dbo.Products p " +
+                "LEFT JOIN dbo.OrderItems oi ON p.productId = oi.productId " +
+                "OUTER APPLY ( " +
+                "    SELECT TOP 1 gri.manufactureDate, gri.expiryDate " +
+                "    FROM dbo.ProductPacks pp " +
+                "    JOIN dbo.GoodsReceiptItems gri ON pp.productPackId = gri.productPackId " +
+                "    WHERE pp.productId = p.productId " +
+                "    ORDER BY gri.expiryDate ASC " +
+                ") AS b " +
+                "WHERE p.status = 1 " +
+                "GROUP BY p.productId, p.categoryId, p.productName, p.description, p.imageUrl, " +
+                "         p.basePriceAmount, p.priceBaseWeightGram, p.expiryPricingPolicyId, " +
+                "         p.status, p.createdAt, p.updatedAt, b.manufactureDate, b.expiryDate " +
+                "ORDER BY SUM(COALESCE(oi.orderedQuantity, 0)) DESC, p.productId DESC";
         try (Connection conn = DBConnection.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql);
                 ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                list.add(mapRowToProduct(rs));
+                list.add(mapRowToProductDTO(conn, rs));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -121,9 +148,10 @@ public class ProductDAO {
     private BigDecimal fetchDiscountPercent(Connection conn, int policyId, int daysRemaining) {
         if (daysRemaining < 0)
             return BigDecimal.ZERO;
+        // Logic: Lấy quy tắc có minDaysRemaining lớn nhất mà vẫn nhỏ hơn hoặc bằng số ngày còn lại
         String sql = "SELECT TOP 1 sellPricePercent FROM dbo.ExpiryPricingPolicyRules " +
-                "WHERE policyId = ? AND minDaysRemaining >= ? " +
-                "ORDER BY minDaysRemaining ASC";
+                "WHERE policyId = ? AND minDaysRemaining <= ? " +
+                "ORDER BY minDaysRemaining DESC";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, policyId);
             ps.setInt(2, daysRemaining);
@@ -135,6 +163,43 @@ public class ProductDAO {
             e.printStackTrace();
         }
         return new BigDecimal(100);
+    }
+
+    private ProductDTO mapRowToProductDTO(Connection conn, ResultSet rs) throws Exception {
+        ProductDTO dto = new ProductDTO();
+        dto.setProductId(rs.getLong("productId"));
+        dto.setProductName(rs.getString("productName"));
+        dto.setCategoryId(rs.getInt("categoryId"));
+        dto.setBasePriceAmount(rs.getBigDecimal("basePriceAmount"));
+        dto.setPriceBaseWeightGram(rs.getInt("priceBaseWeightGram"));
+        dto.setImageUrl(rs.getString("imageUrl"));
+        dto.setStatus(rs.getBoolean("status"));
+
+        if (rs.getDate("manufactureDate") != null)
+            dto.setManufactureDate(rs.getDate("manufactureDate").toLocalDate());
+        if (rs.getDate("expiryDate") != null)
+            dto.setExpiryDate(rs.getDate("expiryDate").toLocalDate());
+
+        int policyId = rs.getInt("expiryPricingPolicyId");
+        dto.setExpiryPricingPolicyId(rs.wasNull() ? null : policyId);
+
+        // Tính toán giá thực tế dựa trên HSD
+        if (dto.getExpiryDate() != null) {
+            long days = ChronoUnit.DAYS.between(LocalDate.now(), dto.getExpiryDate());
+            dto.setDaysRemaining((int) days);
+            if (dto.getExpiryPricingPolicyId() != null) {
+                BigDecimal percent = fetchDiscountPercent(conn, dto.getExpiryPricingPolicyId(), (int) days);
+                dto.setDiscountPercent(percent);
+                dto.setCurrentPrice(dto.getBasePriceAmount().multiply(percent).divide(new BigDecimal(100)));
+            } else {
+                dto.setDiscountPercent(new BigDecimal(100));
+                dto.setCurrentPrice(dto.getBasePriceAmount());
+            }
+        } else {
+            dto.setDiscountPercent(new BigDecimal(100));
+            dto.setCurrentPrice(dto.getBasePriceAmount());
+        }
+        return dto;
     }
 
     public int countProducts(String keyword, Integer categoryId) {
@@ -160,14 +225,22 @@ public class ProductDAO {
         return 0;
     }
 
-    public List<Product> searchProducts(String keyword, Integer categoryId, int offset, int limit) {
-        List<Product> list = new ArrayList<>();
-        StringBuilder sql = new StringBuilder("SELECT * FROM dbo.Products WHERE status = 1 ");
+    public List<ProductDTO> searchProducts(String keyword, Integer categoryId, int offset, int limit) {
+        List<ProductDTO> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("SELECT p.*, b.manufactureDate, b.expiryDate FROM dbo.Products p ");
+        sql.append("OUTER APPLY ( ");
+        sql.append("    SELECT TOP 1 gri.manufactureDate, gri.expiryDate ");
+        sql.append("    FROM dbo.ProductPacks pp ");
+        sql.append("    JOIN dbo.GoodsReceiptItems gri ON pp.productPackId = gri.productPackId ");
+        sql.append("    WHERE pp.productId = p.productId ");
+        sql.append("    ORDER BY gri.expiryDate ASC ");
+        sql.append(") AS b ");
+        sql.append("WHERE p.status = 1 ");
         if (categoryId != null)
-            sql.append("AND categoryId = ? ");
+            sql.append("AND p.categoryId = ? ");
         if (keyword != null && !keyword.trim().isEmpty())
-            sql.append("AND productName LIKE ? ");
-        sql.append("ORDER BY productId DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+            sql.append("AND p.productName LIKE ? ");
+        sql.append("ORDER BY p.productId DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
         try (Connection conn = DBConnection.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql.toString())) {
             int idx = 1;
@@ -179,7 +252,7 @@ public class ProductDAO {
             ps.setInt(idx, limit);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next())
-                    list.add(mapRowToProduct(rs));
+                    list.add(mapRowToProductDTO(conn, rs));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -187,14 +260,22 @@ public class ProductDAO {
         return list;
     }
 
-    public Product getActiveProductById(long id) {
-        String sql = "SELECT * FROM dbo.Products WHERE productId = ? AND status = 1";
+    public ProductDTO getActiveProductById(long id) {
+        String sql = "SELECT p.*, b.manufactureDate, b.expiryDate FROM dbo.Products p " +
+                     "OUTER APPLY ( " +
+                     "    SELECT TOP 1 gri.manufactureDate, gri.expiryDate " +
+                     "    FROM dbo.ProductPacks pp " +
+                     "    JOIN dbo.GoodsReceiptItems gri ON pp.productPackId = gri.productPackId " +
+                     "    WHERE pp.productId = p.productId " +
+                     "    ORDER BY gri.expiryDate ASC " +
+                     ") AS b " +
+                     "WHERE p.productId = ? AND p.status = 1";
         try (Connection conn = DBConnection.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next())
-                    return mapRowToProduct(rs);
+                    return mapRowToProductDTO(conn, rs);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -445,6 +526,21 @@ public class ProductDAO {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return list;
+    }
+
+    public List<Product> getNewestProducts(int limit) {
+        List<Product> list = new ArrayList<>();
+        String sql = "SELECT TOP (?) * FROM dbo.Products WHERE status = 1 ORDER BY createdAt DESC";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, limit);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapRowToProduct(rs));
+                }
+            }
+        } catch (Exception e) { e.printStackTrace(); }
         return list;
     }
 }

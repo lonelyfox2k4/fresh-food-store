@@ -41,11 +41,18 @@ public class LoginGoogleController extends HttpServlet {
         if (acc == null) {
             // Nếu chưa có tài khoản, tạo mới (Role 5 là Customer)
             dao.insertAccount(5, email, "google_login_no_pass", name, "");
+            dao.verifyEmail(email); // Tự động xác thực vì Google đã xác thực rồi
             acc = dao.getAccountByEmail(email);
         }
 
         // 4. LƯU LIÊN KẾT GOOGLE (Để bảng AccountGoogleLinks nảy số)
         if (acc != null) {
+            // Tự động xác thực email nếu login qua Google (Trường hợp tài khoản đã tồn tại từ trước nhưng chưa verify)
+            if (!acc.isEmailVerified()) {
+                dao.verifyEmail(email);
+                acc.setEmailVerified(true);
+            }
+
             // KIỂM TRA TRẠNG THÁI TÀI KHOẢN (BAN)
             if (!acc.isStatus()) {
                 req.setAttribute("errorMsg", "Tài khoản của bạn đã bị khóa! Vui lòng liên hệ quản trị viên.");
@@ -57,16 +64,26 @@ public class LoginGoogleController extends HttpServlet {
 
             // 5. Thiết lập session và chuyển trang
             req.getSession().setAttribute("user", acc);
-            if (acc.getRoleId() == 1) {
-                resp.sendRedirect("admin/dashboard");
-            } else if (acc.getRoleId() == 2) {
-                resp.sendRedirect("manager/products");
-            } else if (acc.getRoleId() == 3) {
-                resp.sendRedirect("staff/orders");
-            } else if (acc.getRoleId() == 4) {
-                resp.sendRedirect("shipper/orders");
-            } else {
-                resp.sendRedirect("home");
+            
+            String contextPath = req.getContextPath();
+            int roleId = acc.getRoleId();
+            
+            switch (roleId) {
+                case 1: // Admin
+                    resp.sendRedirect(contextPath + "/admin/dashboard");
+                    break;
+                case 2: // Manager
+                    resp.sendRedirect(contextPath + "/manager/products");
+                    break;
+                case 3: // Staff
+                    resp.sendRedirect(contextPath + "/staff/orders");
+                    break;
+                case 4: // Shipper
+                    resp.sendRedirect(contextPath + "/shipper/orders");
+                    break;
+                default: // Customer/Others
+                    resp.sendRedirect(contextPath + "/home");
+                    break;
             }
         } else {
             // Trường hợp hy hữu không tạo được acc

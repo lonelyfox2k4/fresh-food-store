@@ -83,7 +83,7 @@ public class OrderDAO {
                     ? BigDecimal.ZERO : new BigDecimal("30000");
 
             // ── 4. Insert Order row (totals corrected later after expiry calc) ─
-            String orderCode = "ORD" + System.currentTimeMillis();
+            String orderCode = "ORD" + System.currentTimeMillis() + (int)(Math.random() * 1000);
             long orderId = insertOrder(conn, orderCode, accountId,
                     subtotalAmount, voucherDiscount, shippingFee,
                     recipientName, recipientPhone, shippingAddress, note);
@@ -278,6 +278,34 @@ public class OrderDAO {
             }
         } catch (Exception e) { e.printStackTrace(); }
         return list;
+    }
+
+    public List<Order> getOrdersByAccountPaginated(long accountId, int offset, int limit) {
+        List<Order> list = new ArrayList<>();
+        String sql = "SELECT * FROM dbo.Orders WHERE accountId = ? " +
+                     "ORDER BY placedAt DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, accountId);
+            ps.setInt(2, offset);
+            ps.setInt(3, limit);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) list.add(mapOrder(rs));
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return list;
+    }
+
+    public int countOrdersByAccount(long accountId) {
+        String sql = "SELECT COUNT(*) FROM dbo.Orders WHERE accountId = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, accountId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return 0;
     }
 
     /** Returns the order only if it belongs to the given accountId (ownership check). */
@@ -621,6 +649,35 @@ public class OrderDAO {
         return list;
     }
 
+    public List<Order> getOrdersByDateRange(String startDate, String endDate) {
+        List<Order> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("SELECT * FROM dbo.Orders WHERE 1=1 ");
+        
+        if (startDate != null && !startDate.isEmpty()) {
+            sql.append(" AND placedAt >= ? ");
+        }
+        if (endDate != null && !endDate.isEmpty()) {
+            sql.append(" AND placedAt <= ? ");
+        }
+        sql.append(" ORDER BY placedAt DESC");
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            int paramIndex = 1;
+            if (startDate != null && !startDate.isEmpty()) {
+                ps.setTimestamp(paramIndex++, java.sql.Timestamp.valueOf(startDate + " 00:00:00"));
+            }
+            if (endDate != null && !endDate.isEmpty()) {
+                ps.setTimestamp(paramIndex++, java.sql.Timestamp.valueOf(endDate + " 23:59:59"));
+            }
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) list.add(mapOrder(rs));
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return list;
+    }
+
     public List<Order> getOrdersByShipper(long shipperId) {
         List<Order> list = new ArrayList<>();
         String sql = "SELECT * FROM dbo.Orders WHERE shipperId = ? ORDER BY placedAt DESC";
@@ -844,5 +901,20 @@ public class OrderDAO {
             return ps.executeUpdate() > 0;
         } catch (Exception e) { e.printStackTrace(); }
         return false;
+    }
+
+    public List<Order> getLatestOrdersByAccount(long accountId, int limit) {
+        List<Order> list = new ArrayList<>();
+        String sql = "SELECT TOP (?) * FROM dbo.Orders WHERE accountId = ? ORDER BY placedAt DESC";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, limit);
+            ps.setLong(2, accountId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) list.add(mapOrder(rs));
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return list;
+>>>>>>> 31efb674256d8be0d88796c7fcb04a0980c6e366
     }
 }

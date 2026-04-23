@@ -58,8 +58,8 @@ public class PlaceOrderController extends HttpServlet {
 
         try {
             // --- 3. Create order ---
-            // Clear cart immediately for COD, but delay for VNPAY until payment success
-            boolean shouldClearCart = !"VNPAY".equalsIgnoreCase(paymentMethod);
+            // Always clear cart immediately to prevent duplicate submissions
+            boolean shouldClearCart = true;
             long orderId = orderDAO.createOrder(
                     accountId, recipientName, recipientPhone,
                     shippingAddress, note, cartItems, voucher, cartId, paymentMethod,
@@ -134,21 +134,7 @@ public class PlaceOrderController extends HttpServlet {
         vnp_Params.put("vnp_CreateDate", createDate);
         vnp_Params.put("vnp_ExpireDate", expireDate);
 
-        // Đưa trực tiếp Billing Params vào map để tính HASH
-        vnp_Params.put("vnp_Bill_Mobile",  recipientPhone);
-        vnp_Params.put("vnp_Bill_Email",   user.getEmail());
 
-        String fullName = recipientName.trim();
-        if (fullName.contains(" ")) {
-            vnp_Params.put("vnp_Bill_FirstName", fullName.substring(0, fullName.indexOf(' ')));
-            vnp_Params.put("vnp_Bill_LastName",  fullName.substring(fullName.lastIndexOf(' ') + 1));
-        } else {
-            vnp_Params.put("vnp_Bill_FirstName", fullName);
-            vnp_Params.put("vnp_Bill_LastName",  "");
-        }
-        vnp_Params.put("vnp_Bill_Address", shippingAddress);
-        vnp_Params.put("vnp_Bill_City",    "HCM");
-        vnp_Params.put("vnp_Bill_Country", "VN");
 
         // Build chuỗi Hash và Query
         List<String> hashParts  = new ArrayList<>();
