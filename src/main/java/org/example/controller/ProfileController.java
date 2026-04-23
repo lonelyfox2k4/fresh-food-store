@@ -2,6 +2,7 @@ package org.example.controller;
 
 import org.example.dao.AccountDAO;
 import org.example.model.auth.Account;
+import org.example.utils.ValidationUtils;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -13,6 +14,7 @@ import java.io.IOException;
 
 @WebServlet(urlPatterns = {"/profile", "/profile/update"})
 public class ProfileController extends HttpServlet {
+    private static final int MAX_FULL_NAME_LENGTH = 100;
     private final AccountDAO accountDAO = new AccountDAO();
 
     @Override
@@ -75,20 +77,26 @@ public class ProfileController extends HttpServlet {
         }
 
         if (fullName.isEmpty()) {
-            setFlash(req, "fullNameError", "Họ tên không được để trống.");
-            setFlash(req, "profileFullNameInput", fullNameRaw);
-            setFlash(req, "profilePhoneInput", phoneRaw);
-            setFlash(req, "openEditMode", true);
-            resp.sendRedirect(req.getContextPath() + "/profile");
+            redirectProfileWithValidationError(req, resp, "fullNameError",
+                    "Ho ten khong duoc de trong.", fullNameRaw, phoneRaw);
             return;
         }
 
-        if (phone != null && phone.length() > 30) {
-            setFlash(req, "phoneError", "Số điện thoại không hợp lệ.");
-            setFlash(req, "profileFullNameInput", fullNameRaw);
-            setFlash(req, "profilePhoneInput", phoneRaw);
-            setFlash(req, "openEditMode", true);
-            resp.sendRedirect(req.getContextPath() + "/profile");
+        if (fullName.length() > MAX_FULL_NAME_LENGTH) {
+            redirectProfileWithValidationError(req, resp, "fullNameError",
+                    "Ho ten khong duoc vuot qua 100 ky tu.", fullNameRaw, phoneRaw);
+            return;
+        }
+
+        if (!fullName.matches("^[\\p{L}\\s'.-]+$")) {
+            redirectProfileWithValidationError(req, resp, "fullNameError",
+                    "Ho ten chi duoc chua chu cai, khoang trang va cac ky tu . ' -", fullNameRaw, phoneRaw);
+            return;
+        }
+
+        if (!ValidationUtils.isValidPhone(phone)) {
+            redirectProfileWithValidationError(req, resp, "phoneError",
+                    "So dien thoai phai gom dung 10 chu so.", fullNameRaw, phoneRaw);
             return;
         }
 
@@ -105,6 +113,15 @@ public class ProfileController extends HttpServlet {
             setFlash(req, "profilePhoneInput", phoneRaw);
             setFlash(req, "openEditMode", true);
         }
+        resp.sendRedirect(req.getContextPath() + "/profile");
+    }
+
+    private void redirectProfileWithValidationError(HttpServletRequest req, HttpServletResponse resp, String errorKey,
+                                                    String errorMessage, String fullNameRaw, String phoneRaw) throws IOException {
+        setFlash(req, errorKey, errorMessage);
+        setFlash(req, "profileFullNameInput", fullNameRaw);
+        setFlash(req, "profilePhoneInput", phoneRaw);
+        setFlash(req, "openEditMode", true);
         resp.sendRedirect(req.getContextPath() + "/profile");
     }
 
