@@ -18,6 +18,7 @@ public class ProductDTO {
     private Integer expiryPricingPolicyId;
     private boolean status;
     private String imageUrl;
+    private String description;
 
     // Thông tin bổ sung từ JOIN & Logic
     private Long supplierId;
@@ -157,5 +158,13 @@ public class ProductDTO {
 
     public void setCurrentPrice(BigDecimal currentPrice) {
         this.currentPrice = currentPrice;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

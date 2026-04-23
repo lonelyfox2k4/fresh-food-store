@@ -37,7 +37,7 @@
             <c:if test="${product.currentPrice lt product.basePriceAmount}">
                 <div class="alert alert-danger d-flex align-items-center gap-2 mt-3 py-2" role="alert">
                     <i class="fas fa-bolt text-warning"></i>
-                    <small><strong>Giá sốc hôm nay!</strong> Sản phẩm này đang được giảm giá <fmt:formatNumber value="${(1 - product.currentPrice/product.basePriceAmount)*100}" pattern="#"/>%.</small>
+                    <small><strong>Giá sốc hôm nay!</strong> Sản phẩm này đang được giảm giá <fmt:formatNumber value="${100 - product.discountPercent}" pattern="#"/>%.</small>
                 </div>
             </c:if>
         </div>
