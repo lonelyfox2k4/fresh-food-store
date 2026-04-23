@@ -167,13 +167,16 @@
 
                 <%-- Ban Hang: Admin, Manager, Staff --%>
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle ${param.active == 'sales' || param.active == 'orders' ? 'active' : ''}" href="#" role="button" data-bs-toggle="dropdown">
+                    <a class="nav-link dropdown-toggle ${param.active == 'sales' || param.active == 'orders' || param.active == 'inventory' ? 'active' : ''}" href="#" role="button" data-bs-toggle="dropdown">
                         <i class="fas fa-box-open"></i> Bán hàng <i class="fas fa-chevron-down dropdown-arrow"></i>
                     </a>
                     <ul class="dropdown-menu border-0 shadow-lg mt-0">
                         <c:if test="${sessionScope.user.roleId == 1 || sessionScope.user.roleId == 2}">
                             <li><a class="dropdown-item py-2" href="${pageContext.request.contextPath}/manager/categories"><i class="fas fa-tags me-2 text-muted"></i> Danh mục</a></li>
                             <li><a class="dropdown-item py-2" href="${pageContext.request.contextPath}/manager/products"><i class="fas fa-boxes me-2 text-muted"></i> Sản phẩm</a></li>
+                            <li><a class="dropdown-item py-2" href="${pageContext.request.contextPath}/manager/inventory"><i class="fas fa-warehouse me-2 text-muted"></i> Tồn kho</a></li>
+                            <li><a class="dropdown-item py-2" href="${pageContext.request.contextPath}/manager/goods-receipts"><i class="fas fa-file-import me-2 text-muted"></i> Phiếu nhập</a></li>
+                            <li><a class="dropdown-item py-2" href="${pageContext.request.contextPath}/manager/inventory?action=expired"><i class="fas fa-exclamation-triangle me-2 text-muted"></i> Hàng hết hạn</a></li>
                             <li><a class="dropdown-item py-2" href="${pageContext.request.contextPath}/manager/inventory-pricing"><i class="fas fa-money-bill-wave me-2 text-muted"></i> Bảng giá</a></li>
                             <li><hr class="dropdown-divider"></li>
                         </c:if>

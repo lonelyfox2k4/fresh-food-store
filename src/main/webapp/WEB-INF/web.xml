@@ -46,6 +46,24 @@
     </servlet-mapping>
 
     <servlet>
+        <servlet-name>InventoryServlet</servlet-name>
+        <servlet-class>org.example.controller.InventoryServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>InventoryServlet</servlet-name>
+        <url-pattern>/manager/inventory</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>GoodsReceiptServlet</servlet-name>
+        <servlet-class>org.example.controller.GoodsReceiptServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>GoodsReceiptServlet</servlet-name>
+        <url-pattern>/manager/goods-receipts</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
         <servlet-name>PolicyServlet</servlet-name>
         <servlet-class>org.example.controller.PolicyServlet</servlet-class>
     </servlet>
