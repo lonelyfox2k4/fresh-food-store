@@ -565,51 +565,6 @@ CREATE TABLE dbo.NewsArticles
 );
 GO
 
-CREATE TABLE dbo.AboutContents
-(
-    aboutContentId BIGINT IDENTITY(1,1) NOT NULL,
-    sectionKey NVARCHAR(100) NOT NULL,
-    title NVARCHAR(200) NOT NULL,
-    content NVARCHAR(MAX) NOT NULL,
-    imageUrl NVARCHAR(500) NULL,
-    status BIT NOT NULL CONSTRAINT DF_AboutContents_Status DEFAULT (1),
-    updatedByAccountId BIGINT NULL,
-    updatedAt DATETIME2(0) NOT NULL CONSTRAINT DF_AboutContents_UpdatedAt DEFAULT SYSUTCDATETIME(),
-    CONSTRAINT PK_AboutContents PRIMARY KEY (aboutContentId),
-    CONSTRAINT UQ_AboutContents_SectionKey UNIQUE (sectionKey),
-    CONSTRAINT FK_AboutContents_UpdatedByAccount FOREIGN KEY (updatedByAccountId) REFERENCES dbo.Accounts(accountId)
-);
-GO
-
-CREATE TABLE dbo.ChatConversations
-(
-    conversationId BIGINT IDENTITY(1,1) NOT NULL,
-    customerId BIGINT NOT NULL,
-    assignedStaffId BIGINT NULL,
-    status TINYINT NOT NULL,
-    createdAt DATETIME2(0) NOT NULL CONSTRAINT DF_ChatConversations_CreatedAt DEFAULT SYSUTCDATETIME(),
-    updatedAt DATETIME2(0) NULL,
-    closedAt DATETIME2(0) NULL,
-    CONSTRAINT PK_ChatConversations PRIMARY KEY (conversationId),
-    CONSTRAINT FK_ChatConversations_Customers FOREIGN KEY (customerId) REFERENCES dbo.Accounts(accountId),
-    CONSTRAINT FK_ChatConversations_AssignedStaff FOREIGN KEY (assignedStaffId) REFERENCES dbo.Accounts(accountId)
-);
-GO
-
-CREATE TABLE dbo.ChatMessages
-(
-    messageId BIGINT IDENTITY(1,1) NOT NULL,
-    conversationId BIGINT NOT NULL,
-    senderAccountId BIGINT NOT NULL,
-    messageText NVARCHAR(1000) NOT NULL,
-    messageType TINYINT NOT NULL CONSTRAINT DF_ChatMessages_MessageType DEFAULT (1),
-    isRead BIT NOT NULL CONSTRAINT DF_ChatMessages_IsRead DEFAULT (0),
-    sentAt DATETIME2(0) NOT NULL CONSTRAINT DF_ChatMessages_SentAt DEFAULT SYSUTCDATETIME(),
-    CONSTRAINT PK_ChatMessages PRIMARY KEY (messageId),
-    CONSTRAINT FK_ChatMessages_Conversations FOREIGN KEY (conversationId) REFERENCES dbo.ChatConversations(conversationId),
-    CONSTRAINT FK_ChatMessages_SenderAccounts FOREIGN KEY (senderAccountId) REFERENCES dbo.Accounts(accountId)
-);
-GO
 
 CREATE INDEX IX_Accounts_RoleId ON dbo.Accounts(roleId);
 CREATE INDEX IX_PasswordResetTokens_AccountId ON dbo.PasswordResetTokens(accountId);
@@ -637,9 +592,7 @@ CREATE INDEX IX_ProductReviews_ProductId ON dbo.ProductReviews(productId);
 CREATE INDEX IX_Feedbacks_Account_Status ON dbo.Feedbacks(accountId, status);
 CREATE INDEX IX_Feedbacks_ReviewId ON dbo.Feedbacks(reviewId);
 CREATE INDEX IX_NewsArticles_Status_PublishedAt ON dbo.NewsArticles(status, publishedAt DESC);
-CREATE INDEX IX_ChatConversations_Customer_Status ON dbo.ChatConversations(customerId, status);
-CREATE INDEX IX_ChatConversations_AssignedStaff_Status ON dbo.ChatConversations(assignedStaffId, status);
-CREATE INDEX IX_ChatMessages_Conversation_SentAt ON dbo.ChatMessages(conversationId, sentAt);
+
 GO
 
 DBCC CHECKIDENT ('dbo.Roles', RESEED, 0);

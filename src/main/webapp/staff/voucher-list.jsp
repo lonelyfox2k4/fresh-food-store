@@ -101,8 +101,13 @@
                                                 <i class="fas fa-check-circle me-1"></i> Đang chạy
                                             </span>
                                         </c:when>
+                                        <c:when test="${v.status == 2}">
+                                            <span class="badge rounded-pill bg-danger-subtle text-danger border border-danger px-3">
+                                                <i class="fas fa-times-circle me-1"></i> Bị từ chối
+                                            </span>
+                                        </c:when>
                                         <c:otherwise>
-                                            <span class="badge rounded-pill bg-secondary-subtle text-secondary border border-secondary px-3">
+                                            <span class="badge rounded-pill bg-warning-subtle text-warning border border-warning px-3">
                                                 <i class="fas fa-clock me-1"></i> Chờ duyệt
                                             </span>
                                         </c:otherwise>

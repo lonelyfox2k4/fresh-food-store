@@ -57,12 +57,6 @@ public class VnPayReturnController extends HttpServlet {
                 orderDAO.updatePaymentStatus(orderId, (byte) 2, (byte) 2);
                 orderDAO.updatePaymentTransaction(orderId, transactionNo);
                 
-                // Clear cart now that payment is confirmed
-                if (user != null) {
-                    long cartId = cartDAO.findOrCreateCartIdByAccountId(user.getAccountId());
-                    cartDAO.clearCart(cartId);
-                }
-                
                 resp.sendRedirect(req.getContextPath() + "/order-success?id=" + orderId);
             } else {
                 // Payment Failed or Cancelled - Release Inventory

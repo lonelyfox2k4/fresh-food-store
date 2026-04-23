@@ -108,6 +108,31 @@
                     </tbody>
                 </table>
             </div>
+
+            <%-- Pagination --%>
+            <c:if test="${totalPages > 1}">
+                <nav class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
+                            <a class="page-link" href="?page=${currentPage - 1}">
+                                <i class="fa-solid fa-chevron-left small"></i>
+                            </a>
+                        </li>
+                        
+                        <c:forEach var="i" begin="1" end="${totalPages}">
+                            <li class="page-item ${currentPage == i ? 'active' : ''}">
+                                <a class="page-link ${currentPage == i ? 'bg-brand border-brand' : 'text-brand'}" href="?page=${i}">${i}</a>
+                            </li>
+                        </c:forEach>
+
+                        <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
+                            <a class="page-link" href="?page=${currentPage + 1}">
+                                <i class="fa-solid fa-chevron-right small"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </c:if>
         </c:otherwise>
     </c:choose>
 </main>

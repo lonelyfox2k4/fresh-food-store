@@ -189,8 +189,10 @@
                     <ul class="dropdown-menu border-0 shadow-lg mt-0">
                         <li><a class="dropdown-item py-2" href="${pageContext.request.contextPath}/staff/news"><i class="fas fa-newspaper me-2 text-muted"></i> Tin tức</a></li>
                         <li><a class="dropdown-item py-2" href="${pageContext.request.contextPath}/staff/voucher"><i class="fas fa-ticket-alt me-2 text-muted"></i> Voucher</a></li>
-                        <c:if test="${sessionScope.user.roleId == 1 || sessionScope.user.roleId == 2}">
+                        <c:if test="${sessionScope.user.roleId == 2}">
                             <li><a class="dropdown-item py-2" href="${pageContext.request.contextPath}/manager/voucher-requests"><i class="fas fa-check-double me-2 text-muted"></i> Duyệt Voucher</a></li>
+                        </c:if>
+                        <c:if test="${sessionScope.user.roleId == 1 || sessionScope.user.roleId == 2}">
                             <li><a class="dropdown-item py-2" href="${pageContext.request.contextPath}/manager/policies"><i class="fas fa-shield-alt me-2 text-muted"></i> Chính sách</a></li>
                         </c:if>
                     </ul>
