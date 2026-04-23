@@ -45,6 +45,27 @@ public class PlaceOrderController extends HttpServlet {
         String paymentMethod   = req.getParameter("paymentMethod");
         if (paymentMethod == null) paymentMethod = "COD";
 
+        // --- 1.1 Validation ---
+        if (recipientName.isEmpty() || recipientPhone.isEmpty() || shippingAddress.isEmpty()) {
+            session.setAttribute("checkoutError", "Vui lòng điền đầy đủ thông tin giao hàng.");
+            resp.sendRedirect(req.getContextPath() + "/checkout");
+            return;
+        }
+
+        // Phone: 10 digits, starts with 0
+        if (!recipientPhone.matches("^0\\d{9}$")) {
+            session.setAttribute("checkoutError", "Số điện thoại không hợp lệ (phải có 10 chữ số và bắt đầu bằng số 0).");
+            resp.sendRedirect(req.getContextPath() + "/checkout");
+            return;
+        }
+
+        // Name: No special characters (allow Unicode letters, numbers, and spaces)
+        if (!recipientName.matches("^[\\p{L}0-9\\s]+$")) {
+            session.setAttribute("checkoutError", "Tên người nhận không được chứa ký tự đặc biệt.");
+            resp.sendRedirect(req.getContextPath() + "/checkout");
+            return;
+        }
+
         // --- 2. Load cart ---
         long accountId = user.getAccountId();
         long cartId    = cartDAO.findOrCreateCartIdByAccountId(accountId);
@@ -72,7 +93,7 @@ public class PlaceOrderController extends HttpServlet {
 
             // --- 5. Route by payment method ---
             if ("VNPAY".equalsIgnoreCase(paymentMethod)) {
-                String paymentUrl = buildVnPayUrl(req, orderId, accountId, recipientName, recipientPhone, shippingAddress, user);
+                String paymentUrl = buildVnPayUrl(req, orderId, accountId,  user);
                 resp.sendRedirect(paymentUrl);
             } else {
                 // COD
@@ -97,9 +118,6 @@ public class PlaceOrderController extends HttpServlet {
     private String buildVnPayUrl(HttpServletRequest req,
                                  long orderId,
                                  long accountId,
-                                 String recipientName,
-                                 String recipientPhone,
-                                 String shippingAddress,
                                  Account user) throws Exception {
 
         Order order = orderDAO.getOrderById(orderId, accountId);

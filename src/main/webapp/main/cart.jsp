@@ -46,7 +46,7 @@
                         <tr>
                             <td>
                                 <div class="d-flex align-items-center gap-3">
-                                    <img src="${not empty item.imageUrl ? item.imageUrl : 'https://via.placeholder.com/80x80?text=Food'}"
+                                    <img src="${not empty item.imageUrl ? (item.imageUrl.startsWith('http') ? item.imageUrl : pageContext.request.contextPath.concat('/').concat(item.imageUrl)) : 'https://via.placeholder.com/80x80?text=Food'}"
                                          alt="${item.productName}" width="60" height="60" class="rounded-2" style="object-fit: cover;">
                                     <div>
                                         <div class="fw-semibold">${item.productName}</div>
@@ -58,10 +58,25 @@
                                 <fmt:formatNumber value="${item.unitPrice}" pattern="###,###"/> ₫
                             </td>
                             <td>
-                                <form method="post" action="${pageContext.request.contextPath}/cart/update" class="d-flex gap-2">
+                                <form method="post" action="${pageContext.request.contextPath}/cart/update" class="d-flex flex-column gap-1">
                                     <input type="hidden" name="cartItemId" value="${item.cartItemId}">
-                                    <input type="number" name="quantity" value="${item.quantity}" min="0" class="form-control" style="max-width: 90px;">
-                                    <button class="btn btn-outline-primary btn-sm" type="submit">Cập nhật</button>
+                                    <div class="d-flex gap-2">
+                                        <input type="number" name="quantity" value="${item.quantity}" min="0" max="${item.availableStock}" 
+                                               class="form-control" style="max-width: 90px;"
+                                               title="Tối đa: ${item.availableStock}">
+                                        <button class="btn btn-outline-primary btn-sm" type="submit">Cập nhật</button>
+                                    </div>
+                                    <c:choose>
+                                        <c:when test="${item.availableStock == 0}">
+                                            <small class="text-danger fw-bold">Hết hàng!</small>
+                                        </c:when>
+                                        <c:when test="${item.quantity > item.availableStock}">
+                                            <small class="text-danger">Vượt tồn kho (Còn: ${item.availableStock})</small>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <small class="text-muted">Kho: ${item.availableStock}</small>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </form>
                             </td>
                             <td class="fw-semibold">

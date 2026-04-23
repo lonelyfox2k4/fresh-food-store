@@ -65,9 +65,17 @@ public class AdminController extends HttpServlet {
         if ("/admin/update-status".equals(path)) {
             long id = Long.parseLong(req.getParameter("id"));
             boolean status = Boolean.parseBoolean(req.getParameter("status"));
+            
+            // Bảo vệ Admin: Kiểm tra xem user bị khóa có phải là Admin không
+            Account target = dao.getAccountById(id);
+            if (target != null && target.getRoleId() == 1) {
+                resp.sendRedirect("users?error=" + java.net.URLEncoder.encode("Không thể khóa tài khoản Quản trị viên!", "UTF-8"));
+                return;
+            }
+
             // Đảo ngược trạng thái hiện tại (Ban/Unban)
             dao.updateStatus(id, !status);
-            resp.sendRedirect("users");
+            resp.sendRedirect("users?msg=" + java.net.URLEncoder.encode("Cập nhật trạng thái thành công", "UTF-8"));
 
         } else if ("/admin/assign".equals(path)) {
             // Logic "Create" trong CRUD: Admin cấp tài khoản mới

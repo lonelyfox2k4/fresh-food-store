@@ -81,6 +81,25 @@ public class ForgotPasswordController extends HttpServlet {
             String userOtp = req.getParameter("otp");
             String systemOtp = (String) session.getAttribute("otp");
             String email = (String) session.getAttribute("resetEmail");
+            Long lastSentTime = (Long) session.getAttribute("lastOtpSentTime");
+            long currentTime = System.currentTimeMillis();
+
+            // 1. Kiểm tra mã OTP có tồn tại không
+            if (systemOtp == null) {
+                req.setAttribute("error", "Mã xác thực không tồn tại hoặc đã hết hạn!");
+                req.setAttribute("step", "send-otp");
+                req.getRequestDispatcher("/main/forgot-password.jsp").forward(req, resp);
+                return;
+            }
+
+            // 2. Kiểm tra thời hạn 2 phút (120,000 ms)
+            if (lastSentTime != null && (currentTime - lastSentTime) > 120000) {
+                session.removeAttribute("otp"); // Xóa mã cũ
+                req.setAttribute("error", "Mã OTP đã hết hạn (2 phút). Vui lòng yêu cầu mã mới!");
+                req.setAttribute("step", "send-otp");
+                req.getRequestDispatcher("/main/forgot-password.jsp").forward(req, resp);
+                return;
+            }
 
             if (userOtp != null && userOtp.equals(systemOtp)) {
                 // 1. Tạo mật khẩu mới (Bản thô để gửi mail)

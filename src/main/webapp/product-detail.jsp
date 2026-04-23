@@ -30,14 +30,14 @@
         <%-- ══ Product image ═══════════════════════════════════════════════ --%>
         <div class="col-lg-5">
             <div class="rounded-3 overflow-hidden shadow">
-                <img src="${not empty product.imageUrl ? product.imageUrl : 'https://via.placeholder.com/600x500/fdf2f2/E3000F?text=Fresh+Food'}"
+                <img src="${not empty product.imageUrl ? (product.imageUrl.startsWith('http') ? product.imageUrl : pageContext.request.contextPath.concat('/').concat(product.imageUrl)) : 'https://via.placeholder.com/600x500/fdf2f2/E3000F?text=Fresh+Food'}"
                      class="img-fluid w-100" style="max-height:480px;object-fit:cover;"
                      alt="${product.productName}" id="mainProductImg">
             </div>
             <c:if test="${product.currentPrice lt product.basePriceAmount}">
                 <div class="alert alert-danger d-flex align-items-center gap-2 mt-3 py-2" role="alert">
                     <i class="fas fa-bolt text-warning"></i>
-                    <small><strong>Giá sốc hôm nay!</strong> Sản phẩm này đang được giảm giá <fmt:formatNumber value="${(1 - product.currentPrice/product.basePriceAmount)*100}" pattern="#"/>%.</small>
+                    <small><strong>Giá sốc hôm nay!</strong> Sản phẩm này đang được giảm giá <fmt:formatNumber value="${100 - product.discountPercent}" pattern="#"/>%.</small>
                 </div>
             </c:if>
         </div>

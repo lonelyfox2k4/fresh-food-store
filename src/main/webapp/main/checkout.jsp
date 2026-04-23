@@ -16,6 +16,16 @@
 
 <main class="container py-5 flex-grow-1">
     <h2 class="mb-4">Thông tin thanh toán</h2>
+    
+    <%-- Hiển thị thông báo lỗi nếu có --%>
+    <c:if test="${not empty sessionScope.checkoutError}">
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fa-solid fa-circle-exclamation me-2"></i>
+            ${sessionScope.checkoutError}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <c:remove var="checkoutError" scope="session"/>
+    </c:if>
 
     <div class="row g-4">
         <%-- Left Column: Form Info --%>
