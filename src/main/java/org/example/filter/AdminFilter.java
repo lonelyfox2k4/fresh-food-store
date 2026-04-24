@@ -35,7 +35,11 @@ public class AdminFilter implements Filter {
         // 2. Kiểm tra trạng thái tài khoản (Đề phòng bị Ban khi đang online)
         Account currentAcc = dao.getAccountById(user.getAccountId());
         if (currentAcc == null || !currentAcc.isStatus()) {
-            if (session != null) session.invalidate();
+            if (session != null) {
+                try {
+                    session.invalidate();
+                } catch (IllegalStateException ignored) {}
+            }
             resp.sendRedirect(req.getContextPath() + "/login?errorMsg=banned");
             return;
         }

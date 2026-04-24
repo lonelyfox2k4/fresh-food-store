@@ -41,6 +41,36 @@
 
     <div class="container-fluid px-4">
 
+    <div class="card border-0 shadow-sm rounded-4 mb-4 mt-3">
+        <div class="card-body p-3">
+            <form action="${pageContext.request.contextPath}/staff/orders" method="get" class="row g-2 align-items-center m-0">
+                <input type="hidden" name="action" value="list">
+                <div class="col-md-5 col-lg-4">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0 rounded-start-pill px-3">
+                            <i class="bi bi-search text-muted"></i>
+                        </span>
+                        <input type="text" name="query" class="form-control bg-light border-start-0 rounded-end-pill py-2" 
+                               placeholder="Tìm theo Mã đơn hoặc Tên khách..." value="${searchQuery}">
+                    </div>
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">Tìm kiếm</button>
+                    <c:if test="${not empty searchQuery}">
+                        <a href="${pageContext.request.contextPath}/staff/orders?action=list" class="btn btn-outline-secondary rounded-pill px-3 ms-1">
+                            <i class="bi bi-x-lg"></i> Xóa lọc
+                        </a>
+                    </c:if>
+                </div>
+                <c:if test="${not empty searchQuery}">
+                    <div class="col-auto">
+                        <span class="text-muted small ms-2">Tìm thấy <strong>${orderList.size()}</strong> kết quả cho <em>"${searchQuery}"</em></span>
+                    </div>
+                </c:if>
+            </form>
+        </div>
+    </div>
+
     <c:if test="${not empty param.msg}">
         <div class="alert alert-success border-0 shadow-sm alert-dismissible fade show">
             <i class="bi bi-check-circle-fill me-2"></i>
@@ -172,7 +202,7 @@
                                 </c:choose>
                             </td>
                             
-                            <!-- Cột Shipper: Đã chuyển sang chế độ Gán tự động cho Shipper 2 -->
+                            <!-- Cột Shipper: Hiển thị thông tin Shipper đã nhận đơn -->
                             <td>
                                 <c:choose>
                                     <c:when test="${not empty o.shipperId}">
@@ -186,14 +216,23 @@
                                                         <div class="small fw-bold text-dark">${s.fullName}</div>
                                                     </c:if>
                                                 </c:forEach>
-                                                <div class="badge bg-primary bg-opacity-10 text-primary p-1 px-2" style="font-size: 0.65rem;">
-                                                    <i class="bi bi-magic"></i> Auto-assigned
+                                                <div class="badge bg-success bg-opacity-10 text-success p-1 px-2" style="font-size: 0.65rem;">
+                                                    <i class="bi bi-hand-thumbs-up-fill"></i> Shipper đã nhận
                                                 </div>
                                             </div>
                                         </div>
                                     </c:when>
                                     <c:otherwise>
-                                        <span class="text-muted small italic">Chờ đóng gói...</span>
+                                        <c:choose>
+                                            <c:when test="${o.orderStatus == 3}">
+                                                <span class="badge bg-warning bg-opacity-10 text-dark p-2 rounded-3 w-100 border border-warning border-opacity-25 shadow-sm">
+                                                    <i class="bi bi-broadcast text-danger me-1"></i> Chờ nhận đơn...
+                                                </span>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <span class="text-muted small italic">Chờ đóng gói...</span>
+                                            </c:otherwise>
+                                        </c:choose>
                                     </c:otherwise>
                                 </c:choose>
                             </td>

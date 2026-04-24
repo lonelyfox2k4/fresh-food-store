@@ -37,8 +37,16 @@ public class StaffOrderServlet extends HttpServlet {
         try {
             switch (action) {
                 case "list":
-                    List<Order> orders = orderDAO.getAllOrders();
-                    // Lấy danh sách Shippers (roleId = 4 giả định)
+                    String query = request.getParameter("query");
+                    List<Order> orders;
+                    if (query != null && !query.trim().isEmpty()) {
+                        orders = orderDAO.searchOrders(query.trim());
+                        request.setAttribute("searchQuery", query.trim());
+                    } else {
+                        orders = orderDAO.getAllOrders();
+                    }
+                    
+                    // Lấy danh sách Shippers
                     List<Account> shippers = accountDAO.getAccountsByRole(4);
                     
                     request.setAttribute("orderList", orders);
@@ -90,7 +98,7 @@ public class StaffOrderServlet extends HttpServlet {
                     
                 case "ready":
                     // Chuyển orderStatus = 3 (Đóng gói xong)
-                    // Logic trong DAO sẽ tự động gán Shipper ID 12 và ShippingStatus 1
+                    // Logic trong DAO sẽ gỡ bỏ shipperId để đẩy đơn lên sàn tự do
                     orderDAO.updateOrderStatus(orderId, (byte) 3);
                     response.sendRedirect("orders?action=list&msg=packed");
                     break;

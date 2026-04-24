@@ -32,18 +32,31 @@ public class ShipperOrderServlet extends HttpServlet {
         Account user = (Account) request.getSession().getAttribute("user");
         
         // Mock fallback cho test nếu không đăng nhập (shipperId = 12 cho Shipper 2)
-        long shipperId = (user != null) ? user.getAccountId() : 12L;
+        long shipperId = (user != null) ? user.getAccountId() : 0L;
 
         try {
             if ("list".equals(action)) {
-                List<Order> orders = orderDAO.getOrdersByShipper(shipperId);
                 List<Order> availableOrders = orderDAO.getAvailableOrders();
+                List<Order> myTasks = orderDAO.getShipperTasks(shipperId);
                 java.util.Map<String, Object> stats = orderDAO.getShipperStats(shipperId);
+                boolean isBusy = orderDAO.isShipperBusy(shipperId);
                 
-                request.setAttribute("orderList", orders);
                 request.setAttribute("availableList", availableOrders);
+                request.setAttribute("myTasks", myTasks);
                 request.setAttribute("stats", stats);
+                request.setAttribute("isBusy", isBusy);
                 request.getRequestDispatcher("/shipper/order-list.jsp").forward(request, response);
+            } else if ("claim".equals(action)) {
+                long orderId = Long.parseLong(request.getParameter("id"));
+                if (orderDAO.isShipperBusy(shipperId)) {
+                    response.sendRedirect("orders?action=list&error=busy");
+                    return;
+                }
+                if (orderDAO.assignShipper(orderId, shipperId)) {
+                    response.sendRedirect("orders?action=list&msg=claimed");
+                } else {
+                    response.sendRedirect("orders?action=list&error=claim_failed");
+                }
             } else if ("detail".equals(action)) {
                 long orderId = Long.parseLong(request.getParameter("id"));
                 Order order = orderDAO.getOrderById(orderId);
@@ -76,28 +89,43 @@ public class ShipperOrderServlet extends HttpServlet {
         }
 
         Account user = (Account) request.getSession().getAttribute("user");
-        long currentShipperId = (user != null) ? user.getAccountId() : 12L; // Mock fallback for Shipper 2
+        long currentShipperId = (user != null) ? user.getAccountId() : 0L;
 
         try {
-            if ("remit".equals(action)) {
-                orderDAO.remitCOD(currentShipperId);
-                response.sendRedirect("orders?action=list&msg=remitted");
-                return;
-            }
-
-            long orderId = Long.parseLong(request.getParameter("orderId"));
-            Order order = orderDAO.getOrderById(orderId);
-
-            // Handle CLAIM action separately (it doesn't require an assigned shipper yet)
+            // Lấy ID đơn hàng từ cả 2 nguồn tham số có thể có (id hoặc orderId)
+            String idStr = request.getParameter("id");
+            if (idStr == null) idStr = request.getParameter("orderId");
+            
             if ("claim".equals(action)) {
-                boolean success = orderDAO.claimOrder(orderId, currentShipperId);
-                if (success) {
+                if (idStr == null) {
+                    response.sendRedirect("orders?action=list&error=no_id");
+                    return;
+                }
+                long orderId = Long.parseLong(idStr);
+                if (orderDAO.isShipperBusy(currentShipperId)) {
+                    response.sendRedirect("orders?action=list&error=busy");
+                    return;
+                }
+                if (orderDAO.assignShipper(orderId, currentShipperId)) {
                     response.sendRedirect("orders?action=list&msg=claimed");
                 } else {
                     response.sendRedirect("orders?action=list&error=claim_failed");
                 }
                 return;
             }
+
+            if ("remit".equals(action)) {
+                orderDAO.remitCOD(currentShipperId);
+                response.sendRedirect("orders?action=list&msg=remitted");
+                return;
+            }
+
+            if (idStr == null) {
+                response.sendRedirect("orders?action=list&error=no_id");
+                return;
+            }
+            long orderId = Long.parseLong(idStr);
+            Order order = orderDAO.getOrderById(orderId);
 
             // Security check: Only assigned shipper can update delivery status
             if (order == null || order.getShipperId() == null || order.getShipperId() != currentShipperId) {

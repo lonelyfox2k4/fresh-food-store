@@ -605,6 +605,21 @@ public class OrderDAO {
         }
     }
 
+    public List<Order> searchOrders(String query) {
+        List<Order> list = new ArrayList<>();
+        String sql = "SELECT * FROM dbo.Orders WHERE orderCode LIKE ? OR recipientNameSnapshot LIKE ? ORDER BY placedAt DESC";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            String searchTerm = "%" + query + "%";
+            ps.setString(1, searchTerm);
+            ps.setString(2, searchTerm);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) list.add(mapOrder(rs));
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return list;
+    }
+
     // ────────────────────────────────────────────────────────────────────────
     // MAPPING
     // ────────────────────────────────────────────────────────────────────────
@@ -695,17 +710,7 @@ public class OrderDAO {
         return list;
     }
 
-    public List<Order> getAvailableOrders() {
-        List<Order> list = new ArrayList<>();
-        // Lấy các đơn hàng đã đóng gói (orderStatus=3, shippingStatus=1) và chưa có shipperId
-        String sql = "SELECT * FROM dbo.Orders WHERE shipperId IS NULL AND shippingStatus = 1 AND orderStatus = 3 ORDER BY placedAt ASC";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) list.add(mapOrder(rs));
-        } catch (Exception e) { e.printStackTrace(); }
-        return list;
-    }
+
 
     public boolean claimOrder(long orderId, long shipperId) {
         // Chỉ cập nhật nếu shipperId vẫn đang là NULL (phòng trường hợp 2 shipper cùng nhấn nhận 1 lúc)
@@ -735,17 +740,16 @@ public class OrderDAO {
     public boolean updateOrderStatus(long orderId, byte status) {
         String sql = "UPDATE dbo.Orders SET orderStatus = ? WHERE orderId = ?";
         
-        // Nếu là trạng thái 3 (Đã đóng gói), ta ép luôn shipperId và shippingStatus tại đây cho chắc
+        // Trạng thái 3: Đóng gói xong -> Sẵn sàng để các Shipper nhận đơn (để trống shipperId)
         if (status == 3) {
-            sql = "UPDATE dbo.Orders SET orderStatus = ?, shipperId = 12, shippingStatus = 1 WHERE orderId = ?";
+            sql = "UPDATE dbo.Orders SET orderStatus = ?, shipperId = NULL, shippingStatus = 1 WHERE orderId = ?";
         }
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setByte(1, status);
             ps.setLong(2, orderId);
-            int rows = ps.executeUpdate();
-            return rows > 0;
+            return ps.executeUpdate() > 0;
         } catch (Exception e) { e.printStackTrace(); }
         return false;
     }
@@ -762,7 +766,10 @@ public class OrderDAO {
     }
 
     public boolean assignShipper(long orderId, long shipperId) {
-        String sql = "UPDATE dbo.Orders SET shipperId = ? WHERE orderId = ?";
+        // Kiểm tra xem shipper có đang bận giao đơn nào không (shippingStatus = 2)
+        if (isShipperBusy(shipperId)) return false;
+
+        String sql = "UPDATE dbo.Orders SET shipperId = ?, shippingStatus = 1 WHERE orderId = ? AND shipperId IS NULL";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, shipperId);
@@ -770,6 +777,45 @@ public class OrderDAO {
             return ps.executeUpdate() > 0;
         } catch (Exception e) { e.printStackTrace(); }
         return false;
+    }
+
+    public boolean isShipperBusy(long shipperId) {
+        // Bận nếu có đơn đang ở trạng thái 1 (Vừa nhận/Chờ lấy) hoặc 2 (Đang đi giao)
+        String sql = "SELECT COUNT(*) FROM dbo.Orders WHERE shipperId = ? AND shippingStatus IN (1, 2)";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, shipperId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1) > 0;
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return false;
+    }
+
+    public List<Order> getAvailableOrders() {
+        List<Order> list = new ArrayList<>();
+        String sql = "SELECT * FROM dbo.Orders WHERE orderStatus = 3 AND shippingStatus = 1 AND shipperId IS NULL ORDER BY placedAt ASC";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) list.add(mapOrder(rs));
+        } catch (Exception e) { e.printStackTrace(); }
+        return list;
+    }
+
+    public List<Order> getShipperTasks(long shipperId) {
+        List<Order> list = new ArrayList<>();
+        // Lấy các đơn của shipper này, sắp xếp đơn ĐANG GIAO lên đầu
+        String sql = "SELECT * FROM dbo.Orders WHERE shipperId = ? " +
+                     "ORDER BY CASE WHEN shippingStatus = 2 THEN 0 ELSE 1 END, placedAt DESC";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, shipperId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) list.add(mapOrder(rs));
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return list;
     }
 
     public boolean updatePaymentStatus(long orderId, byte paymentStatus) {
@@ -857,7 +903,7 @@ public class OrderDAO {
     public boolean redeliverOrder(long orderId) {
         // Chuyển thẳng sang trạng thái Đã đóng gói (3) để chờ gán Shipper đi giao lại luôn
         // Xóa sạch các dấu vết cũ của lần giao thất bại (cancelledAt, cancelledReason, shipperId)
-        String sql = "UPDATE dbo.Orders SET orderStatus = 3, shippingStatus = 1, shipperId = 12, "
+        String sql = "UPDATE dbo.Orders SET orderStatus = 3, shippingStatus = 1, shipperId = NULL, "
                    + "cancelledAt = NULL, cancelledReason = NULL WHERE orderId = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {

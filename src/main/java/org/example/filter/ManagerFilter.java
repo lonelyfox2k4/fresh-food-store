@@ -37,7 +37,11 @@ public class ManagerFilter implements Filter {
         // 2. Kiểm tra trạng thái tài khoản
         Account currentAcc = dao.getAccountById(user.getAccountId());
         if (currentAcc == null || !currentAcc.isStatus()) {
-            if (session != null) session.invalidate();
+            if (session != null) {
+                try {
+                    session.invalidate();
+                } catch (IllegalStateException ignored) {}
+            }
             resp.sendRedirect(req.getContextPath() + "/login?errorMsg=banned");
             return;
         }
