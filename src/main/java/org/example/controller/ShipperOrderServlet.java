@@ -31,8 +31,8 @@ public class ShipperOrderServlet extends HttpServlet {
 
         Account user = (Account) request.getSession().getAttribute("user");
         
-        // Mock fallback cho test nếu không đăng nhập (shipperId = 2)
-        long shipperId = (user != null) ? user.getAccountId() : 2L;
+        // Mock fallback cho test nếu không đăng nhập (shipperId = 12 cho Shipper 2)
+        long shipperId = (user != null) ? user.getAccountId() : 12L;
 
         try {
             if ("list".equals(action)) {
@@ -76,7 +76,7 @@ public class ShipperOrderServlet extends HttpServlet {
         }
 
         Account user = (Account) request.getSession().getAttribute("user");
-        long currentShipperId = (user != null) ? user.getAccountId() : 2L; // Mock fallback for test
+        long currentShipperId = (user != null) ? user.getAccountId() : 12L; // Mock fallback for Shipper 2
 
         try {
             if ("remit".equals(action)) {

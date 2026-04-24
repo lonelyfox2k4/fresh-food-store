@@ -89,10 +89,9 @@ public class StaffOrderServlet extends HttpServlet {
                     break;
                     
                 case "ready":
-                    // Chuyển orderStatus = 3 (Processing / Đóng gói xong) 
-                    // and Set shippingStatus = 1 (Ready for Pickup)
+                    // Chuyển orderStatus = 3 (Đóng gói xong)
+                    // Logic trong DAO sẽ tự động gán Shipper ID 12 và ShippingStatus 1
                     orderDAO.updateOrderStatus(orderId, (byte) 3);
-                    orderDAO.updateShippingStatus(orderId, (byte) 1);
                     response.sendRedirect("orders?action=list&msg=packed");
                     break;
                     
@@ -128,27 +127,7 @@ public class StaffOrderServlet extends HttpServlet {
                     response.sendRedirect("orders?action=list&msg=completed");
                     break;
                     
-                case "cancel":
-                    // Chuyển orderStatus = 6 (Đã hủy) với lý do
-                    String cancelReason = request.getParameter("reason");
-                    if (cancelReason == null || cancelReason.trim().isEmpty()) {
-                        cancelReason = "Nh\u00e2n vi\u00ean h\u1ee7y \u0111\u01a1n";
-                    }
-                    orderDAO.updateOrderCancelReason(orderId, cancelReason);
-                    response.sendRedirect("orders?action=list&msg=cancelled");
-                    break;
 
-                case "refund":
-                    // Chuyển paymentStatus = 4 (Refunded)
-                    orderDAO.refundOrder(orderId);
-                    response.sendRedirect("orders?action=list&msg=refunded");
-                    break;
-
-                case "redeliver":
-                    // Chuyển orderStatus = 2, shippingStatus = 0
-                    orderDAO.redeliverOrder(orderId);
-                    response.sendRedirect("orders?action=list&msg=redelivered");
-                    break;
 
                 default:
                     response.sendRedirect("orders?action=list");

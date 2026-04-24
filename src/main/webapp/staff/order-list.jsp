@@ -119,23 +119,27 @@
                                 <div class="mt-1">
                                     <c:choose>
                                         <c:when test="${o.paymentStatus == 2}">
-                                            <div class="text-success small fw-bold">
-                                                <i class="bi bi-check-circle-fill"></i> Đã trả: <fmt:formatNumber value="${o.totalAmount}" type="number"/> đ
-                                            </div>
-                                            <span class="badge rounded-pill bg-success fw-normal"><i class="bi bi-cash-coin"></i> Đã thanh toán</span>
+                                            <c:choose>
+                                                <c:when test="${o.orderStatus == 5 or o.shippingStatus == 3}">
+                                                    <span class="badge rounded-pill bg-success fw-normal"><i class="bi bi-cash-coin"></i> Shipper đã thu</span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span class="badge rounded-pill bg-info text-dark fw-normal"><i class="bi bi-clock"></i> Đang giao COD</span>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </c:when>
+                                        <c:when test="${o.paymentStatus == 3}">
+                                            <span class="badge rounded-pill bg-primary fw-normal"><i class="bi bi-safe2"></i> Đã kết toán quỹ</span>
                                         </c:when>
                                         <c:when test="${o.paymentStatus == 4}">
-                                            <div class="text-info small fw-bold">
-                                                <i class="bi bi-arrow-left-right"></i> Đã hoàn trả: <fmt:formatNumber value="${o.totalAmount}" type="number"/> đ
-                                            </div>
-                                            <span class="badge rounded-pill bg-info text-dark fw-normal"><i class="bi bi-arrow-left-right"></i> Đã hoàn trả</span>
+                                            <span class="badge rounded-pill bg-secondary fw-normal"><i class="bi bi-arrow-left-right"></i> Đã hoàn trả</span>
                                         </c:when>
                                         <c:otherwise>
                                             <div class="text-muted small">
                                                 <i class="bi bi-clock"></i> Đã trả: 0 đ
                                             </div>
                                             <c:if test="${o.orderStatus != 6}">
-                                                <span class="badge rounded-pill bg-light text-dark border fw-normal text-muted"><i class="bi bi-clock"></i> Chờ thanh toán</span>
+                                                <span class="badge rounded-pill bg-light text-dark border fw-normal text-muted"><i class="bi bi-clock"></i> Chưa thanh toán</span>
                                             </c:if>
                                             <c:if test="${o.orderStatus == 6}">
                                                 <span class="text-muted small italic">-- Đã hủy --</span>
@@ -168,7 +172,7 @@
                                 </c:choose>
                             </td>
                             
-                            <!-- Cột Shipper: Chế độ Shipper tự nhận đơn -->
+                            <!-- Cột Shipper: Đã chuyển sang chế độ Gán tự động cho Shipper 2 -->
                             <td>
                                 <c:choose>
                                     <c:when test="${not empty o.shipperId}">
@@ -182,22 +186,14 @@
                                                         <div class="small fw-bold text-dark">${s.fullName}</div>
                                                     </c:if>
                                                 </c:forEach>
-                                                <div class="badge bg-success bg-opacity-10 text-success p-1 px-2" style="font-size: 0.65rem;">
-                                                    <i class="bi bi-check2"></i> Đã nhận đơn
+                                                <div class="badge bg-primary bg-opacity-10 text-primary p-1 px-2" style="font-size: 0.65rem;">
+                                                    <i class="bi bi-magic"></i> Auto-assigned
                                                 </div>
                                             </div>
                                         </div>
                                     </c:when>
-                                    <c:when test="${o.shippingStatus == 1}">
-                                        <div class="text-center">
-                                            <span class="badge rounded-pill bg-light text-muted border py-2 px-3 fw-normal" style="font-size: 0.75rem;">
-                                                <span class="spinner-grow spinner-grow-sm text-primary me-1" style="width: 0.7rem; height: 0.7rem;"></span>
-                                                Đang đợi Shipper...
-                                            </span>
-                                        </div>
-                                    </c:when>
                                     <c:otherwise>
-                                        <span class="text-muted small italic">--</span>
+                                        <span class="text-muted small italic">Chờ đóng gói...</span>
                                     </c:otherwise>
                                 </c:choose>
                             </td>
@@ -254,77 +250,8 @@
                                             </c:if>
                                         </c:when>
                                     </c:choose>
-
-                                    <%-- Giao lại/Hoàn tiền cho đơn lỗi --%>
-                                    <c:if test="${o.orderStatus == 6}">
-                                        <%-- Chỉ cho phép giao lại nếu trạng thái là lỗi giao hàng VÀ chưa được hoàn tiền --%>
-                                        <c:if test="${o.shippingStatus == 4 && o.paymentStatus != 4}">
-                                            <li>
-                                                <form action="${pageContext.request.contextPath}/staff/orders" method="post" class="m-0" onsubmit="return confirm('Giao lại đơn hàng này?');">
-                                                    <input type="hidden" name="action" value="redeliver">
-                                                    <input type="hidden" name="orderId" value="${o.orderId}">
-                                                    <button type="submit" class="dropdown-item text-primary py-2 fw-medium"><i class="fas fa-redo me-2"></i> Thử giao hàng lại</button>
-                                                </form>
-                                            </li>
-                                        </c:if>
-                                        <c:if test="${o.paymentStatus == 1 || o.paymentStatus == 2}">
-                                            <li>
-                                                <form action="${pageContext.request.contextPath}/staff/orders" method="post" class="m-0" onsubmit="return confirm('Xác nhận đã thủ công hoàn trả tiền cho khách?');">
-                                                    <input type="hidden" name="action" value="refund">
-                                                    <input type="hidden" name="orderId" value="${o.orderId}">
-                                                    <button type="submit" class="dropdown-item text-warning py-2 fw-medium"><i class="fas fa-undo me-2"></i> Xác nhận Hoàn tiền</button>
-                                                </form>
-                                            </li>
-                                        </c:if>
-                                    </c:if>
-
-
-
-                                    <c:if test="${o.orderStatus != 4 && o.orderStatus != 5 && o.orderStatus != 6}">
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li>
-                                            <button type="button" class="dropdown-item text-danger py-2 fw-medium" data-bs-toggle="modal" data-bs-target="#cancelModal${o.orderId}">
-                                                <i class="fas fa-times-circle me-2"></i> Hủy đơn
-                                            </button>
-                                        </li>
-                                    </c:if>
                                   </ul>
                                 </div>
-
-                                <!-- Modal Hủy đơn -->
-                                <div class="modal fade" id="cancelModal${o.orderId}" tabindex="-1" aria-hidden="true">
-                                    <div class="modal-dialog modal-dialog-centered">
-                                        <div class="modal-content border-0 shadow">
-                                            <form action="${pageContext.request.contextPath}/staff/orders" method="post" class="m-0">
-                                                <div class="modal-header bg-danger text-white">
-                                                    <h5 class="modal-title"><i class="bi bi-x-circle me-2"></i>Hủy đơn hàng #${o.orderCode}</h5>
-                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                                                </div>
-                                                <div class="modal-body text-start">
-                                                    <input type="hidden" name="action" value="cancel">
-                                                    <input type="hidden" name="orderId" value="${o.orderId}">
-                                                    
-                                                    <p class="mb-3">Bạn chắc chắn muốn hủy đơn hàng này? Thao tác này không thể hoàn tác.</p>
-                                                    
-                                                    <label class="form-label fw-bold">Lý do hủy đơn:</label>
-                                                    <select name="reason" class="form-select mb-3" required>
-                                                        <option value="">-- Chọn lý do --</option>
-                                                        <option value="Khách hàng yêu cầu hủy">Khách hàng yêu cầu hủy</option>
-                                                        <option value="Sản phẩm hết hàng / Có vấn đề">Sản phẩm hết hàng / có vấn đề</option>
-                                                        <option value="Không liên lạc được khách hàng">Không liên lạc được khách hàng</option>
-                                                        <option value="Đơn hàng trùng lặp">Đơn hàng bị trùng</option>
-                                                        <option value="Khác">Lý do khác...</option>
-                                                    </select>
-                                                </div>
-                                                <div class="modal-footer border-0">
-                                                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Đóng</button>
-                                                    <button type="submit" class="btn btn-danger px-4">Xác nhận Hủy Đơn</button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- End Modal -->
                             </td>
                         </tr>
                     </c:forEach>

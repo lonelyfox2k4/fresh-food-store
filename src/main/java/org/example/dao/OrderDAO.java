@@ -734,11 +734,18 @@ public class OrderDAO {
 
     public boolean updateOrderStatus(long orderId, byte status) {
         String sql = "UPDATE dbo.Orders SET orderStatus = ? WHERE orderId = ?";
+        
+        // Nếu là trạng thái 3 (Đã đóng gói), ta ép luôn shipperId và shippingStatus tại đây cho chắc
+        if (status == 3) {
+            sql = "UPDATE dbo.Orders SET orderStatus = ?, shipperId = 12, shippingStatus = 1 WHERE orderId = ?";
+        }
+
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setByte(1, status);
             ps.setLong(2, orderId);
-            return ps.executeUpdate() > 0;
+            int rows = ps.executeUpdate();
+            return rows > 0;
         } catch (Exception e) { e.printStackTrace(); }
         return false;
     }
@@ -850,7 +857,7 @@ public class OrderDAO {
     public boolean redeliverOrder(long orderId) {
         // Chuyển thẳng sang trạng thái Đã đóng gói (3) để chờ gán Shipper đi giao lại luôn
         // Xóa sạch các dấu vết cũ của lần giao thất bại (cancelledAt, cancelledReason, shipperId)
-        String sql = "UPDATE dbo.Orders SET orderStatus = 3, shippingStatus = 1, shipperId = NULL, "
+        String sql = "UPDATE dbo.Orders SET orderStatus = 3, shippingStatus = 1, shipperId = 12, "
                    + "cancelledAt = NULL, cancelledReason = NULL WHERE orderId = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {

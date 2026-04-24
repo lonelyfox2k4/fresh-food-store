@@ -45,128 +45,53 @@
 
 <div class="container pb-5">
     
-    <!-- STATS DASHBOARD -->
-    <div class="row row-cols-2 row-cols-lg-3 row-cols-xl-5 g-3 mb-4">
-        <!-- Calculate Success Rate -->
+    <!-- STATS DASHBOARD - ULTRA SIMPLIFIED -->
+    <div class="row g-3 mb-4">
         <c:set var="total" value="${stats.totalOrders != null ? stats.totalOrders : 0}" />
         <c:set var="success" value="${stats.successOrders != null ? stats.successOrders : 0}" />
         <c:set var="successRate" value="${total > 0 ? (success * 100 / total) : 0}" />
         
-        <!-- CARD 1: TỔNG ĐƠN -->
-        <div class="col">
-            <div class="card dashboard-card h-100">
-                <div class="card-body p-3">
+        <!-- CARD: TỈ LỆ THÀNH CÔNG -->
+        <div class="col-md-6">
+            <div class="card dashboard-card h-100 border-start border-success border-4">
+                <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <div class="stat-icon bg-primary bg-opacity-10 text-primary">
-                            <i class="bi bi-box-seam"></i>
-                        </div>
-                    </div>
-                    <h6 class="text-muted small fw-semibold mb-1 text-uppercase">TỔNG ĐƠN</h6>
-                    <h3 class="fw-bold text-dark lh-1 mb-0">${total}</h3>
-                </div>
-            </div>
-        </div>
-        
-        <!-- CARD 2: THÀNH CÔNG -->
-        <div class="col">
-            <div class="card dashboard-card h-100">
-                <div class="card-body p-3">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="text-muted small fw-bold text-uppercase mb-0">Tỉ Lệ Thành Công</h6>
                         <div class="stat-icon bg-success bg-opacity-10 text-success">
-                            <i class="bi bi-check-circle"></i>
+                            <i class="bi bi-graph-up-arrow"></i>
                         </div>
                     </div>
-                    <h6 class="text-muted small fw-semibold mb-1 text-uppercase">Thành Công</h6>
-                    <h3 class="fw-bold text-dark lh-1 mb-0">${success}</h3>
                     <div class="d-flex align-items-center mt-2">
-                        <div class="progress progress-slim w-100 me-2 bg-light">
+                        <h2 class="fw-bold mb-0 me-3"><fmt:formatNumber type="number" minFractionDigits="0" maxFractionDigits="1" value="${successRate}"/>%</h2>
+                        <div class="progress w-100 bg-light" style="height: 10px; border-radius: 20px;">
                             <div class="progress-bar bg-success" style="width: ${successRate}%"></div>
                         </div>
-                        <span class="small fw-bold text-success"><fmt:formatNumber type="number" minFractionDigits="0" maxFractionDigits="1" value="${successRate}"/>%</span>
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- CARD 3: ĐANG CHẠY -->
-        <div class="col">
-            <div class="card dashboard-card h-100">
-                <div class="card-body p-3">
+        <!-- CARD: ĐANG ĐI GIAO -->
+        <div class="col-md-6">
+            <div class="card dashboard-card h-100 border-start border-info border-4">
+                <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="text-muted small fw-bold text-uppercase mb-0">Đơn Đang Đi Giao</h6>
                         <div class="stat-icon bg-info bg-opacity-10 text-info">
                             <i class="bi bi-scooter"></i>
                         </div>
                     </div>
-                    <h6 class="text-muted small fw-semibold mb-1 text-uppercase">Đang Đi Giao</h6>
-                    <h3 class="fw-bold text-dark lh-1 mb-0">${stats.activeOrders != null ? stats.activeOrders : 0}</h3>
-                </div>
-            </div>
-        </div>
-
-        <!-- CARD 4: TỔNG TIỀN ĐÃ THU -->
-        <div class="col">
-            <div class="card dashboard-card h-100">
-                <div class="card-body p-3">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <div class="stat-icon bg-danger bg-opacity-10 text-danger">
-                            <i class="bi bi-cash-stack"></i>
-                        </div>
-                    </div>
-                    <h6 class="text-muted small fw-semibold mb-1 text-uppercase">Tổng C.O.D Đã Thu</h6>
-                    <h3 class="fw-bold text-dark lh-1 mb-0"><fmt:formatNumber value="${stats.totalEarnings}" type="number"/>đ</h3>
-                </div>
-            </div>
-        </div>
-
-        <!-- CARD 5: ĐÃ NỘP LÊN CỬA HÀNG -->
-        <div class="col">
-            <div class="card dashboard-card h-100">
-                <div class="card-body p-3">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <div class="stat-icon bg-secondary bg-opacity-10 text-secondary">
-                            <i class="bi bi-safe2"></i>
-                        </div>
-                    </div>
-                    <h6 class="text-muted small fw-semibold mb-1 text-uppercase">Đã Nộp Cho Cửa Hàng</h6>
-                    <h3 class="fw-bold text-dark lh-1 mb-0"><fmt:formatNumber value="${stats.totalRemitted}" type="number"/>đ</h3>
+                    <h2 class="fw-bold text-dark mb-0">${stats.activeOrders != null ? stats.activeOrders : 0} <small class="fs-6 text-muted">đơn</small></h2>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- REMIT ACTIONS -->
-    <c:if test="${stats.totalEarnings > 0}">
-        <div class="alert alert-danger border-danger border border-opacity-25 shadow-sm rounded-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 bg-danger bg-opacity-10">
-            <div class="d-flex align-items-center mb-3 mb-md-0">
-                <i class="bi bi-shield-lock-fill fs-2 me-3 text-danger"></i>
-                <div>
-                    <h6 class="fw-bold mb-1 text-danger">Yêu cầu Trả Tiền Thu Hộ (C.O.D)</h6>
-                    <span class="small text-dark fw-medium">Bạn đang nợ cửa hàng số tiền mặt: <strong class="text-danger fs-6"><fmt:formatNumber value="${stats.totalEarnings}" type="number"/>đ</strong></span>
-                </div>
-            </div>
-            <form action="orders" method="post" class="m-0" onsubmit="return confirm('CẢNH BÁO: \n\nBạn xác nhận ĐÃ NỘP TOÀN BỘ SỐ TIỀN MẶT <fmt:formatNumber value="${stats.totalEarnings}" type="number"/>đ GIAO CHO QUẢN LÝ CỬA HÀNG?\n\nNhấn OK để hoàn tất thanh toán. Hành động này không thể hoàn tác!');">
-                <input type="hidden" name="action" value="remit">
-                <button type="submit" class="btn btn-danger fw-bold rounded-pill px-4 py-2 shadow w-100">
-                    <i class="bi bi-safe2 me-1"></i> Bàn Giao Quỹ
-                </button>
-            </form>
-        </div>
-    </c:if>
-
     <!-- Messages & Alerts -->
     <c:if test="${not empty param.msg}">
         <div class="alert alert-success border-0 shadow-sm alert-dismissible fade show rounded-4 d-flex align-items-center">
             <i class="bi bi-check-circle-fill fs-4 me-3 text-success"></i>
-            <div class="fw-medium text-dark">
-                <c:choose>
-                    <c:when test="${param.msg == 'claimed'}">Đã nhận đơn hàng thành công! Hãy bắt đầu đi giao nhé.</c:when>
-                    <c:when test="${param.msg == 'started'}">Trạng thái: Shipper đang trên đường giao.</c:when>
-                    <c:when test="${param.msg == 'delivered'}">Giao hàng hoàn tất! Bạn làm tốt lắm.</c:when>
-                    <c:when test="${param.msg == 'failed'}">Đã cập nhật lỗi giao hàng lên hệ thống.</c:when>
-                    <c:when test="${param.msg == 'remitted'}">Quỹ đã nhận tiền. Cảm ơn bạn, chuyến giao hàng khép lại hoàn hảo!</c:when>
-                    <c:otherwise>Thao tác hoàn tất thành công!</c:otherwise>
-                </c:choose>
-            </div>
+            <div class="fw-medium text-dark">Thao tác hoàn tất thành công!</div>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     </c:if>
@@ -178,17 +103,12 @@
         </div>
     </c:if>
 
-    <!-- UI TABS -->
+    <!-- UI TABS - SIMPLIFIED -->
     <div class="mb-4">
         <ul class="nav nav-pills nav-fill" id="orderTabs" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link ${empty param.msg or param.msg == 'updated' ? 'active' : ''}" id="available-tab" data-bs-toggle="tab" data-bs-target="#available" type="button" role="tab">
-                    <i class="bi bi-basket me-1"></i> Kho Chờ Nhận <span class="badge ${empty param.msg or param.msg == 'updated' ? 'bg-white text-primary' : 'bg-primary text-white'} ms-1 rounded-pill">${availableList.size()}</span>
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link ${not empty param.msg and param.msg != 'updated' ? 'active' : ''}" id="my-orders-tab" data-bs-toggle="tab" data-bs-target="#my-orders" type="button" role="tab">
-                    <i class="bi bi-person-check me-1"></i> Đơn Đang Chạy <span class="badge ${not empty param.msg and param.msg != 'updated' ? 'bg-white text-primary' : 'bg-primary text-white'} ms-1 rounded-pill">${orderList.size()}</span>
+                <button class="nav-link active" id="my-orders-tab" data-bs-toggle="tab" data-bs-target="#my-orders" type="button" role="tab">
+                    <i class="bi bi-person-check me-1"></i> NHIỆM VỤ CỦA TÔI <span class="badge bg-white text-primary ms-1 rounded-pill">${orderList.size()}</span>
                 </button>
             </li>
         </ul>
@@ -196,65 +116,8 @@
 
     <!-- TABS CONTENT -->
     <div class="tab-content" id="orderTabsContent">
-        <!-- TAB 1: KHO TỔNG (AVAILABLE) -->
-        <div class="tab-pane fade ${empty param.msg or param.msg == 'updated' ? 'show active' : ''}" id="available" role="tabpanel">
-            <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
-                <c:forEach items="${availableList}" var="o">
-                    <div class="col">
-                        <div class="card order-card h-100">
-                            <div class="card-body p-4 d-flex flex-column">
-                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                    <div>
-                                        <span class="badge bg-primary bg-opacity-10 text-primary mb-2 border border-primary border-opacity-10 rounded-pill px-3 py-2">
-                                            Chờ lấy hàng
-                                        </span>
-                                        <h5 class="fw-bold text-dark mb-0">#${o.orderCode}</h5>
-                                    </div>
-                                    <div class="text-end">
-                                        <span class="d-block text-muted small fw-semibold">Thu C.O.D</span>
-                                        <h4 class="fw-bold text-danger mb-0"><fmt:formatNumber value="${o.totalAmount}" type="number"/>đ</h4>
-                                    </div>
-                                </div>
-                                
-                                <div class="bg-light rounded-4 p-3 mb-4">
-                                    <div class="d-flex align-items-start mb-2">
-                                        <i class="bi bi-person text-secondary mt-1 me-2 fs-5"></i>
-                                        <div>
-                                            <div class="fw-bold text-dark">${o.recipientNameSnapshot}</div>
-                                            <div class="text-muted small">${o.recipientPhoneSnapshot}</div>
-                                        </div>
-                                    </div>
-                                    <div class="d-flex align-items-start">
-                                        <i class="bi bi-geo-alt text-danger mt-1 me-2 fs-5"></i>
-                                        <div class="text-dark small fw-medium text-truncate-2" title="${o.shippingAddressSnapshot}">${o.shippingAddressSnapshot}</div>
-                                    </div>
-                                </div>
-
-                                <form action="orders" method="post" class="m-0 mt-auto">
-                                    <input type="hidden" name="action" value="claim">
-                                    <input type="hidden" name="orderId" value="${o.orderId}">
-                                    <button class="btn btn-primary w-100 fw-bold py-3 rounded-3 shadow-sm btn-lg fs-6 d-flex align-items-center justify-content-center">
-                                        <i class="bi bi-lightning-charge-fill me-2 text-warning fs-5"></i> GIÀNH ĐƠN NGAY
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </c:forEach>
-                <c:if test="${empty availableList}">
-                    <div class="col-12 py-5 text-center">
-                        <div class="p-5 w-100">
-                            <i class="bi bi-emoji-sunglasses text-muted opacity-50 fs-1 mb-3 d-block"></i>
-                            <h5 class="fw-bold text-dark">Hôm nay anh em nghỉ ngơi</h5>
-                            <p class="text-muted mb-0">Hiện tại kho tổng đã xử lý hết đơn, bạn quay lại sau nhé!</p>
-                        </div>
-                    </div>
-                </c:if>
-            </div>
-        </div>
-
-        <!-- TAB 2: ĐƠN CỦA BẠN (MY ORDERS) -->
-        <div class="tab-pane fade ${not empty param.msg and param.msg != 'updated' ? 'show active' : ''}" id="my-orders" role="tabpanel">
+        <!-- TAB: MY ORDERS ONLY -->
+        <div class="tab-pane fade show active" id="my-orders" role="tabpanel">
             <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
                 <c:forEach items="${orderList}" var="o">
                     <c:set var="statusAccent" value="card-accent-warning"/>
