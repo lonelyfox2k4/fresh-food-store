@@ -134,48 +134,82 @@
                         </c:if>
                     </c:forEach>
 
-                    <%-- Quantity stepper (outside both forms, controls hidden input via JS) --%>
-                    <div class="d-flex gap-3 align-items-center mb-3">
-                        <div class="qty-box">
-                            <button type="button" class="btn btn-outline-secondary" onclick="changeQty(-1)">
-                                <i class="fas fa-minus"></i>
-                            </button>
-                            <input type="number" id="qtyInput" class="form-control" value="1" min="1" max="99"
-                                   oninput="syncQty(this.value)">
-                            <button type="button" class="btn btn-outline-secondary" onclick="changeQty(1)">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                        </div>
-                        <span class="text-muted small" id="stockNote"></span>
-                    </div>
+                    <c:choose>
+                        <%-- ══ TẤT CẢ PACK ĐỀU HẾT HÀNG ═══════════════════════════ --%>
+                        <c:when test="${firstValidPack == null}">
+                            <div class="alert alert-danger d-flex align-items-center gap-3 border-0 shadow-sm py-3 mb-3" role="alert">
+                                <div class="rounded-circle bg-danger bg-opacity-10 d-flex align-items-center justify-content-center"
+                                     style="width:52px;height:52px;min-width:52px;">
+                                    <i class="fas fa-box-open fs-4 text-danger"></i>
+                                </div>
+                                <div>
+                                    <strong class="d-block mb-1 fs-6">Sản phẩm tạm hết hàng!</strong>
+                                    <small class="text-muted">Tất cả gói khối lượng hiện đã hết. Vui lòng quay lại sau hoặc
+                                        <a href="${pageContext.request.contextPath}/products" class="alert-link fw-semibold">xem sản phẩm khác</a>.</small>
+                                </div>
+                            </div>
 
-                    <%-- Two sibling forms (NOT nested) --%>
-                    <div class="d-flex gap-3">
-                        <%-- Cart form --%>
-                        <form action="${pageContext.request.contextPath}/cart/add" method="post"
-                              id="addToCartForm" class="flex-grow-1">
-                            <input type="hidden" name="productPackId" id="selectedPackId"
-                                   value="${not empty firstValidPack ? firstValidPack.productPackId : packs[0].productPackId}">
-                            <input type="hidden" name="quantity" id="hiddenQty" value="1">
-                            <button type="submit" id="addToCartBtn" class="btn btn-brand fw-bold w-100 py-2">
-                                <i class="fas fa-cart-plus me-2"></i>Thêm vào giỏ hàng
-                            </button>
-                        </form>
+                            <%-- Vẫn hiển thị nút Yêu thích khi hết hàng --%>
+                            <c:if test="${not empty sessionScope.user}">
+                                <form action="${pageContext.request.contextPath}/wishlist/add" method="post">
+                                    <input type="hidden" name="productId" value="${product.productId}">
+                                    <input type="hidden" name="redirect"
+                                           value="${pageContext.request.contextPath}/product-detail?id=${product.productId}">
+                                    <button type="submit"
+                                            class="btn ${inWishlist ? 'btn-brand' : 'btn-outline-danger'} px-3 py-2"
+                                            title="${inWishlist ? 'Bỏ yêu thích' : 'Thêm vào yêu thích'}">
+                                        <i class="fas fa-heart me-2"></i>${inWishlist ? 'Đã yêu thích' : 'Thêm vào yêu thích'}
+                                    </button>
+                                </form>
+                            </c:if>
+                        </c:when>
 
-                        <%-- Wishlist form (sibling, NOT nested) --%>
-                        <c:if test="${not empty sessionScope.user}">
-                            <form action="${pageContext.request.contextPath}/wishlist/add" method="post">
-                                <input type="hidden" name="productId" value="${product.productId}">
-                                <input type="hidden" name="redirect"
-                                       value="${pageContext.request.contextPath}/product-detail?id=${product.productId}">
-                                <button type="submit"
-                                        class="btn ${inWishlist ? 'btn-brand' : 'btn-outline-danger'} px-3 py-2"
-                                        title="${inWishlist ? 'Bỏ yêu thích' : 'Thêm vào yêu thích'}">
-                                    <i class="fas fa-heart"></i>
-                                </button>
-                            </form>
-                        </c:if>
-                    </div>
+                        <%-- ══ CÒN ÍT NHẤT 1 PACK CÒN HÀNG ════════════════════════ --%>
+                        <c:otherwise>
+                            <%-- Quantity stepper (outside both forms, controls hidden input via JS) --%>
+                            <div class="d-flex gap-3 align-items-center mb-3">
+                                <div class="qty-box">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="changeQty(-1)">
+                                        <i class="fas fa-minus"></i>
+                                    </button>
+                                    <input type="number" id="qtyInput" class="form-control" value="1" min="1" max="99"
+                                           oninput="syncQty(this.value)">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="changeQty(1)">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                                <span class="text-muted small" id="stockNote"></span>
+                            </div>
+
+                            <%-- Two sibling forms (NOT nested) --%>
+                            <div class="d-flex gap-3">
+                                <%-- Cart form --%>
+                                <form action="${pageContext.request.contextPath}/cart/add" method="post"
+                                      id="addToCartForm" class="flex-grow-1">
+                                    <input type="hidden" name="productPackId" id="selectedPackId"
+                                           value="${firstValidPack.productPackId}">
+                                    <input type="hidden" name="quantity" id="hiddenQty" value="1">
+                                    <button type="submit" id="addToCartBtn" class="btn btn-brand fw-bold w-100 py-2">
+                                        <i class="fas fa-cart-plus me-2"></i>Thêm vào giỏ hàng
+                                    </button>
+                                </form>
+
+                                <%-- Wishlist form (sibling, NOT nested) --%>
+                                <c:if test="${not empty sessionScope.user}">
+                                    <form action="${pageContext.request.contextPath}/wishlist/add" method="post">
+                                        <input type="hidden" name="productId" value="${product.productId}">
+                                        <input type="hidden" name="redirect"
+                                               value="${pageContext.request.contextPath}/product-detail?id=${product.productId}">
+                                        <button type="submit"
+                                                class="btn ${inWishlist ? 'btn-brand' : 'btn-outline-danger'} px-3 py-2"
+                                                title="${inWishlist ? 'Bỏ yêu thích' : 'Thêm vào yêu thích'}">
+                                            <i class="fas fa-heart"></i>
+                                        </button>
+                                    </form>
+                                </c:if>
+                            </div>
+                        </c:otherwise>
+                    </c:choose>
                 </c:when>
                 <c:otherwise>
                     <div class="alert alert-info border-0">
