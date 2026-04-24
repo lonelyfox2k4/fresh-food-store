@@ -24,7 +24,6 @@
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb mb-1">
                         <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/staff/news">Marketing</a></li>
-                        <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/staff/voucher">Voucher</a></li>
                         <li class="breadcrumb-item active">Tin tức</li>
                     </ol>
                 </nav>
@@ -94,11 +93,15 @@
                                     <i class="far fa-calendar-alt me-1"></i> ${n.createdAt}
                                 </td>
                                 <td class="text-end pe-4">
-                                        <form action="news" method="POST" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn XÓA VĨNH VIỄN bài này?')">
+                                    <div class="btn-group shadow-sm rounded-pill overflow-hidden">
+                                        <a href="news?action=edit&newsId=${n.newsId}" class="btn btn-light btn-sm text-primary border-0" title="Chỉnh sửa">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+                                        <form action="news" method="POST" class="d-inline m-0" onsubmit="return confirm('Bạn có chắc muốn XÓA VĨNH VIỄN bài này?')">
                                             <input type="hidden" name="action" value="delete">
                                             <input type="hidden" name="newsId" value="${n.newsId}">
-                                            <button type="submit" class="btn btn-white btn-sm px-3">
-                                                <i class="bi bi-trash text-danger"></i>
+                                            <button type="submit" class="btn btn-light btn-sm text-danger border-0" title="Xóa">
+                                                <i class="bi bi-trash"></i>
                                             </button>
                                         </form>
                                     </div>

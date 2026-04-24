@@ -8,6 +8,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
 import java.io.IOException;
 import java.util.List;
+import org.example.utils.EmailUtils;
 import org.example.utils.ValidationUtils;
 
 @WebServlet(urlPatterns = {"/admin/users", "/admin/update-status", "/admin/assign"})
@@ -64,9 +65,17 @@ public class AdminController extends HttpServlet {
         if ("/admin/update-status".equals(path)) {
             long id = Long.parseLong(req.getParameter("id"));
             boolean status = Boolean.parseBoolean(req.getParameter("status"));
+            
+            // Bảo vệ Admin: Kiểm tra xem user bị khóa có phải là Admin không
+            Account target = dao.getAccountById(id);
+            if (target != null && target.getRoleId() == 1) {
+                resp.sendRedirect("users?error=" + java.net.URLEncoder.encode("Không thể khóa tài khoản Quản trị viên!", "UTF-8"));
+                return;
+            }
+
             // Đảo ngược trạng thái hiện tại (Ban/Unban)
             dao.updateStatus(id, !status);
-            resp.sendRedirect("users");
+            resp.sendRedirect("users?msg=" + java.net.URLEncoder.encode("Cập nhật trạng thái thành công", "UTF-8"));
 
         } else if ("/admin/assign".equals(path)) {
             // Logic "Create" trong CRUD: Admin cấp tài khoản mới
@@ -97,10 +106,31 @@ public class AdminController extends HttpServlet {
             }
 
             int roleId = Integer.parseInt(roleIdStr);
+            String defaultPass = "FreshFood123";
             // Mật khẩu mặc định mới đáp ứng tiêu chuẩn Hoa, Thường, Số
-            boolean success = dao.insertAccount(roleId, email, "FreshFood123", name, phone);
+            boolean success = dao.insertAccount(roleId, email, defaultPass, name, phone);
             
             if (success) {
+                // Tự động xác thực email vì admin đã cấp thì coi như tin tưởng
+                dao.verifyEmail(email);
+                
+                // Gửi email thông báo cho người dùng
+                String subject = "Thông báo: Tài khoản của bạn tại Fresh Food Store đã được cấp";
+                String message = "Chào " + name + ",\n\n"
+                        + "Admin đã cấp tài khoản cho bạn trên hệ thống Fresh Food Store.\n"
+                        + "Dưới đây là thông tin đăng nhập của bạn:\n"
+                        + "- Email: " + email + "\n"
+                        + "- Mật khẩu mặc định: " + defaultPass + "\n\n"
+                        + "Vui lòng đăng nhập và đổi mật khẩu ngay để bảo mật tài khoản.\n"
+                        + "Trân trọng,\nBan quản trị Fresh Food Store.";
+                
+                try {
+                    EmailUtils.sendEmail(email, subject, message);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    // Vẫn cho redirect vì tài khoản đã tạo xong, chỉ là lỗi gửi mail thông báo
+                }
+                
                 resp.sendRedirect("users?msg=Assign success");
             } else {
                 req.setAttribute("error", "Lỗi: Email này đã được sử dụng trong hệ thống.");

@@ -192,6 +192,23 @@ public class VoucherDAO {
         return discount.min(orderAmount);
     }
 
+    public List<Voucher> getActiveVouchers() {
+        List<Voucher> list = new ArrayList<>();
+        String sql = "SELECT * FROM dbo.Vouchers WHERE status = 1 " +
+                     "AND startAt <= SYSUTCDATETIME() AND endAt >= SYSUTCDATETIME() " +
+                     "AND (usageLimit IS NULL OR usedCount < usageLimit) " +
+                     "ORDER BY discountValue DESC";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) list.add(mapRow(rs));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     private Voucher mapRow(ResultSet rs) throws SQLException {
         Voucher v = new Voucher();
         v.setVoucherId(rs.getLong("voucherId"));

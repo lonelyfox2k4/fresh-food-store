@@ -144,4 +144,33 @@ public class NewsArticleDAO {
         } catch (Exception e) { e.printStackTrace(); }
         return list;
     }
+
+    public List<NewsArticle> getPublishedNewsPaged(int page, int pageSize) {
+        List<NewsArticle> list = new ArrayList<>();
+        int offset = (page - 1) * pageSize;
+        String sql = "SELECT * FROM NewsArticles WHERE status = 2 " +
+                     "ORDER BY publishedAt DESC " +
+                     "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, offset);
+            ps.setInt(2, pageSize);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(extractNewsFromResultSet(rs));
+                }
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return list;
+    }
+
+    public int getTotalPublishedCount() {
+        String sql = "SELECT COUNT(*) FROM NewsArticles WHERE status = 2";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) return rs.getInt(1);
+        } catch (Exception e) { e.printStackTrace(); }
+        return 0;
+    }
 }

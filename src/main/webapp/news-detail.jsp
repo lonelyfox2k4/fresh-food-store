@@ -14,11 +14,11 @@
     <style>
         .news-header {
             position: relative;
-            height: 400px;
+            height: 450px;
             background-size: cover;
             background-position: center;
             border-radius: 20px;
-            margin-bottom: -100px;
+            margin-bottom: -80px;
             z-index: 1;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
@@ -26,13 +26,13 @@
             content: '';
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.7) 100%);
+            background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.8) 100%);
             border-radius: 20px;
         }
         .news-content-card {
             background: white;
             border-radius: 20px;
-            padding: 80px 60px 40px;
+            padding: 100px 60px 40px;
             box-shadow: 0 5px 20px rgba(0,0,0,0.05);
             position: relative;
             z-index: 2;
@@ -77,38 +77,43 @@
     <div class="container py-4">
         <nav aria-label="breadcrumb" class="mb-4">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="home">Trang chủ</a></li>
-                <li class="breadcrumb-item"><a href="home">Tin tức</a></li>
+                <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/home">Trang chủ</a></li>
+                <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/news">Tin tức</a></li>
                 <li class="breadcrumb-item active" aria-current="page">Chi tiết</li>
             </ol>
         </nav>
 
         <div class="news-header" style="background-image: url('${headerImg}')">
-            <div class="position-absolute bottom-0 start-0 p-4 p-md-5 text-white" style="z-index: 2;">
-                <span class="badge bg-success mb-2">🌿 Food & Life</span>
-                <h1 class="display-5 fw-bold mb-0 text-shadow"><c:out value="${article.title}" /></h1>
-            </div>
+            <%-- Hero image only --%>
         </div>
 
         <div class="row justify-content-center mb-5">
             <div class="col-lg-10 col-xl-9">
                 <div class="news-content-card">
-                    <div class="article-meta">
-                        <i class="far fa-calendar-alt me-2"></i> 
-                        Ngày đăng: 
-                        <c:choose>
-                            <c:when test="${not empty article.publishedAt}">
-                                <fmt:parseDate value="${article.publishedAt}" pattern="yyyy-MM-dd'T'HH:mm" var="parsedDate" type="both" />
-                                <fmt:formatDate value="${parsedDate}" pattern="dd/MM/yyyy" />
-                            </c:when>
-                            <c:otherwise>
-                                <span class="text-muted italic">Đang cập nhật</span>
-                            </c:otherwise>
-                        </c:choose>
+                    <div class="mb-4">
+                        <span class="badge bg-success mb-3 px-3 py-2">🌿 Food & Life</span>
+                        <h1 class="article-title mt-0"><c:out value="${article.title}" /></h1>
+                        
+                        <div class="article-meta d-flex align-items-center gap-3 py-2 border-bottom border-top mt-4 mb-4">
+                            <div>
+                                <i class="far fa-calendar-alt me-2 text-success"></i> 
+                                <c:choose>
+                                    <c:when test="${not empty article.publishedAt}">
+                                        <fmt:parseDate value="${article.publishedAt}" pattern="yyyy-MM-dd'T'HH:mm" var="parsedDate" type="both" />
+                                        <fmt:formatDate value="${parsedDate}" pattern="dd/MM/yyyy" />
+                                    </c:when>
+                                    <c:otherwise>Đang cập nhật</c:otherwise>
+                                </c:choose>
+                            </div>
+                            <div class="text-muted">|</div>
+                            <div>
+                                <i class="far fa-user me-2 text-success"></i> Tác giả: Fresh Food
+                            </div>
+                        </div>
                     </div>
                     
-                    <div class="article-body mt-4">
-                        <div class="lead fw-bold text-dark mb-4" style="font-size: 1.4rem;">
+                    <div class="article-body">
+                        <div class="lead fw-bold text-dark mb-4 border-start border-4 border-success ps-4" style="font-size: 1.3rem;">
                             ${article.summary}
                         </div>
                         <hr class="my-5 opacity-10">

@@ -24,6 +24,11 @@ public class ManagerVoucherServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        Account user = (Account) request.getSession().getAttribute("user");
+        if (user == null || user.getRoleId() != 2) {
+            response.sendRedirect(request.getContextPath() + "/home");
+            return;
+        }
         List<VoucherRequest> list = voucherDAO.getPendingVoucherRequests();
         request.setAttribute("voucherRequests", list);
         request.getRequestDispatcher("/manager/voucher-requests.jsp").forward(request, response);
@@ -38,8 +43,8 @@ public class ManagerVoucherServlet extends HttpServlet {
             long requestId = Long.parseLong(request.getParameter("requestId"));
             Account manager = (Account) request.getSession().getAttribute("user");
             
-            if (manager == null) {
-                response.sendRedirect(request.getContextPath() + "/login");
+            if (manager == null || manager.getRoleId() != 2) {
+                response.sendRedirect(request.getContextPath() + "/home");
                 return;
             }
 

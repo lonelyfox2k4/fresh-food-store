@@ -34,7 +34,19 @@ public class VerifyRegisterController extends HttpServlet {
         if (attempts == null) attempts = 0;
 
         if (systemOtp == null || tempUser == null) {
-            req.setAttribute("errorMsg", "Phiên xác thực đã hết hạn, vui lòng đăng ký lại!");
+            req.setAttribute("errorMsg", "Phiên xác thực đã hết hạn hoặc không tồn tại!");
+            req.getRequestDispatcher("/main/register.jsp").forward(req, resp);
+            return;
+        }
+
+        // 3. Kiểm tra thời hạn 2 phút (120,000 ms)
+        Long lastSentTime = (Long) session.getAttribute("lastOtpSentTime");
+        long currentTime = System.currentTimeMillis();
+        if (lastSentTime != null && (currentTime - lastSentTime) > 120000) {
+            session.removeAttribute("registerOtp");
+            session.removeAttribute("tempUser");
+            session.removeAttribute("otpAttempts");
+            req.setAttribute("errorMsg", "Mã xác thực đã hết hạn (2 phút). Vui lòng đăng ký lại!");
             req.getRequestDispatcher("/main/register.jsp").forward(req, resp);
             return;
         }

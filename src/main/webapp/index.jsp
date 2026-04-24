@@ -29,14 +29,11 @@
     <div class="bg-white py-3 border-bottom shadow-sm mb-5">
         <div class="container">
             <div class="row text-center">
-                <div class="col-md-4 mb-2 mb-md-0">
+                <div class="col-md-6 mb-2 mb-md-0">
                     <h6 class="fw-bold m-0"><i class="fas fa-check-circle text-success fs-5 me-2 align-middle"></i>100% Sạch - Chuẩn VietGAP</h6>
                 </div>
-                <div class="col-md-4 mb-2 mb-md-0 border-start border-end">
+                <div class="col-md-6 border-start">
                     <h6 class="fw-bold m-0"><i class="fas fa-shipping-fast text-brand fs-5 me-2 align-middle"></i>Giao Hàng Thần Tốc 2H</h6>
-                </div>
-                <div class="col-md-4">
-                    <h6 class="fw-bold m-0"><i class="fas fa-exchange-alt text-primary fs-5 me-2 align-middle"></i>Đổi Trả 1-1 Nếu Không Tươi</h6>
                 </div>
             </div>
         </div>
@@ -106,9 +103,21 @@
                             <h6 class="card-title fw-bold text-dark text-truncate" title="${p.productName}">${p.productName}</h6>
                             <p class="text-muted small mb-2"><i class="fas fa-weight-hanging me-1"></i> Khay ${p.priceBaseWeightGram}g</p>
                             <div class="mt-auto mb-3">
-                                <h5 class="fw-bold mb-0 text-dark">
-                                    <fmt:formatNumber value="${p.basePriceAmount}" pattern="###,###" /> ₫
-                                </h5>
+                                <c:choose>
+                                    <c:when test="${not empty p.currentPrice and p.currentPrice lt p.basePriceAmount}">
+                                        <h5 class="text-brand fw-bold mb-0">
+                                            <fmt:formatNumber value="${p.currentPrice}" pattern="###,###" /> ₫
+                                        </h5>
+                                        <span class="text-muted text-decoration-line-through small">
+                                            <fmt:formatNumber value="${p.basePriceAmount}" pattern="###,###" /> ₫
+                                        </span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <h5 class="fw-bold mb-0 text-dark">
+                                            <fmt:formatNumber value="${p.basePriceAmount}" pattern="###,###" /> ₫
+                                        </h5>
+                                    </c:otherwise>
+                                </c:choose>
                             </div>
                             <form action="" method="post">
                                 <input type="hidden" name="productId" value="${p.productId}">

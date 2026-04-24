@@ -109,7 +109,10 @@ public class CartDAO {
         List<CartItemView> list = new ArrayList<>();
         String sql = "SELECT ci.cartItemId, pp.productPackId, p.productId, p.productName, p.imageUrl, pp.packWeightGram, " +
                 "CAST((p.basePriceAmount * 1.0 * pp.packWeightGram / NULLIF(p.priceBaseWeightGram, 0)) AS DECIMAL(18,2)) AS unitPrice, " +
-                "ci.quantity " +
+                "ci.quantity, " +
+                "ISNULL((SELECT SUM(ib.quantityOnHand - ib.quantityReserved) FROM dbo.InventoryBatches ib " +
+                " JOIN dbo.GoodsReceiptItems gri ON ib.receiptItemId = gri.receiptItemId " +
+                " WHERE gri.productPackId = pp.productPackId AND ib.status = 1 AND gri.expiryDate >= CAST(GETDATE() AS DATE)), 0) AS availableStock " +
                 "FROM dbo.CartItems ci " +
                 "INNER JOIN dbo.Carts c ON c.cartId = ci.cartId " +
                 "INNER JOIN dbo.ProductPacks pp ON pp.productPackId = ci.productPackId " +
@@ -131,6 +134,7 @@ public class CartDAO {
                     item.setPackWeightGram(rs.getInt("packWeightGram"));
                     item.setUnitPrice(rs.getBigDecimal("unitPrice"));
                     item.setQuantity(rs.getInt("quantity"));
+                    item.setAvailableStock(rs.getInt("availableStock"));
                     BigDecimal unitPrice = item.getUnitPrice() == null ? BigDecimal.ZERO : item.getUnitPrice();
                     item.setLineTotal(unitPrice.multiply(BigDecimal.valueOf(item.getQuantity())));
                     list.add(item);
@@ -295,5 +299,23 @@ public class CartDAO {
             e.printStackTrace();
         }
         return false;
+    }
+    public int getCartItemQuantity(long accountId, long productPackId) {
+        String sql = "SELECT ci.quantity FROM dbo.CartItems ci " +
+                "INNER JOIN dbo.Carts c ON c.cartId = ci.cartId " +
+                "WHERE c.accountId = ? AND ci.productPackId = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, accountId);
+            ps.setLong(2, productPackId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("quantity");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 }

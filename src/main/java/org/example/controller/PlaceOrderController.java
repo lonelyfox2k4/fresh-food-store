@@ -9,7 +9,6 @@ import org.example.model.order.Order;
 import org.example.utils.VnPayConfig;
 
 import java.io.IOException;
-import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -45,6 +44,27 @@ public class PlaceOrderController extends HttpServlet {
         String paymentMethod   = req.getParameter("paymentMethod");
         if (paymentMethod == null) paymentMethod = "COD";
 
+        // --- 1.1 Validation ---
+        if (recipientName.isEmpty() || recipientPhone.isEmpty() || shippingAddress.isEmpty()) {
+            session.setAttribute("checkoutError", "Vui lòng điền đầy đủ thông tin giao hàng.");
+            resp.sendRedirect(req.getContextPath() + "/checkout");
+            return;
+        }
+
+        // Phone: 10 digits, starts with 0
+        if (!recipientPhone.matches("^0\\d{9}$")) {
+            session.setAttribute("checkoutError", "Số điện thoại không hợp lệ (phải có 10 chữ số và bắt đầu bằng số 0).");
+            resp.sendRedirect(req.getContextPath() + "/checkout");
+            return;
+        }
+
+        // Name: No special characters (allow Unicode letters, numbers, and spaces)
+        if (!recipientName.matches("^[\\p{L}0-9\\s]+$")) {
+            session.setAttribute("checkoutError", "Tên người nhận không được chứa ký tự đặc biệt.");
+            resp.sendRedirect(req.getContextPath() + "/checkout");
+            return;
+        }
+
         // --- 2. Load cart ---
         long accountId = user.getAccountId();
         long cartId    = cartDAO.findOrCreateCartIdByAccountId(accountId);
@@ -58,8 +78,8 @@ public class PlaceOrderController extends HttpServlet {
 
         try {
             // --- 3. Create order ---
-            // Clear cart immediately for COD, but delay for VNPAY until payment success
-            boolean shouldClearCart = !"VNPAY".equalsIgnoreCase(paymentMethod);
+            // Always clear cart immediately to prevent duplicate submissions
+            boolean shouldClearCart = true;
             long orderId = orderDAO.createOrder(
                     accountId, recipientName, recipientPhone,
                     shippingAddress, note, cartItems, voucher, cartId, paymentMethod,
@@ -72,7 +92,7 @@ public class PlaceOrderController extends HttpServlet {
 
             // --- 5. Route by payment method ---
             if ("VNPAY".equalsIgnoreCase(paymentMethod)) {
-                String paymentUrl = buildVnPayUrl(req, orderId, accountId, recipientName, recipientPhone, shippingAddress, user);
+                String paymentUrl = buildVnPayUrl(req, orderId, accountId,  user);
                 resp.sendRedirect(paymentUrl);
             } else {
                 // COD
@@ -97,9 +117,6 @@ public class PlaceOrderController extends HttpServlet {
     private String buildVnPayUrl(HttpServletRequest req,
                                  long orderId,
                                  long accountId,
-                                 String recipientName,
-                                 String recipientPhone,
-                                 String shippingAddress,
                                  Account user) throws Exception {
 
         Order order = orderDAO.getOrderById(orderId, accountId);
@@ -134,21 +151,7 @@ public class PlaceOrderController extends HttpServlet {
         vnp_Params.put("vnp_CreateDate", createDate);
         vnp_Params.put("vnp_ExpireDate", expireDate);
 
-        // Đưa trực tiếp Billing Params vào map để tính HASH
-        vnp_Params.put("vnp_Bill_Mobile",  recipientPhone);
-        vnp_Params.put("vnp_Bill_Email",   user.getEmail());
 
-        String fullName = recipientName.trim();
-        if (fullName.contains(" ")) {
-            vnp_Params.put("vnp_Bill_FirstName", fullName.substring(0, fullName.indexOf(' ')));
-            vnp_Params.put("vnp_Bill_LastName",  fullName.substring(fullName.lastIndexOf(' ') + 1));
-        } else {
-            vnp_Params.put("vnp_Bill_FirstName", fullName);
-            vnp_Params.put("vnp_Bill_LastName",  "");
-        }
-        vnp_Params.put("vnp_Bill_Address", shippingAddress);
-        vnp_Params.put("vnp_Bill_City",    "HCM");
-        vnp_Params.put("vnp_Bill_Country", "VN");
 
         // Build chuỗi Hash và Query
         List<String> hashParts  = new ArrayList<>();

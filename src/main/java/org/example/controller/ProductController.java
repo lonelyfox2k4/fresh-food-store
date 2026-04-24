@@ -6,6 +6,7 @@ import org.example.dao.ProductPackDAO;
 import org.example.dao.ReviewDAO;
 import org.example.dao.WishlistDAO;
 import org.example.dto.ReviewDTO;
+import org.example.dto.ProductDTO;
 import org.example.model.auth.Account;
 import org.example.model.catalog.Category;
 import org.example.model.catalog.Product;
@@ -61,7 +62,7 @@ public class ProductController extends HttpServlet {
         int totalCount = productDAO.countProducts(keyword, categoryId);
         int totalPages = (int) Math.ceil((double) totalCount / PAGE_SIZE);
 
-        List<Product>  products   = productDAO.searchProducts(keyword, categoryId, offset, PAGE_SIZE);
+        List<ProductDTO>  products   = productDAO.searchProducts(keyword, categoryId, offset, PAGE_SIZE);
         List<Category> categories = categoryDAO.getAllActiveCategories();
 
         req.setAttribute("products",       products);
@@ -71,6 +72,9 @@ public class ProductController extends HttpServlet {
         req.setAttribute("currentPage",    page);
         req.setAttribute("totalPages",     totalPages);
         req.setAttribute("totalCount",     totalCount);
+
+        moveFlashToRequest(req, "cartSuccessMsg");
+        moveFlashToRequest(req, "cartErrorMsg");
 
         req.getRequestDispatcher("/products.jsp").forward(req, resp);
     }
@@ -87,7 +91,7 @@ public class ProductController extends HttpServlet {
         try { productId = Long.parseLong(idParam); }
         catch (NumberFormatException e) { resp.sendRedirect("products"); return; }
 
-        Product product = productDAO.getActiveProductById(productId);
+        ProductDTO product = productDAO.getActiveProductById(productId);
         if (product == null) { resp.sendRedirect("products"); return; }
 
         List<ProductPack> packs    = packDAO.getPacksByProductId(productId);
@@ -125,6 +129,19 @@ public class ProductController extends HttpServlet {
         req.setAttribute("avgRating",    avgRating);
         req.setAttribute("reviewCount",   reviewCount);
 
+        moveFlashToRequest(req, "cartSuccessMsg");
+        moveFlashToRequest(req, "cartErrorMsg");
+
         req.getRequestDispatcher("/product-detail.jsp").forward(req, resp);
+    }
+
+    private void moveFlashToRequest(HttpServletRequest req, String key) {
+        HttpSession session = req.getSession(false);
+        if (session == null) return;
+        Object value = session.getAttribute(key);
+        if (value != null) {
+            req.setAttribute(key, value);
+            session.removeAttribute(key);
+        }
     }
 }

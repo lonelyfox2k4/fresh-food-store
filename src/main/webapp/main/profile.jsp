@@ -37,7 +37,8 @@
                             <label class="form-label fw-semibold">Họ tên</label>
                             <input id="fullNameInput" type="text" name="fullName"
                                    class="form-control ${not empty fullNameError ? 'is-invalid' : ''}"
-                                   value="${not empty profileFullNameInput ? profileFullNameInput : profile.fullName}" required ${openEditMode ? '' : 'disabled'}>
+                                   value="${not empty profileFullNameInput ? profileFullNameInput : profile.fullName}"
+                                   maxlength="100" required ${openEditMode ? '' : 'disabled'}>
                             <c:if test="${not empty fullNameError}">
                                 <div class="invalid-feedback d-block">${fullNameError}</div>
                             </c:if>
@@ -47,7 +48,8 @@
                             <label class="form-label fw-semibold">Số điện thoại</label>
                             <input id="phoneInput" type="text" name="phone"
                                    class="form-control ${not empty phoneError ? 'is-invalid' : ''}"
-                                   value="${not empty profilePhoneInput ? profilePhoneInput : profile.phone}" ${openEditMode ? '' : 'disabled'}>
+                                   value="${not empty profilePhoneInput ? profilePhoneInput : profile.phone}"
+                                   maxlength="10" pattern="[0-9]{10}" inputmode="numeric" ${openEditMode ? '' : 'disabled'}>
                             <c:if test="${not empty phoneError}">
                                 <div class="invalid-feedback d-block">${phoneError}</div>
                             </c:if>

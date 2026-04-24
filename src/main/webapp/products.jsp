@@ -17,6 +17,14 @@
 <jsp:include page="components/header.jsp"/>
 
 <div class="container my-5">
+    <%-- Flash messages for Cart --%>
+    <c:if test="${not empty cartSuccessMsg}">
+        <div class="alert alert-success mb-3">${cartSuccessMsg}</div>
+    </c:if>
+    <c:if test="${not empty cartErrorMsg}">
+        <div class="alert alert-danger mb-3">${cartErrorMsg}</div>
+    </c:if>
+
     <div class="row g-4">
 
         <%-- ══ Sidebar filter ══════════════════════════════════════════════ --%>
@@ -95,7 +103,7 @@
                             <div class="col-sm-6 col-xl-4">
                                 <div class="card product-card h-100 position-relative">
                                     <%-- Flash badge --%>
-                                    <c:if test="${p.expiryPricingPolicyId != null}">
+                                    <c:if test="${p.currentPrice != null && p.currentPrice > 0 && p.currentPrice < p.basePriceAmount}">
                                         <span class="badge-flash position-absolute" style="left:0;top:0;z-index:10;">
                                             <i class="fas fa-bolt me-1"></i>Giá sốc
                                         </span>
@@ -116,7 +124,7 @@
                                     </c:if>
 
                                     <a href="${pageContext.request.contextPath}/product-detail?id=${p.productId}">
-                                        <img src="${not empty p.imageUrl ? p.imageUrl : 'https://via.placeholder.com/400x300/fdf2f2/E3000F?text=Fresh+Food'}"
+                                        <img src="${not empty p.imageUrl ? (p.imageUrl.startsWith('http') ? p.imageUrl : pageContext.request.contextPath.concat('/').concat(p.imageUrl)) : 'https://via.placeholder.com/400x300/fdf2f2/E3000F?text=Fresh+Food'}"
                                              class="card-img-top product-img" alt="${p.productName}">
                                     </a>
 
@@ -132,7 +140,21 @@
                                         </small>
                                         <div class="mt-auto">
                                             <div class="price-main mb-2">
-                                                <fmt:formatNumber value="${p.basePriceAmount}" pattern="###,###"/> ₫
+                                                <c:choose>
+                                                    <c:when test="${not empty p.currentPrice and p.currentPrice lt p.basePriceAmount}">
+                                                        <span class="text-danger fw-bold fs-5">
+                                                            <fmt:formatNumber value="${p.currentPrice}" pattern="###,###"/> ₫
+                                                        </span>
+                                                        <span class="text-muted text-decoration-line-through small ms-1">
+                                                            <fmt:formatNumber value="${p.basePriceAmount}" pattern="###,###"/> ₫
+                                                        </span>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <span class="fw-bold fs-5">
+                                                            <fmt:formatNumber value="${p.basePriceAmount}" pattern="###,###"/> ₫
+                                                        </span>
+                                                    </c:otherwise>
+                                                </c:choose>
                                             </div>
                                             <a href="${pageContext.request.contextPath}/product-detail?id=${p.productId}"
                                                class="btn btn-brand w-100 fw-bold">

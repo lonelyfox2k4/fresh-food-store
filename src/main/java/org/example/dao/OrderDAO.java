@@ -83,10 +83,10 @@ public class OrderDAO {
                     ? BigDecimal.ZERO : new BigDecimal("30000");
 
             // ── 4. Insert Order row (totals corrected later after expiry calc) ─
-            String orderCode = "ORD" + System.currentTimeMillis();
+            String orderCode = "ORD" + System.currentTimeMillis() + (int)(Math.random() * 1000);
             long orderId = insertOrder(conn, orderCode, accountId,
                     subtotalAmount, voucherDiscount, shippingFee,
-                    recipientName, recipientPhone, shippingAddress, note);
+                    recipientName, recipientPhone, shippingAddress, note, (byte) 0);
 
             // ── 5. FEFO allocation loop ──────────────────────────────────────
             BigDecimal totalExpiryDiscount = BigDecimal.ZERO;
@@ -280,6 +280,34 @@ public class OrderDAO {
         return list;
     }
 
+    public List<Order> getOrdersByAccountPaginated(long accountId, int offset, int limit) {
+        List<Order> list = new ArrayList<>();
+        String sql = "SELECT * FROM dbo.Orders WHERE accountId = ? " +
+                     "ORDER BY placedAt DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, accountId);
+            ps.setInt(2, offset);
+            ps.setInt(3, limit);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) list.add(mapOrder(rs));
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return list;
+    }
+
+    public int countOrdersByAccount(long accountId) {
+        String sql = "SELECT COUNT(*) FROM dbo.Orders WHERE accountId = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, accountId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return 0;
+    }
+
     /** Returns the order only if it belongs to the given accountId (ownership check). */
     public Order getOrderById(long orderId, long accountId) {
         String sql = "SELECT * FROM dbo.Orders WHERE orderId = ? AND accountId = ?";
@@ -378,24 +406,25 @@ public class OrderDAO {
 
     private long insertOrder(Connection conn, String orderCode, long accountId,
                               BigDecimal subtotal, BigDecimal discount, BigDecimal shippingFee,
-                              String name, String phone, String address, String note) throws SQLException {
+                              String name, String phone, String address, String note, byte paymentStatus) throws SQLException {
         String sql = "INSERT INTO dbo.Orders " +
                 "(orderCode, accountId, orderStatus, paymentStatus, " +
                 " subtotalAmount, discountAmount, shippingFee, totalAmount, " +
                 " recipientNameSnapshot, recipientPhoneSnapshot, shippingAddressSnapshot, note) " +
-                "VALUES (?, ?, 1, 1, ?, ?, ?, ?, ?, ?, ?, ?)";
+                "VALUES (?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         BigDecimal preliminary = subtotal.subtract(discount).add(shippingFee).max(BigDecimal.ZERO);
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, orderCode);
             ps.setLong(2, accountId);
-            ps.setBigDecimal(3, subtotal);
-            ps.setBigDecimal(4, discount);   // updated later
-            ps.setBigDecimal(5, shippingFee);
-            ps.setBigDecimal(6, preliminary); // updated later
-            ps.setNString(7, name);
-            ps.setNString(8, phone);
-            ps.setNString(9, address);
-            ps.setNString(10, note);
+            ps.setByte(3, paymentStatus);
+            ps.setBigDecimal(4, subtotal);
+            ps.setBigDecimal(5, discount);   // updated later
+            ps.setBigDecimal(6, shippingFee);
+            ps.setBigDecimal(7, preliminary); // updated later
+            ps.setNString(8, name);
+            ps.setNString(9, phone);
+            ps.setNString(10, address);
+            ps.setNString(11, note);
             ps.executeUpdate();
             try (ResultSet rs = ps.getGeneratedKeys()) {
                 if (rs.next()) return rs.getLong(1);
@@ -494,7 +523,7 @@ public class OrderDAO {
     private void insertPayment(Connection conn, long orderId, BigDecimal amount, String provider) throws SQLException {
         try (PreparedStatement ps = conn.prepareStatement(
                 "INSERT INTO dbo.Payments (orderId, provider, amount, paymentStatus) " +
-                "VALUES (?, ?, ?, 1)")) {
+                "VALUES (?, ?, ?, 0)")) {
             ps.setLong(1, orderId);
             ps.setString(2, provider);
             ps.setBigDecimal(3, amount);
@@ -524,17 +553,20 @@ public class OrderDAO {
     }
 
     private void updatePaymentRecord(long orderId, byte status) throws SQLException {
+        String sql = "UPDATE dbo.Payments SET paymentStatus = ?, "
+                   + "paidAt = CASE WHEN ? = 2 THEN SYSUTCDATETIME() ELSE paidAt END "
+                   + "WHERE orderId = ?";
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(
-                     "UPDATE dbo.Payments SET paymentStatus = ?, updatedAt = SYSUTCDATETIME() WHERE orderId = ?")) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setByte(1, status);
-            ps.setLong(2, orderId);
+            ps.setByte(2, status);
+            ps.setLong(3, orderId);
             ps.executeUpdate();
         }
     }
 
     public void updatePaymentTransaction(long orderId, String transactionNo) {
-        String sql = "UPDATE dbo.Payments SET transactionId = ?, updatedAt = SYSUTCDATETIME() WHERE orderId = ?";
+        String sql = "UPDATE dbo.Payments SET gatewayTransactionId = ? WHERE orderId = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, transactionNo);
@@ -621,6 +653,35 @@ public class OrderDAO {
         return list;
     }
 
+    public List<Order> getOrdersByDateRange(String startDate, String endDate) {
+        List<Order> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("SELECT * FROM dbo.Orders WHERE 1=1 ");
+        
+        if (startDate != null && !startDate.isEmpty()) {
+            sql.append(" AND placedAt >= ? ");
+        }
+        if (endDate != null && !endDate.isEmpty()) {
+            sql.append(" AND placedAt <= ? ");
+        }
+        sql.append(" ORDER BY placedAt DESC");
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            int paramIndex = 1;
+            if (startDate != null && !startDate.isEmpty()) {
+                ps.setTimestamp(paramIndex++, java.sql.Timestamp.valueOf(startDate + " 00:00:00"));
+            }
+            if (endDate != null && !endDate.isEmpty()) {
+                ps.setTimestamp(paramIndex++, java.sql.Timestamp.valueOf(endDate + " 23:59:59"));
+            }
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) list.add(mapOrder(rs));
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return list;
+    }
+
     public List<Order> getOrdersByShipper(long shipperId) {
         List<Order> list = new ArrayList<>();
         String sql = "SELECT * FROM dbo.Orders WHERE shipperId = ? ORDER BY placedAt DESC";
@@ -673,11 +734,18 @@ public class OrderDAO {
 
     public boolean updateOrderStatus(long orderId, byte status) {
         String sql = "UPDATE dbo.Orders SET orderStatus = ? WHERE orderId = ?";
+        
+        // Nếu là trạng thái 3 (Đã đóng gói), ta ép luôn shipperId và shippingStatus tại đây cho chắc
+        if (status == 3) {
+            sql = "UPDATE dbo.Orders SET orderStatus = ?, shipperId = 12, shippingStatus = 1 WHERE orderId = ?";
+        }
+
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setByte(1, status);
             ps.setLong(2, orderId);
-            return ps.executeUpdate() > 0;
+            int rows = ps.executeUpdate();
+            return rows > 0;
         } catch (Exception e) { e.printStackTrace(); }
         return false;
     }
@@ -718,7 +786,10 @@ public class OrderDAO {
     }
 
     public boolean updateDeliverySuccess(long orderId) {
-        String sql = "UPDATE dbo.Orders SET shippingStatus = 3, orderStatus = 5, paymentStatus = 2, paidAt = SYSUTCDATETIME() WHERE orderId = ?";
+        String sql = "UPDATE dbo.Orders SET shippingStatus = 3, orderStatus = 5, "
+                   + "paymentStatus = CASE WHEN paymentStatus = 1 THEN 1 ELSE 2 END, "
+                   + "paidAt = CASE WHEN paidAt IS NULL THEN SYSUTCDATETIME() ELSE paidAt END "
+                   + "WHERE orderId = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, orderId);
@@ -786,7 +857,7 @@ public class OrderDAO {
     public boolean redeliverOrder(long orderId) {
         // Chuyển thẳng sang trạng thái Đã đóng gói (3) để chờ gán Shipper đi giao lại luôn
         // Xóa sạch các dấu vết cũ của lần giao thất bại (cancelledAt, cancelledReason, shipperId)
-        String sql = "UPDATE dbo.Orders SET orderStatus = 3, shippingStatus = 1, shipperId = NULL, "
+        String sql = "UPDATE dbo.Orders SET orderStatus = 3, shippingStatus = 1, shipperId = 12, "
                    + "cancelledAt = NULL, cancelledReason = NULL WHERE orderId = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -794,5 +865,66 @@ public class OrderDAO {
             return ps.executeUpdate() > 0;
         } catch (Exception e) { e.printStackTrace(); }
         return false;
+    }
+
+    public java.util.Map<String, Object> getShipperStats(long shipperId) {
+        java.util.Map<String, Object> stats = new java.util.HashMap<>();
+        stats.put("totalOrders", 0);
+        stats.put("successOrders", 0);
+        stats.put("totalEarnings", java.math.BigDecimal.ZERO);
+        stats.put("totalIncome", java.math.BigDecimal.ZERO);
+        stats.put("totalRemitted", java.math.BigDecimal.ZERO);
+        stats.put("activeOrders", 0);
+
+        String sql = "SELECT " +
+                     "  COUNT(*) AS totalOrders, " +
+                     "  SUM(CASE WHEN shippingStatus = 3 THEN 1 ELSE 0 END) AS successOrders, " +
+                     "  SUM(CASE WHEN shippingStatus = 3 AND paymentStatus = 2 THEN totalAmount ELSE 0 END) AS totalEarnings, " +
+                     "  SUM(CASE WHEN shippingStatus = 3 THEN shippingFee ELSE 0 END) AS totalIncome, " +
+                     "  SUM(CASE WHEN shippingStatus = 3 AND paymentStatus = 3 THEN totalAmount ELSE 0 END) AS totalRemitted, " +
+                     "  SUM(CASE WHEN shippingStatus IN (1, 2) THEN 1 ELSE 0 END) AS activeOrders " +
+                     "FROM dbo.Orders WHERE shipperId = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, shipperId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    stats.put("totalOrders", rs.getInt("totalOrders"));
+                    stats.put("successOrders", rs.getInt("successOrders"));
+                    java.math.BigDecimal earnings = rs.getBigDecimal("totalEarnings");
+                    stats.put("totalEarnings", earnings != null ? earnings : java.math.BigDecimal.ZERO);
+                    java.math.BigDecimal income = rs.getBigDecimal("totalIncome");
+                    stats.put("totalIncome", income != null ? income : java.math.BigDecimal.ZERO);
+                    java.math.BigDecimal remitted = rs.getBigDecimal("totalRemitted");
+                    stats.put("totalRemitted", remitted != null ? remitted : java.math.BigDecimal.ZERO);
+                    stats.put("activeOrders", rs.getInt("activeOrders"));
+                }
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return stats;
+    }
+
+    public boolean remitCOD(long shipperId) {
+        String sql = "UPDATE dbo.Orders SET paymentStatus = 3 WHERE shipperId = ? AND shippingStatus = 3 AND paymentStatus = 2";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, shipperId);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) { e.printStackTrace(); }
+        return false;
+    }
+
+    public List<Order> getLatestOrdersByAccount(long accountId, int limit) {
+        List<Order> list = new ArrayList<>();
+        String sql = "SELECT TOP (?) * FROM dbo.Orders WHERE accountId = ? ORDER BY placedAt DESC";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, limit);
+            ps.setLong(2, accountId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) list.add(mapOrder(rs));
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return list;
     }
 }

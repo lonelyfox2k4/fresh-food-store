@@ -12,11 +12,11 @@ public class CartItemView {
     private BigDecimal unitPrice;
     private int quantity;
     private BigDecimal lineTotal;
+    private int availableStock;
 
     public long getCartItemId() {
         return cartItemId;
     }
-
     public void setCartItemId(long cartItemId) {
         this.cartItemId = cartItemId;
     }
@@ -83,5 +83,13 @@ public class CartItemView {
 
     public void setLineTotal(BigDecimal lineTotal) {
         this.lineTotal = lineTotal;
+    }
+
+    public int getAvailableStock() {
+        return availableStock;
+    }
+
+    public void setAvailableStock(int availableStock) {
+        this.availableStock = availableStock;
     }
 }

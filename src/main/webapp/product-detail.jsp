@@ -16,6 +16,14 @@
 <jsp:include page="components/header.jsp"/>
 
 <div class="container my-5">
+    <%-- Flash messages for Cart --%>
+    <c:if test="${not empty cartSuccessMsg}">
+        <div class="alert alert-success mb-3">${cartSuccessMsg}</div>
+    </c:if>
+    <c:if test="${not empty cartErrorMsg}">
+        <div class="alert alert-danger mb-3">${cartErrorMsg}</div>
+    </c:if>
+
     <%-- Breadcrumb --%>
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
@@ -30,14 +38,14 @@
         <%-- ══ Product image ═══════════════════════════════════════════════ --%>
         <div class="col-lg-5">
             <div class="rounded-3 overflow-hidden shadow">
-                <img src="${not empty product.imageUrl ? product.imageUrl : 'https://via.placeholder.com/600x500/fdf2f2/E3000F?text=Fresh+Food'}"
+                <img src="${not empty product.imageUrl ? (product.imageUrl.startsWith('http') ? product.imageUrl : pageContext.request.contextPath.concat('/').concat(product.imageUrl)) : 'https://via.placeholder.com/600x500/fdf2f2/E3000F?text=Fresh+Food'}"
                      class="img-fluid w-100" style="max-height:480px;object-fit:cover;"
                      alt="${product.productName}" id="mainProductImg">
             </div>
-            <c:if test="${product.expiryPricingPolicyId != null}">
+            <c:if test="${product.currentPrice lt product.basePriceAmount}">
                 <div class="alert alert-danger d-flex align-items-center gap-2 mt-3 py-2" role="alert">
                     <i class="fas fa-bolt text-warning"></i>
-                    <small><strong>Giá sốc hôm nay!</strong> Sản phẩm này đang được giảm giá theo hạn sử dụng.</small>
+                    <small><strong>Giá sốc hôm nay!</strong> Sản phẩm này đang được giảm giá <fmt:formatNumber value="${100 - product.discountPercent}" pattern="#"/>%.</small>
                 </div>
             </c:if>
         </div>
@@ -66,9 +74,17 @@
             <div class="bg-light rounded-3 p-3 mb-4">
                 <p class="text-muted small mb-1">Giá niêm yết / <strong>${product.priceBaseWeightGram}g</strong></p>
                 <div class="price-main fs-1 fw-bold" id="priceDisplay">
-                    <fmt:formatNumber value="${product.basePriceAmount}" pattern="###,###"/> ₫
+                    <c:choose>
+                        <c:when test="${product.currentPrice lt product.basePriceAmount}">
+                            <span class="text-danger"><fmt:formatNumber value="${product.currentPrice}" pattern="###,###"/> ₫</span>
+                            <span class="text-muted text-decoration-line-through fs-5 ms-2"><fmt:formatNumber value="${product.basePriceAmount}" pattern="###,###"/> ₫</span>
+                        </c:when>
+                        <c:otherwise>
+                            <fmt:formatNumber value="${product.basePriceAmount}" pattern="###,###"/> ₫
+                        </c:otherwise>
+                    </c:choose>
                 </div>
-                <p class="text-muted small mb-0" id="priceNote">Chọn gói để xem giá chính xác</p>
+                <p class="text-muted small mb-0" id="priceNote">Chọn gói khối lượng bên dưới</p>
             </div>
 
             <%-- Pack selector --%>
@@ -85,7 +101,7 @@
                                        id="pack${pk.productPackId}"
                                        value="${pk.productPackId}"
                                        data-weight="${pk.packWeightGram}"
-                                       data-base="${product.basePriceAmount}"
+                                       data-base="${product.currentPrice}"
                                        data-base-weight="${product.priceBaseWeightGram}"
                                        data-stock="${pk.availableStock}"
                                        ${s.first ? 'checked' : ''}

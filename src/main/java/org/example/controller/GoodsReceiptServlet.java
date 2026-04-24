@@ -28,14 +28,25 @@ public class GoodsReceiptServlet extends HttpServlet {
             action = "list";
         }
 
+        Account user = (Account) request.getSession().getAttribute("user");
+        boolean isAdmin = user != null && user.getRoleId() == 1;
+
         switch (action) {
             case "detail":
                 showDetail(request, response);
                 break;
             case "new":
+                if (isAdmin) {
+                    response.sendRedirect(request.getContextPath() + "/manager/goods-receipts");
+                    return;
+                }
                 showForm(request, response, createBlankForm(resolveLineCount(request)));
                 break;
             case "edit":
+                if (isAdmin) {
+                    response.sendRedirect(request.getContextPath() + "/manager/goods-receipts");
+                    return;
+                }
                 showEditForm(request, response);
                 break;
             default:
@@ -58,6 +69,11 @@ public class GoodsReceiptServlet extends HttpServlet {
 
         try {
             Account user = (Account) request.getSession().getAttribute("user");
+            if (user != null && user.getRoleId() == 1) {
+                request.setAttribute("error", "Tài khoản Quản trị viên chỉ có quyền xem, không có quyền thay đổi dữ liệu kho.");
+                listReceipts(request, response);
+                return;
+            }
             long accountId = user != null ? user.getAccountId() : 1L;
             if (form.getReceiptId() == null) {
                 long receiptId = inventoryDAO.createReceipt(form, accountId);

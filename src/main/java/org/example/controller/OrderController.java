@@ -45,8 +45,26 @@ public class OrderController extends HttpServlet {
     private void showOrderHistory(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         Account user = getUser(req);
-        List<Order> orders = orderDAO.getOrdersByAccount(user.getAccountId());
+        
+        int page = 1;
+        int pageSize = 5; // Default items per page
+        try {
+            if (req.getParameter("page") != null) {
+                page = Integer.parseInt(req.getParameter("page"));
+            }
+        } catch (NumberFormatException ignored) {}
+
+        int offset = (page - 1) * pageSize;
+        int totalOrders = orderDAO.countOrdersByAccount(user.getAccountId());
+        int totalPages = (int) Math.ceil((double) totalOrders / pageSize);
+
+        List<Order> orders = orderDAO.getOrdersByAccountPaginated(user.getAccountId(), offset, pageSize);
+        
         req.setAttribute("orders", orders);
+        req.setAttribute("currentPage", page);
+        req.setAttribute("totalPages", totalPages);
+        req.setAttribute("pageSize", pageSize);
+        
         req.getRequestDispatcher("/main/order-history.jsp").forward(req, resp);
     }
 

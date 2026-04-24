@@ -16,6 +16,16 @@
 
 <main class="container py-5 flex-grow-1">
     <h2 class="mb-4">Thông tin thanh toán</h2>
+    
+    <%-- Hiển thị thông báo lỗi nếu có --%>
+    <c:if test="${not empty sessionScope.checkoutError}">
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fa-solid fa-circle-exclamation me-2"></i>
+            ${sessionScope.checkoutError}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <c:remove var="checkoutError" scope="session"/>
+    </c:if>
 
     <div class="row g-4">
         <%-- Left Column: Form Info --%>
@@ -164,6 +174,13 @@
 </main>
 
 <jsp:include page="../components/footer.jsp"/>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('checkoutForm').addEventListener('submit', function() {
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>ĐANG XỬ LÝ...';
+        });
+    </script>
 </body>
 </html>

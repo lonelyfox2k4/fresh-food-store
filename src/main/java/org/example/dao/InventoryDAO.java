@@ -630,4 +630,23 @@ public class InventoryDAO {
         item.setExpired(days < 0);
         item.setExpiringSoon(days >= 0 && days <= EXPIRING_SOON_DAYS);
     }
+    public int getAvailableStockByPackId(long productPackId) {
+        String sql = "SELECT SUM(ib.quantityOnHand - ib.quantityReserved) AS availableStock " +
+                "FROM dbo.InventoryBatches ib " +
+                "JOIN dbo.GoodsReceiptItems gri ON ib.receiptItemId = gri.receiptItemId " +
+                "WHERE gri.productPackId = ? AND ib.status = 1 AND gri.expiryDate >= CAST(GETDATE() AS DATE)";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, productPackId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    int stock = rs.getInt("availableStock");
+                    return Math.max(stock, 0);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
 }

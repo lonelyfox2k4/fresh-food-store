@@ -1,6 +1,7 @@
 package org.example.controller;
 
 import org.example.dao.NewsArticleDAO;
+import org.example.model.auth.Account;
 import org.example.model.content.NewsArticle;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -43,23 +44,56 @@ public class NewsArticleServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         String action = request.getParameter("action");
 
+        HttpSession session = request.getSession();
+        Account user = (Account) session.getAttribute("user");
+
+        // 1. Authorization Check (Only Admin=1 or Staff=2 can modify news)
+        if (user == null || (user.getRoleId() != 1 && user.getRoleId() != 2)) {
+            response.sendRedirect(request.getContextPath() + "/login?error=unauthorized");
+            return;
+        }
+
         try {
             if ("create".equals(action) || "update".equals(action)) {
+                String title = request.getParameter("title");
+                String summary = request.getParameter("summary");
+                String content = request.getParameter("content");
+                String imageUrl = request.getParameter("imageUrl");
+
+                // 2. Logic Validation
+                String error = null;
+                if (title == null || title.trim().length() < 5) error = "Tiêu đề quá ngắn (tối thiểu 5 ký tự)";
+                else if (title.length() > 150) error = "Tiêu đề quá dài (tối đa 150 ký tự)";
+                else if (summary == null || summary.trim().length() < 10) error = "Tóm tắt quá ngắn (tối thiểu 10 ký tự)";
+                else if (summary.length() > 300) error = "Tóm tắt quá dài (tối đa 300 ký tự)";
+                else if (content == null || content.trim().isEmpty()) error = "Nội dung bài viết không được để trống";
+
+                if (error != null) {
+                    request.setAttribute("error", error);
+                    // Preserve input data
+                    NewsArticle n = new NewsArticle();
+                    if ("update".equals(action)) n.setNewsId(Long.parseLong(request.getParameter("newsId")));
+                    n.setTitle(title);
+                    n.setSummary(summary);
+                    n.setContent(content);
+                    n.setImageUrl(imageUrl);
+                    request.setAttribute("news", n);
+                    request.getRequestDispatcher("/staff/news-form.jsp").forward(request, response);
+                    return;
+                }
+
                 NewsArticle n = new NewsArticle();
                 if ("update".equals(action)) {
                     n.setNewsId(Long.parseLong(request.getParameter("newsId")));
                 }
 
-                n.setTitle(request.getParameter("title"));
-                n.setSummary(request.getParameter("summary"));
-                n.setContent(request.getParameter("content"));
-                n.setImageUrl(request.getParameter("imageUrl"));
-                n.setCreatedByAccountId(1L); 
-                HttpSession session = request.getSession();
-                Account user = (Account) session.getAttribute("user");
-                if (user != null) n.setCreatedByAccountId(user.getAccountId());
+                n.setTitle(title.trim());
+                n.setSummary(summary.trim());
+                n.setContent(content);
+                n.setImageUrl(imageUrl != null ? imageUrl.trim() : null);
+                n.setCreatedByAccountId(user.getAccountId());
 
-                // Kiểm tra nút bấm: publish (đăng ngay) hay draft (lưu nháp)
+                // Button choice: publish (2) or draft (0)
                 String btn = request.getParameter("submitBtn");
                 n.setStatus("publish".equals(btn) ? (byte)2 : (byte)0);
 

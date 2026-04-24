@@ -46,22 +46,16 @@ public class VnPayReturnController extends HttpServlet {
         // Verify Signature
         String signValue = VnPayConfig.hashAllFields(fields);
 
-        if (signValue.equals(vnp_SecureHash)) {
+        if (signValue.equalsIgnoreCase(vnp_SecureHash)) {
             String vnp_ResponseCode = req.getParameter("vnp_ResponseCode");
             long orderId = Long.parseLong(req.getParameter("vnp_TxnRef"));
             String transactionNo = req.getParameter("vnp_TransactionNo");
 
             if ("00".equals(vnp_ResponseCode)) {
                 // Payment Success
-                // paymentStatus = 2 (PAID), orderStatus = 2 (PROCESSING)
-                orderDAO.updatePaymentStatus(orderId, (byte) 2, (byte) 2);
+                // paymentStatus = 1 (PAID), orderStatus = 2 (PROCESSING)
+                orderDAO.updatePaymentStatus(orderId, (byte) 1, (byte) 2);
                 orderDAO.updatePaymentTransaction(orderId, transactionNo);
-                
-                // Clear cart now that payment is confirmed
-                if (user != null) {
-                    long cartId = cartDAO.findOrCreateCartIdByAccountId(user.getAccountId());
-                    cartDAO.clearCart(cartId);
-                }
                 
                 resp.sendRedirect(req.getContextPath() + "/order-success?id=" + orderId);
             } else {

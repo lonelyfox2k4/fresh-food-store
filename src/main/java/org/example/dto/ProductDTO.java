@@ -18,6 +18,7 @@ public class ProductDTO {
     private Integer expiryPricingPolicyId;
     private boolean status;
     private String imageUrl;
+    private String description;
 
     // Thông tin bổ sung từ JOIN & Logic
     private Long supplierId;
@@ -29,6 +30,7 @@ public class ProductDTO {
     private int daysRemaining;
     private BigDecimal discountPercent; // % giá bán (ví dụ 80% là giảm 20%)
     private BigDecimal currentPrice;
+    private int totalAvailableStock;
 
     // Getters/Setters thủ công để đảm bảo hoạt động
     public long getProductId() {
@@ -157,5 +159,21 @@ public class ProductDTO {
 
     public void setCurrentPrice(BigDecimal currentPrice) {
         this.currentPrice = currentPrice;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public int getTotalAvailableStock() {
+        return totalAvailableStock;
+    }
+
+    public void setTotalAvailableStock(int totalAvailableStock) {
+        this.totalAvailableStock = totalAvailableStock;
     }
 }

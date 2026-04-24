@@ -1,6 +1,7 @@
 package org.example.controller;
 
 import org.example.dao.CartDAO;
+import org.example.dao.InventoryDAO;
 import org.example.model.auth.Account;
 import org.example.model.order.CartItemView;
 
@@ -17,6 +18,7 @@ import java.util.List;
 @WebServlet(urlPatterns = {"/cart", "/cart/add", "/cart/update", "/cart/remove"})
 public class CartController extends HttpServlet {
     private final CartDAO cartDAO = new CartDAO();
+    private final InventoryDAO inventoryDAO = new InventoryDAO();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -92,6 +94,20 @@ public class CartController extends HttpServlet {
             return;
         }
 
+        int currentInCart = cartDAO.getCartItemQuantity(accountId, productPackId);
+        int availableStock = inventoryDAO.getAvailableStockByPackId(productPackId);
+
+        if (currentInCart + quantity > availableStock) {
+            int canAdd = availableStock - currentInCart;
+            if (canAdd <= 0) {
+                setFlash(req, "cartErrorMsg", "Sản phẩm này đã hết hàng hoặc bạn đã có số lượng tối đa trong giỏ.");
+            } else {
+                setFlash(req, "cartErrorMsg", "Số lượng trong kho không đủ. Bạn chỉ có thể thêm tối đa " + canAdd + " sản phẩm nữa.");
+            }
+            resp.sendRedirect(resolveReturnUrl(req));
+            return;
+        }
+
         boolean ok = cartDAO.addOrIncreaseItem(accountId, productPackId, quantity);
         if (ok) {
             refreshCartCount(req, accountId);
@@ -114,11 +130,34 @@ public class CartController extends HttpServlet {
             return;
         }
 
+        // Fetch item details first
+        long productPackId = -1;
+        String productName = "sản phẩm";
+        List<CartItemView> items = cartDAO.getCartItemsByAccountId(accountId);
+        for (CartItemView item : items) {
+            if (item.getCartItemId() == cartItemId) {
+                productPackId = item.getProductPackId();
+                productName = item.getProductName();
+                break;
+            }
+        }
+
+        if (quantity > 0) {
+            if (productPackId > 0) {
+                int availableStock = inventoryDAO.getAvailableStockByPackId(productPackId);
+                if (quantity > availableStock) {
+                    setFlash(req, "cartErrorMsg", "Số lượng cập nhật vượt quá tồn kho hiện có (Tối đa: " + availableStock + ").");
+                    resp.sendRedirect(req.getContextPath() + "/cart");
+                    return;
+                }
+            }
+        }
+
         boolean ok;
         if (quantity <= 0) {
             ok = cartDAO.removeItem(accountId, cartItemId);
             if (ok) {
-                setFlash(req, "cartSuccessMsg", "Đã xóa sản phẩm khỏi giỏ hàng.");
+                setFlash(req, "cartSuccessMsg", "Đã xóa " + productName + " khỏi giỏ hàng.");
             } else {
                 setFlash(req, "cartErrorMsg", "Xóa sản phẩm thất bại.");
             }
@@ -143,9 +182,18 @@ public class CartController extends HttpServlet {
             return;
         }
 
+        String productName = "sản phẩm";
+        List<CartItemView> items = cartDAO.getCartItemsByAccountId(accountId);
+        for (CartItemView item : items) {
+            if (item.getCartItemId() == cartItemId) {
+                productName = item.getProductName();
+                break;
+            }
+        }
+
         boolean ok = cartDAO.removeItem(accountId, cartItemId);
         if (ok) {
-            setFlash(req, "cartSuccessMsg", "Đã xóa sản phẩm khỏi giỏ hàng.");
+            setFlash(req, "cartSuccessMsg", "Đã xóa " + productName + " khỏi giỏ hàng.");
         } else {
             setFlash(req, "cartErrorMsg", "Xóa sản phẩm thất bại.");
         }
