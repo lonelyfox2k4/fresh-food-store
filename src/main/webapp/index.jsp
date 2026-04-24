@@ -103,9 +103,21 @@
                             <h6 class="card-title fw-bold text-dark text-truncate" title="${p.productName}">${p.productName}</h6>
                             <p class="text-muted small mb-2"><i class="fas fa-weight-hanging me-1"></i> Khay ${p.priceBaseWeightGram}g</p>
                             <div class="mt-auto mb-3">
-                                <h5 class="fw-bold mb-0 text-dark">
-                                    <fmt:formatNumber value="${p.basePriceAmount}" pattern="###,###" /> ₫
-                                </h5>
+                                <c:choose>
+                                    <c:when test="${not empty p.currentPrice and p.currentPrice lt p.basePriceAmount}">
+                                        <h5 class="text-brand fw-bold mb-0">
+                                            <fmt:formatNumber value="${p.currentPrice}" pattern="###,###" /> ₫
+                                        </h5>
+                                        <span class="text-muted text-decoration-line-through small">
+                                            <fmt:formatNumber value="${p.basePriceAmount}" pattern="###,###" /> ₫
+                                        </span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <h5 class="fw-bold mb-0 text-dark">
+                                            <fmt:formatNumber value="${p.basePriceAmount}" pattern="###,###" /> ₫
+                                        </h5>
+                                    </c:otherwise>
+                                </c:choose>
                             </div>
                             <form action="" method="post">
                                 <input type="hidden" name="productId" value="${p.productId}">

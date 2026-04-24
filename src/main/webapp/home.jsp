@@ -163,23 +163,14 @@
                                     <i class="fas fa-clock me-1 text-danger"></i>Giao ngay trong ngày
                                 </small>
                                 <div class="mt-auto">
-                                    <div class="price-main mb-1">
-                                        <c:choose>
-                                            <c:when test="${not empty p.currentPrice and p.currentPrice lt p.basePriceAmount}">
-                                                <span class="text-danger fw-bold fs-5">
-                                                    <fmt:formatNumber value="${p.currentPrice}" pattern="###,###"/> ₫
-                                                </span>
-                                                <span class="text-muted text-decoration-line-through small ms-1">
-                                                    <fmt:formatNumber value="${p.basePriceAmount}" pattern="###,###"/> ₫
-                                                </span>
-                                            </c:when>
-                                            <c:otherwise>
-                                                <span class="fw-bold fs-5">
-                                                    <fmt:formatNumber value="${p.basePriceAmount}" pattern="###,###"/> ₫
-                                                </span>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </div>
+                                <div class="mt-auto mb-3">
+                                    <h5 class="text-brand fw-bold mb-0">
+                                        <fmt:formatNumber value="${p.basePriceAmount}" pattern="###,###" /> ₫
+                                    </h5>
+                                    <span class="old-price">
+                                        <fmt:formatNumber value="${p.basePriceAmount * 1.66}" pattern="###,###" /> ₫
+                                    </span>
+                                </div>
                                     <div class="d-grid gap-2">
                                         <a href="${pageContext.request.contextPath}/product-detail?id=${p.productId}"
                                            class="btn btn-outline-secondary w-100 fw-bold">
