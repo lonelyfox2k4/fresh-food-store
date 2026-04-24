@@ -10,6 +10,10 @@ import java.security.NoSuchAlgorithmException;
 
 public class AccountDAO {
 
+    // =========================================================================
+    // 1. AUTHENTICATION & SECURITY (Đăng nhập, Đăng ký, Quên mật khẩu, Google)
+    // =========================================================================
+
     public String encodePassword(String password) {
         try {
             MessageDigest md = MessageDigest.getInstance("MD5");
@@ -70,30 +74,6 @@ public class AccountDAO {
         return null;
     }
 
-    public List<Account> getAllAccounts() {
-        List<Account> list = new ArrayList<>();
-        // Phải SELECT thêm emailVerified
-        String sql = "SELECT * FROM dbo.Accounts ORDER BY createdAt DESC";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                list.add(new Account(
-                        rs.getLong("accountId"),
-                        rs.getInt("roleId"),
-                        rs.getString("email"),
-                        rs.getString("passwordHash"),
-                        rs.getString("fullName"),
-                        rs.getString("phone"),
-                        rs.getBoolean("status"),
-                        rs.getBoolean("emailVerified"),
-                        rs.getTimestamp("createdAt")
-                ));
-            }
-        } catch (Exception e) { e.printStackTrace(); }
-        return list;
-    }
-
     public Account getAccountByEmail(String email) {
         String sql = "SELECT * FROM dbo.Accounts WHERE email = ?";
         try (Connection conn = DBConnection.getConnection();
@@ -130,17 +110,6 @@ public class AccountDAO {
         }
     }
 
-    public boolean updateStatus(long id, boolean status) {
-        String sql = "UPDATE dbo.Accounts SET status = ? WHERE accountId = ?";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setBoolean(1, status);
-            ps.setLong(2, id);
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) { e.printStackTrace(); }
-        return false;
-    }
-
     public boolean resetPassword(String email, String encodedPass) {
         String sql = "UPDATE dbo.Accounts SET passwordHash = ? WHERE email = ?";
         try (Connection conn = DBConnection.getConnection();
@@ -168,6 +137,83 @@ public class AccountDAO {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public boolean updatePassword(long accountId, String newPassword) {
+        String sql = "UPDATE dbo.Accounts SET passwordHash = ? WHERE accountId = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, encodePassword(newPassword));
+            ps.setLong(2, accountId);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) { e.printStackTrace(); }
+        return false;
+    }
+
+    // =========================================================================
+    // 2. USER MANAGEMENT & PROFILE (Quản lý người dùng, Cập nhật thông tin)
+    // =========================================================================
+
+    public Account getAccountById(long id) {
+        String sql = "SELECT * FROM dbo.Accounts WHERE accountId = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, id);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return new Account(
+                        rs.getLong("accountId"),
+                        rs.getInt("roleId"),
+                        rs.getString("email"),
+                        rs.getString("passwordHash"),
+                        rs.getString("fullName"),
+                        rs.getString("phone"),
+                        rs.getBoolean("status"),
+                        rs.getBoolean("emailVerified"),
+                        rs.getTimestamp("createdAt")
+                );
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public boolean updateProfile(long accountId, String fullName, String phone) {
+        String sql = "UPDATE dbo.Accounts SET fullName = ?, phone = ? WHERE accountId = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, fullName);
+            ps.setString(2, phone);
+            ps.setLong(3, accountId);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) { e.printStackTrace(); }
+        return false;
+    }
+
+    public boolean updateStatus(long id, boolean status) {
+        String sql = "UPDATE dbo.Accounts SET status = ? WHERE accountId = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setBoolean(1, status);
+            ps.setLong(2, id);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) { e.printStackTrace(); }
+        return false;
+    }
+
+    public boolean updateAccountAdmin(long id, String name, String phone, int roleId, boolean status) {
+        String sql = "UPDATE dbo.Accounts SET fullName = ?, phone = ?, roleId = ?, status = ? WHERE accountId = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, name);
+            ps.setString(2, phone);
+            ps.setInt(3, roleId);
+            ps.setBoolean(4, status);
+            ps.setLong(5, id);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) { e.printStackTrace(); }
+        return false;
     }
 
     public int countUsers(String txtSearch, String roleId, String status) {
@@ -257,19 +303,28 @@ public class AccountDAO {
         return list;
     }
 
-
-    public boolean updateAccountAdmin(long id, String name, String phone, int roleId, boolean status) {
-        String sql = "UPDATE dbo.Accounts SET fullName = ?, phone = ?, roleId = ?, status = ? WHERE accountId = ?";
+    public List<Account> getAllAccounts() {
+        List<Account> list = new ArrayList<>();
+        // Phải SELECT thêm emailVerified
+        String sql = "SELECT * FROM dbo.Accounts ORDER BY createdAt DESC";
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, name);
-            ps.setString(2, phone);
-            ps.setInt(3, roleId);
-            ps.setBoolean(4, status);
-            ps.setLong(5, id);
-            return ps.executeUpdate() > 0;
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                list.add(new Account(
+                        rs.getLong("accountId"),
+                        rs.getInt("roleId"),
+                        rs.getString("email"),
+                        rs.getString("passwordHash"),
+                        rs.getString("fullName"),
+                        rs.getString("phone"),
+                        rs.getBoolean("status"),
+                        rs.getBoolean("emailVerified"),
+                        rs.getTimestamp("createdAt")
+                ));
+            }
         } catch (Exception e) { e.printStackTrace(); }
-        return false;
+        return list;
     }
 
     public List<Account> getAccountsByRole(int roleId) {
@@ -297,54 +352,9 @@ public class AccountDAO {
         return list;
     }
 
-    public Account getAccountById(long id) {
-        String sql = "SELECT * FROM dbo.Accounts WHERE accountId = ?";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setLong(1, id);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return new Account(
-                        rs.getLong("accountId"),
-                        rs.getInt("roleId"),
-                        rs.getString("email"),
-                        rs.getString("passwordHash"),
-                        rs.getString("fullName"),
-                        rs.getString("phone"),
-                        rs.getBoolean("status"),
-                        rs.getBoolean("emailVerified"),
-                        rs.getTimestamp("createdAt")
-                );
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-
-    public boolean updateProfile(long accountId, String fullName, String phone) {
-        String sql = "UPDATE dbo.Accounts SET fullName = ?, phone = ? WHERE accountId = ?";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, fullName);
-            ps.setString(2, phone);
-            ps.setLong(3, accountId);
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) { e.printStackTrace(); }
-        return false;
-    }
-
-    public boolean updatePassword(long accountId, String newPassword) {
-        String sql = "UPDATE dbo.Accounts SET passwordHash = ? WHERE accountId = ?";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, encodePassword(newPassword));
-            ps.setLong(2, accountId);
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) { e.printStackTrace(); }
-        return false;
-    }
+    // =========================================================================
+    // 3. DASHBOARD & STATS (Thống kê cho trang quản trị)
+    // =========================================================================
 
     public java.util.Map<String, Integer> getUserSummaryStats() {
         java.util.Map<String, Integer> stats = new java.util.HashMap<>();

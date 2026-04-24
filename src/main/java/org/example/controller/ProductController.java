@@ -73,6 +73,9 @@ public class ProductController extends HttpServlet {
         req.setAttribute("totalPages",     totalPages);
         req.setAttribute("totalCount",     totalCount);
 
+        moveFlashToRequest(req, "cartSuccessMsg");
+        moveFlashToRequest(req, "cartErrorMsg");
+
         req.getRequestDispatcher("/products.jsp").forward(req, resp);
     }
 
@@ -126,6 +129,19 @@ public class ProductController extends HttpServlet {
         req.setAttribute("avgRating",    avgRating);
         req.setAttribute("reviewCount",   reviewCount);
 
+        moveFlashToRequest(req, "cartSuccessMsg");
+        moveFlashToRequest(req, "cartErrorMsg");
+
         req.getRequestDispatcher("/product-detail.jsp").forward(req, resp);
+    }
+
+    private void moveFlashToRequest(HttpServletRequest req, String key) {
+        HttpSession session = req.getSession(false);
+        if (session == null) return;
+        Object value = session.getAttribute(key);
+        if (value != null) {
+            req.setAttribute(key, value);
+            session.removeAttribute(key);
+        }
     }
 }

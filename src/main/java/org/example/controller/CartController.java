@@ -130,17 +130,19 @@ public class CartController extends HttpServlet {
             return;
         }
 
-        if (quantity > 0) {
-            // Need to check stock for update
-            long productPackId = -1;
-            List<CartItemView> items = cartDAO.getCartItemsByAccountId(accountId);
-            for (CartItemView item : items) {
-                if (item.getCartItemId() == cartItemId) {
-                    productPackId = item.getProductPackId();
-                    break;
-                }
+        // Fetch item details first
+        long productPackId = -1;
+        String productName = "sản phẩm";
+        List<CartItemView> items = cartDAO.getCartItemsByAccountId(accountId);
+        for (CartItemView item : items) {
+            if (item.getCartItemId() == cartItemId) {
+                productPackId = item.getProductPackId();
+                productName = item.getProductName();
+                break;
             }
+        }
 
+        if (quantity > 0) {
             if (productPackId > 0) {
                 int availableStock = inventoryDAO.getAvailableStockByPackId(productPackId);
                 if (quantity > availableStock) {
@@ -155,7 +157,7 @@ public class CartController extends HttpServlet {
         if (quantity <= 0) {
             ok = cartDAO.removeItem(accountId, cartItemId);
             if (ok) {
-                setFlash(req, "cartSuccessMsg", "Đã xóa sản phẩm khỏi giỏ hàng.");
+                setFlash(req, "cartSuccessMsg", "Đã xóa " + productName + " khỏi giỏ hàng.");
             } else {
                 setFlash(req, "cartErrorMsg", "Xóa sản phẩm thất bại.");
             }
@@ -180,9 +182,18 @@ public class CartController extends HttpServlet {
             return;
         }
 
+        String productName = "sản phẩm";
+        List<CartItemView> items = cartDAO.getCartItemsByAccountId(accountId);
+        for (CartItemView item : items) {
+            if (item.getCartItemId() == cartItemId) {
+                productName = item.getProductName();
+                break;
+            }
+        }
+
         boolean ok = cartDAO.removeItem(accountId, cartItemId);
         if (ok) {
-            setFlash(req, "cartSuccessMsg", "Đã xóa sản phẩm khỏi giỏ hàng.");
+            setFlash(req, "cartSuccessMsg", "Đã xóa " + productName + " khỏi giỏ hàng.");
         } else {
             setFlash(req, "cartErrorMsg", "Xóa sản phẩm thất bại.");
         }

@@ -17,6 +17,14 @@
 <jsp:include page="components/header.jsp"/>
 
 <div class="container my-5">
+    <%-- Flash messages for Cart --%>
+    <c:if test="${not empty cartSuccessMsg}">
+        <div class="alert alert-success mb-3">${cartSuccessMsg}</div>
+    </c:if>
+    <c:if test="${not empty cartErrorMsg}">
+        <div class="alert alert-danger mb-3">${cartErrorMsg}</div>
+    </c:if>
+
     <div class="row g-4">
 
         <%-- ══ Sidebar filter ══════════════════════════════════════════════ --%>
