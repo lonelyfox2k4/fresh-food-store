@@ -46,7 +46,7 @@ public class VnPayReturnController extends HttpServlet {
         // Verify Signature
         String signValue = VnPayConfig.hashAllFields(fields);
 
-        if (signValue.equals(vnp_SecureHash)) {
+        if (signValue.equalsIgnoreCase(vnp_SecureHash)) {
             String vnp_ResponseCode = req.getParameter("vnp_ResponseCode");
             long orderId = Long.parseLong(req.getParameter("vnp_TxnRef"));
             String transactionNo = req.getParameter("vnp_TransactionNo");

@@ -29,14 +29,11 @@
     <div class="bg-white py-3 border-bottom shadow-sm mb-5">
         <div class="container">
             <div class="row text-center">
-                <div class="col-md-4 mb-2 mb-md-0">
+                <div class="col-md-6 mb-2 mb-md-0">
                     <h6 class="fw-bold m-0"><i class="fas fa-check-circle text-success fs-5 me-2 align-middle"></i>100% Sạch - Chuẩn VietGAP</h6>
                 </div>
-                <div class="col-md-4 mb-2 mb-md-0 border-start border-end">
+                <div class="col-md-6 border-start">
                     <h6 class="fw-bold m-0"><i class="fas fa-shipping-fast text-brand fs-5 me-2 align-middle"></i>Giao Hàng Thần Tốc 2H</h6>
-                </div>
-                <div class="col-md-4">
-                    <h6 class="fw-bold m-0"><i class="fas fa-exchange-alt text-primary fs-5 me-2 align-middle"></i>Đổi Trả 1-1 Nếu Không Tươi</h6>
                 </div>
             </div>
         </div>

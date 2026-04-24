@@ -95,7 +95,7 @@
                             <div class="col-sm-6 col-xl-4">
                                 <div class="card product-card h-100 position-relative">
                                     <%-- Flash badge --%>
-                                    <c:if test="${p.expiryPricingPolicyId != null}">
+                                    <c:if test="${p.currentPrice != null && p.currentPrice > 0 && p.currentPrice < p.basePriceAmount}">
                                         <span class="badge-flash position-absolute" style="left:0;top:0;z-index:10;">
                                             <i class="fas fa-bolt me-1"></i>Giá sốc
                                         </span>

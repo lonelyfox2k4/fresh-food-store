@@ -118,28 +118,27 @@
                                 </div>
                                 <div class="mt-1">
                                     <c:choose>
-                                        <c:when test="${o.paymentStatus == 1}">
-                                            <span class="badge rounded-pill bg-success fw-normal"><i class="bi bi-credit-card"></i> Đã TT Online</span>
-                                        </c:when>
                                         <c:when test="${o.paymentStatus == 2}">
-                                            <c:choose>
-                                                <c:when test="${o.orderStatus == 5 or o.shippingStatus == 3}">
-                                                    <span class="badge rounded-pill bg-success fw-normal"><i class="bi bi-cash-coin"></i> Đã thu (COD)</span>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <span class="badge rounded-pill bg-info text-dark fw-normal"><i class="bi bi-clock"></i> Chờ đối soát</span>
-                                                </c:otherwise>
-                                            </c:choose>
+                                            <div class="text-success small fw-bold">
+                                                <i class="bi bi-check-circle-fill"></i> Đã trả: <fmt:formatNumber value="${o.totalAmount}" type="number"/> đ
+                                            </div>
+                                            <span class="badge rounded-pill bg-success fw-normal"><i class="bi bi-cash-coin"></i> Đã thanh toán</span>
                                         </c:when>
                                         <c:when test="${o.paymentStatus == 4}">
+                                            <div class="text-info small fw-bold">
+                                                <i class="bi bi-arrow-left-right"></i> Đã hoàn trả: <fmt:formatNumber value="${o.totalAmount}" type="number"/> đ
+                                            </div>
                                             <span class="badge rounded-pill bg-info text-dark fw-normal"><i class="bi bi-arrow-left-right"></i> Đã hoàn trả</span>
                                         </c:when>
                                         <c:otherwise>
+                                            <div class="text-muted small">
+                                                <i class="bi bi-clock"></i> Đã trả: 0 đ
+                                            </div>
                                             <c:if test="${o.orderStatus != 6}">
                                                 <span class="badge rounded-pill bg-light text-dark border fw-normal text-muted"><i class="bi bi-clock"></i> Chờ thanh toán</span>
                                             </c:if>
                                             <c:if test="${o.orderStatus == 6}">
-                                                <span class="text-muted small italic">-- Không phát sinh --</span>
+                                                <span class="text-muted small italic">-- Đã hủy --</span>
                                             </c:if>
                                         </c:otherwise>
                                     </c:choose>

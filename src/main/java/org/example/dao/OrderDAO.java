@@ -553,17 +553,20 @@ public class OrderDAO {
     }
 
     private void updatePaymentRecord(long orderId, byte status) throws SQLException {
+        String sql = "UPDATE dbo.Payments SET paymentStatus = ?, "
+                   + "paidAt = CASE WHEN ? = 2 THEN SYSUTCDATETIME() ELSE paidAt END "
+                   + "WHERE orderId = ?";
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(
-                     "UPDATE dbo.Payments SET paymentStatus = ?, updatedAt = SYSUTCDATETIME() WHERE orderId = ?")) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setByte(1, status);
-            ps.setLong(2, orderId);
+            ps.setByte(2, status);
+            ps.setLong(3, orderId);
             ps.executeUpdate();
         }
     }
 
     public void updatePaymentTransaction(long orderId, String transactionNo) {
-        String sql = "UPDATE dbo.Payments SET transactionId = ?, updatedAt = SYSUTCDATETIME() WHERE orderId = ?";
+        String sql = "UPDATE dbo.Payments SET gatewayTransactionId = ? WHERE orderId = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, transactionNo);

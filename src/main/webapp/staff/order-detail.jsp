@@ -91,26 +91,29 @@
                         <div class="col-sm-6 text-sm-end">
                             <h6 class="text-muted text-uppercase small mb-2">Trạng thái thanh toán</h6>
                             <c:choose>
-                                <c:when test="${order.paymentStatus == 1}">
+                                <c:when test="${order.paymentStatus == 2}">
                                     <span class="badge bg-success fs-6 rounded-pill px-3">
-                                        <i class="bi bi-credit-card me-1"></i>Đã TT Online
+                                        <i class="bi bi-check-circle-fill me-1"></i>Đã thanh toán
                                     </span>
+                                    <div class="fw-bold text-success mt-2">
+                                        Đã nhận: <fmt:formatNumber value="${order.totalAmount}" type="number"/> đ
+                                    </div>
                                     <div class="small mt-1 text-muted">
                                         Lúc: ${not empty order.paidAt ? order.paidAt.toString().replace('T',' ').substring(0,16) : 'N/A'}
                                     </div>
                                 </c:when>
-                                <c:when test="${order.paymentStatus == 2}">
-                                    <span class="badge bg-success fs-6 rounded-pill px-3">
-                                        <i class="bi bi-cash-coin me-1"></i>Đã thu (COD)
+                                <c:when test="${order.paymentStatus == 4}">
+                                    <span class="badge bg-info text-dark fs-6 rounded-pill px-3">
+                                        <i class="bi bi-arrow-left-right me-1"></i>Đã hoàn tiền
                                     </span>
-                                    <div class="small mt-1 text-muted">
-                                        Lúc: ${not empty order.paidAt ? order.paidAt.toString().replace('T',' ').substring(0,16) : 'N/A'}
-                                    </div>
                                 </c:when>
                                 <c:otherwise>
                                     <span class="badge bg-warning text-dark fs-6 rounded-pill px-3">
-                                        <i class="bi bi-clock me-1"></i>Chờ thanh toán (COD)
+                                        <i class="bi bi-clock me-1"></i>Chờ thanh toán
                                     </span>
+                                    <div class="fw-bold text-muted mt-2">
+                                        Đã nhận: 0 đ
+                                    </div>
                                 </c:otherwise>
                             </c:choose>
                         </div>

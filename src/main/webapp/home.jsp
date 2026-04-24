@@ -88,17 +88,13 @@
 <div class="trust-bar">
     <div class="container">
         <div class="row text-center">
-            <div class="col-4 trust-item">
+            <div class="col-6 trust-item">
                 <i class="fas fa-check-circle d-block mb-1"></i>
                 <span class="fw-semibold small">100% Sạch VietGAP</span>
             </div>
-            <div class="col-4 trust-item border-start border-end" style="border-color:rgba(255,255,255,.3)!important;">
+            <div class="col-6 trust-item border-start" style="border-color:rgba(255,255,255,.3)!important;">
                 <i class="fas fa-shipping-fast d-block mb-1"></i>
                 <span class="fw-semibold small">Giao Hàng 2H</span>
-            </div>
-            <div class="col-4 trust-item">
-                <i class="fas fa-exchange-alt d-block mb-1"></i>
-                <span class="fw-semibold small">Đổi Trả 1-1</span>
             </div>
         </div>
     </div>
@@ -148,9 +144,11 @@
                 <c:forEach var="p" items="${flashSaleProducts}">
                     <div class="col-6 col-md-4 col-lg-3">
                         <div class="card product-card h-100 position-relative">
-                            <span class="badge-flash position-absolute" style="left:0;top:0;z-index:10;">
-                                <i class="fas fa-bolt me-1"></i>Giá sốc
-                            </span>
+                            <c:if test="${not empty p.currentPrice and p.currentPrice lt p.basePriceAmount}">
+                                <span class="badge-flash position-absolute" style="left:0;top:0;z-index:10;">
+                                    <i class="fas fa-bolt me-1"></i>Giá sốc
+                                </span>
+                            </c:if>
                             <a href="${pageContext.request.contextPath}/product-detail?id=${p.productId}">
                                 <img src="${not empty p.imageUrl ? (p.imageUrl.startsWith('http') ? p.imageUrl : pageContext.request.contextPath.concat('/').concat(p.imageUrl)) : 'https://via.placeholder.com/400x300/fdf2f2/E3000F?text=Fresh+Food'}"
                                      class="card-img-top product-img" alt="${p.productName}">
