@@ -53,9 +53,11 @@ public class ShipperOrderServlet extends HttpServlet {
                     return;
                 }
                 if (orderDAO.assignShipper(orderId, shipperId)) {
-                    response.sendRedirect("orders?action=list&msg=claimed");
+                    request.getSession().setAttribute("orderMsg", "success:Nhận đơn hàng thành công!");
+                    response.sendRedirect("orders?action=list");
                 } else {
-                    response.sendRedirect("orders?action=list&error=claim_failed");
+                    request.getSession().setAttribute("orderMsg", "danger:Không thể nhận đơn hàng này!");
+                    response.sendRedirect("orders?action=list");
                 }
             } else if ("detail".equals(action)) {
                 long orderId = Long.parseLong(request.getParameter("id"));
@@ -107,16 +109,19 @@ public class ShipperOrderServlet extends HttpServlet {
                     return;
                 }
                 if (orderDAO.assignShipper(orderId, currentShipperId)) {
-                    response.sendRedirect("orders?action=list&msg=claimed");
+                    request.getSession().setAttribute("orderMsg", "success:Nhận đơn hàng thành công!");
+                    response.sendRedirect("orders?action=list");
                 } else {
-                    response.sendRedirect("orders?action=list&error=claim_failed");
+                    request.getSession().setAttribute("orderMsg", "danger:Không thể nhận đơn hàng này!");
+                    response.sendRedirect("orders?action=list");
                 }
                 return;
             }
 
             if ("remit".equals(action)) {
                 orderDAO.remitCOD(currentShipperId);
-                response.sendRedirect("orders?action=list&msg=remitted");
+                request.getSession().setAttribute("orderMsg", "success:Đã nộp tiền COD thành công!");
+                response.sendRedirect("orders?action=list");
                 return;
             }
 
@@ -135,24 +140,24 @@ public class ShipperOrderServlet extends HttpServlet {
 
             switch (action) {
                 case "startShipping":
-                    // Atomic start: updates shippingStatus=2 and orderStatus=4
                     orderDAO.updateStartShipping(orderId);
-                    response.sendRedirect("orders?action=list&msg=started");
+                    request.getSession().setAttribute("orderMsg", "success:Bắt đầu giao hàng!");
+                    response.sendRedirect("orders?action=list");
                     break;
                     
                 case "delivered":
-                    // Atomic success: updates shipping=3, order=5, payment=2
                     orderDAO.updateDeliverySuccess(orderId);
-                    response.sendRedirect("orders?action=list&msg=delivered");
+                    request.getSession().setAttribute("orderMsg", "success:Giao hàng thành công! Đã ghi nhận thanh toán.");
+                    response.sendRedirect("orders?action=list");
                     break;
                     
                 case "failed":
-                    // Atomic failure: updates shippingStatus=4 and cancels (orderStatus=6)
                     String failReason = request.getParameter("reason");
                     if (failReason != null && !failReason.isEmpty()) {
                         orderDAO.updateDeliveryFailure(orderId, failReason);
+                        request.getSession().setAttribute("orderMsg", "danger:Đã báo cáo giao hàng thất bại.");
                     }
-                    response.sendRedirect("orders?action=list&msg=failed");
+                    response.sendRedirect("orders?action=list");
                     break;
 
                 default:

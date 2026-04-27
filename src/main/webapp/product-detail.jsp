@@ -249,21 +249,7 @@
     <div class="mt-5 pt-4">
         <h3 class="fw-bold mb-4"><i class="fas fa-star me-2 text-warning"></i>Đánh giá sản phẩm</h3>
 
-        <%-- Flash messages from session --%>
-        <c:if test="${not empty sessionScope.reviewSuccess}">
-            <div class="alert alert-success alert-dismissible">
-                <i class="fas fa-check-circle me-2"></i>${sessionScope.reviewSuccess}
-                <button class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-            <c:remove var="reviewSuccess" scope="session"/>
-        </c:if>
-        <c:if test="${not empty sessionScope.reviewError}">
-            <div class="alert alert-danger alert-dismissible">
-                <i class="fas fa-exclamation-circle me-2"></i>${sessionScope.reviewError}
-                <button class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-            <c:remove var="reviewError" scope="session"/>
-        </c:if>
+        <%-- Review messages are now handled by toast-notifier.jsp --%>
 
         <div class="row g-4">
             <%-- Write review form --%>

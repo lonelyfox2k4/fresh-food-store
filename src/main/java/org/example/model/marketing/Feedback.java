@@ -12,6 +12,7 @@ public class Feedback {
     private long feedbackId;
     private long accountId;
     private Long orderId;
+    private Long reviewId;
     private String subject;
     private String content;
     private String response;

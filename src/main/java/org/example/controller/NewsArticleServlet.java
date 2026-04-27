@@ -48,7 +48,7 @@ public class NewsArticleServlet extends HttpServlet {
         Account user = (Account) session.getAttribute("user");
 
         // 1. Authorization Check (Only Admin=1 or Staff=2 can modify news)
-        if (user == null || (user.getRoleId() != 1 && user.getRoleId() != 2)) {
+        if (user == null || user.getRoleId() != 3) {
             response.sendRedirect(request.getContextPath() + "/login?error=unauthorized");
             return;
         }
@@ -116,6 +116,7 @@ public class NewsArticleServlet extends HttpServlet {
             e.printStackTrace();
         }
 
+        session.setAttribute("newsMsg", "success:Thao tác bài viết thành công!");
         response.sendRedirect("news?action=list");
     }
 }

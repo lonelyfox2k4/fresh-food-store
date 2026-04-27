@@ -10,16 +10,34 @@ public class FeedbackDAO {
 
     public List<Feedback> getAllFeedbacks() {
         List<Feedback> list = new ArrayList<>();
-        String sql = "SELECT f.*, a.fullName, o.orderCode FROM Feedbacks f " +
-                "JOIN Accounts a ON f.accountId = a.accountId " +
-                "LEFT JOIN Orders o ON f.orderId = o.orderId " +
-                "ORDER BY f.createdAt DESC";
+        String sql = "SELECT * FROM (" +
+                "  SELECT f.feedbackId, f.accountId, f.orderId, f.reviewId, f.content, " +
+                "  ISNULL(pr_link.rating, 0) as rating, " +
+                "  f.response, f.status, f.createdAt, f.respondedAt, a.fullName, o.orderCode " +
+                "  FROM dbo.Feedbacks f " +
+                "  JOIN dbo.Accounts a ON f.accountId = a.accountId " +
+                "  LEFT JOIN dbo.Orders o ON f.orderId = o.orderId " +
+                "  LEFT JOIN dbo.ProductReviews pr_link ON f.reviewId = pr_link.reviewId " +
+                "  UNION ALL " +
+                "  SELECT CAST(NULL AS BIGINT) as feedbackId, pr.accountId, o.orderId, pr.reviewId, pr.comment as content, pr.rating, " +
+                "  NULL as response, 0 as status, pr.createdAt, NULL as respondedAt, a.fullName, o.orderCode " +
+                "  FROM dbo.ProductReviews pr " +
+                "  JOIN dbo.Accounts a ON pr.accountId = a.accountId " +
+                "  LEFT JOIN dbo.OrderItems oi ON pr.sourceOrderItemId = oi.orderItemId " +
+                "  LEFT JOIN dbo.Orders o ON oi.orderId = o.orderId " +
+                "  WHERE NOT EXISTS (SELECT 1 FROM dbo.Feedbacks f2 WHERE f2.reviewId = pr.reviewId) " +
+                ") AS CombinedFeedbacks ORDER BY createdAt DESC";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 Feedback f = new Feedback();
                 f.setFeedbackId(rs.getLong("feedbackId"));
+                f.setAccountId(rs.getLong("accountId"));
+                
+                long rid = rs.getLong("reviewId");
+                f.setReviewId(rs.wasNull() ? null : rid);
+                
                 f.setCustomerName(rs.getString("fullName"));
                 f.setContent(rs.getString("content"));
                 f.setRating(rs.getInt("rating"));
@@ -41,19 +59,31 @@ public class FeedbackDAO {
         return list;
     }
 
-    public boolean updateResponse(long feedbackId, String responseText, long staffId) {
-        // Staff trả lời trực tiếp, status chuyển sang 1 (Đã phản hồi) ngay lập tức
-        String sql = "UPDATE Feedbacks SET response = ?, respondedByAccountId = ?, " +
-                "status = 1, respondedAt = GETDATE() WHERE feedbackId = ?";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, responseText);
-            ps.setLong(2, staffId);
-            ps.setLong(3, feedbackId);
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
+    public boolean saveResponse(long feedbackId, Long reviewId, String responseText, long staffId, long accountId) {
+        if (feedbackId > 0) {
+            // Update existing feedback
+            String sql = "UPDATE Feedbacks SET response = ?, respondedByAccountId = ?, " +
+                    "status = 1, respondedAt = GETDATE() WHERE feedbackId = ?";
+            try (Connection conn = DBConnection.getConnection();
+                 PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, responseText);
+                ps.setLong(2, staffId);
+                ps.setLong(3, feedbackId);
+                return ps.executeUpdate() > 0;
+            } catch (Exception e) { e.printStackTrace(); }
+        } else if (reviewId != null) {
+            // Create new feedback record for a review
+            String sql = "INSERT INTO Feedbacks (accountId, reviewId, content, response, status, respondedByAccountId, respondedAt, createdAt) " +
+                    "SELECT accountId, reviewId, comment, ?, 1, ?, GETDATE(), GETDATE() " +
+                    "FROM ProductReviews WHERE reviewId = ?";
+            try (Connection conn = DBConnection.getConnection();
+                 PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, responseText);
+                ps.setLong(2, staffId);
+                ps.setLong(3, reviewId);
+                return ps.executeUpdate() > 0;
+            } catch (Exception e) { e.printStackTrace(); }
         }
+        return false;
     }
 }

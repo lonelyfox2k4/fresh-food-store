@@ -31,7 +31,7 @@
 
 <div class="dashboard-header">
     <div class="container text-center">
-        <h3 class="mb-1">Xin chào, <c:out value="${user.fullName}" />!</h3>
+        <h3 class="mb-1">Xin chào, <c:out value="${sessionScope.user.fullName}" />!</h3>
         <p class="mb-0 opacity-75">Hôm nay bạn muốn giao bao nhiêu đơn hàng?</p>
     </div>
 </div>

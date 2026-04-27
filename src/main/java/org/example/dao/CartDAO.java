@@ -42,7 +42,18 @@ public class CartDAO {
     }
 
     public Long getDefaultPackIdByProductId(long productId) {
-        String sql = "SELECT TOP 1 productPackId FROM dbo.ProductPacks WHERE productId = ? AND status = 1 ORDER BY packWeightGram ASC";
+        String sql = "SELECT TOP 1 pp.productPackId " +
+                "FROM dbo.ProductPacks pp " +
+                "OUTER APPLY ( " +
+                "    SELECT SUM(ib.quantityOnHand - ib.quantityReserved) as availableStock " +
+                "    FROM dbo.InventoryBatches ib " +
+                "    JOIN dbo.GoodsReceiptItems gri ON ib.receiptItemId = gri.receiptItemId " +
+                "    WHERE gri.productPackId = pp.productPackId " +
+                "      AND ib.status = 1 " +
+                "      AND gri.expiryDate >= CAST(GETDATE() AS DATE) " +
+                ") inv " +
+                "WHERE pp.productId = ? AND pp.status = 1 AND ISNULL(inv.availableStock, 0) > 0 " +
+                "ORDER BY pp.packWeightGram ASC";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, productId);

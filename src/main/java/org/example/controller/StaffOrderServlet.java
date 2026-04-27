@@ -39,19 +39,41 @@ public class StaffOrderServlet extends HttpServlet {
             switch (action) {
                 case "list":
                     String query = request.getParameter("query");
+                    int page = 1;
+                    int pageSize = 10; // Default items per page
+                    
+                    try {
+                        String pageStr = request.getParameter("page");
+                        if (pageStr != null && !pageStr.isEmpty()) {
+                            page = Integer.parseInt(pageStr);
+                        }
+                    } catch (NumberFormatException ignored) {}
+
+                    int offset = (page - 1) * pageSize;
                     List<Order> orders;
+                    int totalOrders;
+
                     if (query != null && !query.trim().isEmpty()) {
-                        orders = orderDAO.searchOrders(query.trim());
-                        request.setAttribute("searchQuery", query.trim());
+                        String trimmedQuery = query.trim();
+                        orders = orderDAO.searchOrdersPaginated(trimmedQuery, offset, pageSize);
+                        totalOrders = orderDAO.countSearchOrders(trimmedQuery);
+                        request.setAttribute("searchQuery", trimmedQuery);
                     } else {
-                        orders = orderDAO.getAllOrders();
+                        orders = orderDAO.getAllOrdersPaginated(offset, pageSize);
+                        totalOrders = orderDAO.countAllOrders();
                     }
+                    
+                    int totalPages = (int) Math.ceil((double) totalOrders / pageSize);
                     
                     // Lấy danh sách Shippers
                     List<Account> shippers = accountDAO.getAccountsByRole(RoleConstant.SHIPPER);
                     
                     request.setAttribute("orderList", orders);
                     request.setAttribute("shipperList", shippers);
+                    request.setAttribute("currentPage", page);
+                    request.setAttribute("totalPages", totalPages);
+                    request.setAttribute("pageSize", pageSize);
+                    
                     request.getRequestDispatcher("/staff/order-list.jsp").forward(request, response);
                     break;
                     

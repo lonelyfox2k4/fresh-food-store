@@ -52,7 +52,7 @@
                     <span class="text-success"><i class="bi bi-shield-check me-1"></i>Đã thanh toán</span>
                 </c:when>
                 <c:otherwise>
-                    <span class="text-warning text-dark"><i class="bi bi-wallet2 me-1"></i>Thu hộ COD</span>
+                    <span class="text-warning"><i class="bi bi-wallet2 me-1"></i>Thu hộ COD</span>
                 </c:otherwise>
             </c:choose>
         </div>
@@ -72,7 +72,7 @@
                 <li class="timeline-item">
                     <div class="timeline-indicator ${order.shippingStatus == 2 ? 'active' : (order.shippingStatus > 2 ? 'success' : '')}"></div>
                     <div class="fw-bold ${order.shippingStatus >= 2 ? 'text-dark fs-6' : 'text-muted'}">Đang đi giao</div>
-                    <small class="text-muted d-block mt-1">Shipper đang trên đường giao hàng đến kho</small>
+                    <small class="text-muted d-block mt-1">Shipper đang trên đường giao hàng đến khách hàng</small>
                 </li>
                 
                 <li class="timeline-item">

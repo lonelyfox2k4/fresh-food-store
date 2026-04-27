@@ -97,4 +97,71 @@
             });
         </script>
     </c:if>
+
+    <%-- 5. Review Messages --%>
+    <c:if test="${not empty sessionScope.reviewSuccess}">
+        <div class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true" id="reviewSuccessToast">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas fa-check-circle me-2"></i>
+                    ${sessionScope.reviewSuccess}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+        <c:remove var="reviewSuccess" scope="session" />
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const toastEl = document.getElementById('reviewSuccessToast');
+                const toast = new bootstrap.Toast(toastEl, { delay: 4000 });
+                toast.show();
+            });
+        </script>
+    </c:if>
+
+    <c:if test="${not empty sessionScope.reviewError}">
+        <div class="toast align-items-center text-white bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true" id="reviewErrorToast">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    ${sessionScope.reviewError}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+        <c:remove var="reviewError" scope="session" />
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const toastEl = document.getElementById('reviewErrorToast');
+                const toast = new bootstrap.Toast(toastEl, { delay: 5000 });
+                toast.show();
+            });
+        </script>
+    </c:if>
+    <%-- 6. News Messages (format "type:message") --%>
+    <c:if test="${not empty sessionScope.newsMsg}">
+        <c:set var="nParts" value="${fn:split(sessionScope.newsMsg, ':')}" />
+        <c:set var="nType"  value="${nParts[0] == 'success' ? 'success' : 'danger'}" />
+        <c:set var="nMsg"   value="${fn:substringAfter(sessionScope.newsMsg, ':')}" />
+        
+        <div class="toast align-items-center text-white bg-${nType} border-0" role="alert" aria-live="assertive" aria-atomic="true" id="newsToast">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas ${nType == 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} me-2"></i>
+                    ${nMsg}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+        <c:remove var="newsMsg" scope="session" />
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const toastEl = document.getElementById('newsToast');
+                if (toastEl) {
+                    const toast = new bootstrap.Toast(toastEl, { delay: 4000 });
+                    toast.show();
+                }
+            });
+        </script>
+    </c:if>
 </div>

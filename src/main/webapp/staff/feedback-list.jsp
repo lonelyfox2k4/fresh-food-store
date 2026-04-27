@@ -67,7 +67,17 @@
                             <tr>
                                 <td class="ps-4">
                                     <div class="fw-bold text-dark fs-6 mb-1">${f.customerName}</div>
-                                    <small class="text-muted"><i class="far fa-clock me-1"></i> ${f.createdAt.toString().replace('T', ' ').substring(0, 16)}</small>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <small class="text-muted"><i class="far fa-clock me-1"></i> ${f.createdAt.toString().replace('T', ' ').substring(0, 16)}</small>
+                                        <c:choose>
+                                            <c:when test="${not empty f.reviewId}">
+                                                <span class="badge bg-info-subtle text-info border border-info-subtle extra-small py-0 px-2" style="font-size: 0.65rem;">Đánh giá SP</span>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle extra-small py-0 px-2" style="font-size: 0.65rem;">Góp ý chung</span>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </div>
                                 </td>
                                 <td>
                                     <c:choose>
@@ -105,7 +115,7 @@
                                     </c:choose>
                                 </td>
                                 <td class="text-end pe-4">
-                                    <button class="btn btn-brand btn-sm rounded-pill px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#replyModal${f.feedbackId}">
+                                    <button class="btn btn-brand btn-sm rounded-pill px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#replyModal${f.feedbackId > 0 ? f.feedbackId : 'rv'.concat(f.reviewId)}">
                                         <i class="fas fa-reply me-2"></i> ${f.status == 0 ? 'Phản hồi' : 'Xem lại'}
                                     </button>
                                 </td>
@@ -128,18 +138,23 @@
 
     <!-- Modals -->
     <c:forEach items="${feedbackList}" var="f">
-        <div class="modal fade" id="replyModal${f.feedbackId}" tabindex="-1">
+        <div class="modal fade" id="replyModal${f.feedbackId > 0 ? f.feedbackId : 'rv'.concat(f.reviewId)}" tabindex="-1">
             <div class="modal-dialog modal-dialog-centered modal-lg">
                 <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
                     <form action="feedback" method="POST">
                         <div class="modal-header bg-brand text-white py-3 border-0">
                             <h5 class="modal-title fw-bold">
-                                <i class="fas fa-comment-dots me-2"></i>Chi tiết Phản hồi #${f.feedbackId}
+                                <i class="fas fa-comment-dots me-2"></i>
+                                <c:choose>
+                                    <c:when test="${f.feedbackId > 0}">Chi tiết Phản hồi #${f.feedbackId}</c:when>
+                                    <c:otherwise>Phản hồi Đánh giá SP #${f.reviewId}</c:otherwise>
+                                </c:choose>
                             </h5>
                             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body p-4">
                             <input type="hidden" name="feedbackId" value="${f.feedbackId}">
+                            <input type="hidden" name="reviewId" value="${f.reviewId}">
                             
                             <div class="row mb-4">
                                 <div class="col-md-6 border-end">

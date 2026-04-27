@@ -91,9 +91,14 @@
                         <div class="col-sm-6 text-sm-end">
                             <h6 class="text-muted text-uppercase small mb-2">Trạng thái thanh toán</h6>
                             <c:choose>
-                                <c:when test="${order.paymentStatus == 2}">
+                                <c:when test="${order.paymentStatus == 1 || order.paymentStatus == 2 || order.paymentStatus == 3}">
                                     <span class="badge bg-success fs-6 rounded-pill px-3">
-                                        <i class="bi bi-check-circle-fill me-1"></i>Đã thanh toán
+                                        <i class="bi bi-check-circle-fill me-1"></i>
+                                        <c:choose>
+                                            <c:when test="${order.paymentStatus == 1}">Đã thanh toán Online</c:when>
+                                            <c:when test="${order.paymentStatus == 3}">Đã kết toán quỹ</c:when>
+                                            <c:otherwise>Đã thanh toán</c:otherwise>
+                                        </c:choose>
                                     </span>
                                     <div class="fw-bold text-success mt-2">
                                         Đã nhận: <fmt:formatNumber value="${order.totalAmount}" type="number"/> đ
@@ -102,11 +107,7 @@
                                         Lúc: ${not empty order.paidAt ? order.paidAt.toString().replace('T',' ').substring(0,16) : 'N/A'}
                                     </div>
                                 </c:when>
-                                <c:when test="${order.paymentStatus == 4}">
-                                    <span class="badge bg-info text-dark fs-6 rounded-pill px-3">
-                                        <i class="bi bi-arrow-left-right me-1"></i>Đã hoàn tiền
-                                    </span>
-                                </c:when>
+
                                 <c:otherwise>
                                     <span class="badge bg-warning text-dark fs-6 rounded-pill px-3">
                                         <i class="bi bi-clock me-1"></i>Chờ thanh toán

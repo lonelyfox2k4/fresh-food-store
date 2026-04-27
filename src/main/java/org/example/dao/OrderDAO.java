@@ -267,19 +267,6 @@ public class OrderDAO {
     // QUERY METHODS
     // ────────────────────────────────────────────────────────────────────────
 
-    public List<Order> getOrdersByAccount(long accountId) {
-        List<Order> list = new ArrayList<>();
-        String sql = "SELECT * FROM dbo.Orders WHERE accountId = ? ORDER BY placedAt DESC";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setLong(1, accountId);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) list.add(mapOrder(rs));
-            }
-        } catch (Exception e) { e.printStackTrace(); }
-        return list;
-    }
-
     public List<Order> getOrdersByAccountPaginated(long accountId, int offset, int limit) {
         List<Order> list = new ArrayList<>();
         String sql = "SELECT * FROM dbo.Orders WHERE accountId = ? " +
@@ -533,7 +520,7 @@ public class OrderDAO {
 
     public boolean updatePaymentStatus(long orderId, byte paymentStatus, byte orderStatus) {
         String sql = "UPDATE dbo.Orders SET paymentStatus = ?, orderStatus = ?, "
-                   + "paidAt = CASE WHEN ? = 2 THEN SYSUTCDATETIME() ELSE paidAt END "
+                   + "paidAt = CASE WHEN ? IN (1, 2) THEN SYSUTCDATETIME() ELSE paidAt END "
                    + "WHERE orderId = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -554,7 +541,7 @@ public class OrderDAO {
 
     private void updatePaymentRecord(long orderId, byte status) throws SQLException {
         String sql = "UPDATE dbo.Payments SET paymentStatus = ?, "
-                   + "paidAt = CASE WHEN ? = 2 THEN SYSUTCDATETIME() ELSE paidAt END "
+                   + "paidAt = CASE WHEN ? IN (1, 2) THEN SYSUTCDATETIME() ELSE paidAt END "
                    + "WHERE orderId = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -618,6 +605,62 @@ public class OrderDAO {
             }
         } catch (Exception e) { e.printStackTrace(); }
         return list;
+    }
+
+    public List<Order> getAllOrdersPaginated(int offset, int limit) {
+        List<Order> list = new ArrayList<>();
+        String sql = "SELECT * FROM dbo.Orders ORDER BY placedAt DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, offset);
+            ps.setInt(2, limit);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) list.add(mapOrder(rs));
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return list;
+    }
+
+    public int countAllOrders() {
+        String sql = "SELECT COUNT(*) FROM dbo.Orders";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) return rs.getInt(1);
+        } catch (Exception e) { e.printStackTrace(); }
+        return 0;
+    }
+
+    public List<Order> searchOrdersPaginated(String query, int offset, int limit) {
+        List<Order> list = new ArrayList<>();
+        String sql = "SELECT * FROM dbo.Orders WHERE orderCode LIKE ? OR recipientNameSnapshot LIKE ? " +
+                     "ORDER BY placedAt DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            String searchTerm = "%" + query + "%";
+            ps.setString(1, searchTerm);
+            ps.setString(2, searchTerm);
+            ps.setInt(3, offset);
+            ps.setInt(4, limit);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) list.add(mapOrder(rs));
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return list;
+    }
+
+    public int countSearchOrders(String query) {
+        String sql = "SELECT COUNT(*) FROM dbo.Orders WHERE orderCode LIKE ? OR recipientNameSnapshot LIKE ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            String searchTerm = "%" + query + "%";
+            ps.setString(1, searchTerm);
+            ps.setString(2, searchTerm);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return 0;
     }
 
     // ────────────────────────────────────────────────────────────────────────
@@ -711,20 +754,6 @@ public class OrderDAO {
     }
 
 
-
-    public boolean claimOrder(long orderId, long shipperId) {
-        // Chỉ cập nhật nếu shipperId vẫn đang là NULL (phòng trường hợp 2 shipper cùng nhấn nhận 1 lúc)
-        String sql = "UPDATE dbo.Orders SET shipperId = ? WHERE orderId = ? AND shipperId IS NULL";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setLong(1, shipperId);
-            ps.setLong(2, orderId);
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) { e.printStackTrace(); }
-        return false;
-    }
-
-
     public Order getOrderById(long orderId) {
         String sql = "SELECT * FROM dbo.Orders WHERE orderId = ?";
         try (Connection conn = DBConnection.getConnection();
@@ -745,17 +774,6 @@ public class OrderDAO {
             sql = "UPDATE dbo.Orders SET orderStatus = ?, shipperId = NULL, shippingStatus = 1 WHERE orderId = ?";
         }
 
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setByte(1, status);
-            ps.setLong(2, orderId);
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) { e.printStackTrace(); }
-        return false;
-    }
-
-    public boolean updateShippingStatus(long orderId, byte status) {
-        String sql = "UPDATE dbo.Orders SET shippingStatus = ? WHERE orderId = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setByte(1, status);
@@ -819,14 +837,20 @@ public class OrderDAO {
     }
 
     public boolean updatePaymentStatus(long orderId, byte paymentStatus) {
-        String sql = (paymentStatus == 2) 
-                ? "UPDATE dbo.Orders SET paymentStatus = ?, paidAt = SYSUTCDATETIME() WHERE orderId = ?"
-                : "UPDATE dbo.Orders SET paymentStatus = ? WHERE orderId = ?";
+        String sql = "UPDATE dbo.Orders SET paymentStatus = ?, "
+                   + "paidAt = CASE WHEN ? IN (1, 2) THEN SYSUTCDATETIME() ELSE paidAt END "
+                   + "WHERE orderId = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setByte(1, paymentStatus);
-            ps.setLong(2, orderId);
-            return ps.executeUpdate() > 0;
+            ps.setByte(2, paymentStatus);
+            ps.setLong(3, orderId);
+            
+            int rows = ps.executeUpdate();
+            if (rows > 0) {
+                updatePaymentRecord(orderId, paymentStatus);
+            }
+            return rows > 0;
         } catch (Exception e) { e.printStackTrace(); }
         return false;
     }
@@ -863,51 +887,6 @@ public class OrderDAO {
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setNString(1, reason);
             ps.setLong(2, orderId);
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) { e.printStackTrace(); }
-        return false;
-    }
-
-    public boolean updateOrderNote(long orderId, String note) {
-        String sql = "UPDATE dbo.Orders SET note = ? WHERE orderId = ?";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setNString(1, note);
-            ps.setLong(2, orderId);
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) { e.printStackTrace(); }
-        return false;
-    }
-
-    public boolean updateOrderCancelReason(long orderId, String reason) {
-        String sql = "UPDATE dbo.Orders SET orderStatus = 6, cancelledAt = SYSUTCDATETIME(), cancelledReason = ? WHERE orderId = ?";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setNString(1, reason);
-            ps.setLong(2, orderId);
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) { e.printStackTrace(); }
-        return false;
-    }
-
-    public boolean refundOrder(long orderId) {
-        String sql = "UPDATE dbo.Orders SET paymentStatus = 4 WHERE orderId = ?";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setLong(1, orderId);
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) { e.printStackTrace(); }
-        return false;
-    }
-
-    public boolean redeliverOrder(long orderId) {
-        // Chuyển thẳng sang trạng thái Đã đóng gói (3) để chờ gán Shipper đi giao lại luôn
-        // Xóa sạch các dấu vết cũ của lần giao thất bại (cancelledAt, cancelledReason, shipperId)
-        String sql = "UPDATE dbo.Orders SET orderStatus = 3, shippingStatus = 1, shipperId = NULL, "
-                   + "cancelledAt = NULL, cancelledReason = NULL WHERE orderId = ?";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setLong(1, orderId);
             return ps.executeUpdate() > 0;
         } catch (Exception e) { e.printStackTrace(); }
         return false;

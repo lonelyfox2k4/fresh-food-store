@@ -34,15 +34,21 @@ public class FeedbackServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
 
-        long feedbackId = Long.parseLong(request.getParameter("feedbackId"));
+        String feedbackIdStr = request.getParameter("feedbackId");
+        String reviewIdStr = request.getParameter("reviewId");
+        long feedbackId = (feedbackIdStr != null && !feedbackIdStr.isEmpty()) ? Long.parseLong(feedbackIdStr) : 0L;
+        Long reviewId = (reviewIdStr != null && !reviewIdStr.isEmpty()) ? Long.parseLong(reviewIdStr) : null;
+        
         String responseText = request.getParameter("responseText");
+        HttpSession session = request.getSession();
+
+
 
         // Lấy ID của Staff đang đăng nhập từ Session
-        HttpSession session = request.getSession();
         Account staff = (Account) session.getAttribute("user");
-        long staffId = (staff != null) ? staff.getAccountId() : 1L; // Fallback về 1 nếu chưa login
+        long staffId = (staff != null) ? staff.getAccountId() : 1L; 
 
-        if (feedbackDAO.updateResponse(feedbackId, responseText, staffId)) {
+        if (feedbackDAO.saveResponse(feedbackId, reviewId, responseText, staffId, staff != null ? staff.getAccountId() : 1L)) {
             // Trả lời xong thì quay lại trang danh sách kèm thông báo
             response.sendRedirect("feedback?msg=replied");
         } else {

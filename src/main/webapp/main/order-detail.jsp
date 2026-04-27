@@ -153,8 +153,22 @@
                     <span class="fs-4 fw-bold text-brand"><fmt:formatNumber value="${order.totalAmount}" pattern="###,###"/> ₫</span>
                 </div>
                 <div class="mt-3 p-2 bg-light rounded-2 small d-flex align-items-center gap-2">
-                    <i class="fa-solid fa-shield-halved text-success"></i>
-                    <span>Thanh toán: <strong>COD (Tiền mặt)</strong></span>
+                    <i class="fa-solid fa-credit-card text-primary"></i>
+                    <span>Thanh toán: <strong>
+                        <c:choose>
+                            <c:when test="${order.paymentStatus == 1}">VNPAY (Thanh toán Online)</c:when>
+                            <c:otherwise>COD (Tiền mặt)</c:otherwise>
+                        </c:choose>
+                    </strong></span>
+                </div>
+                <div class="mt-2 p-2 rounded-2 small d-flex align-items-center gap-2 ${order.paymentStatus == 1 || order.paymentStatus == 2 || order.paymentStatus == 3 ? 'bg-success bg-opacity-10 text-success' : 'bg-warning bg-opacity-10 text-warning'}">
+                    <i class="fa-solid ${order.paymentStatus == 1 || order.paymentStatus == 2 || order.paymentStatus == 3 ? 'fa-check-circle' : 'fa-clock'}"></i>
+                    <span>Trạng thái: <strong>
+                        <c:choose>
+                            <c:when test="${order.paymentStatus == 1 || order.paymentStatus == 2 || order.paymentStatus == 3}">Đã thanh toán</c:when>
+                            <c:otherwise>Chờ thanh toán</c:otherwise>
+                        </c:choose>
+                    </strong></span>
                 </div>
             </div>
         </div>
