@@ -1,0 +1,21 @@
+﻿Mã TC,Kịch bản kiểm thử,Dữ liệu đầu vào (Input),Các bước thực hiện,Kết quả mong đợi (Thông báo/Action),Kết quả thực tế,Hình ảnh minh chứng (Paste ảnh vào đây),Trạng thái
+TC_LOGIN_01,Đăng nhập thành công (Khách hàng),"Email: testuser@gmail.com
+Pass: 123456Aa","B1: Nhập Email
+B2: Nhập Mật khẩu
+B3: Click 'Đăng nhập'",Chuyển hướng thành công tới Trang chủ (/home).,"Chuyển hướng thành công, góc phải trên hiển thị tên tài khoản.",,Pass
+TC_LOGIN_02,Bỏ trống thông tin,"Email: [Để trống]
+Pass: [Để trống]","B1: Để trống Email và Mật khẩu
+B2: Click 'Đăng nhập'",Hiển thị thông báo: 'Email và mật khẩu không được bỏ trống!',Đúng thông báo: 'Email và mật khẩu không được bỏ trống!',,Pass
+TC_LOGIN_03,Sai định dạng Email,"Email: admin_deptrai
+Pass: 123456","B1: Nhập Email không có @
+B2: Nhập Mật khẩu
+B3: Click 'Đăng nhập'",Hiển thị thông báo: 'Định dạng Email không hợp lệ!',Đúng thông báo: 'Định dạng Email không hợp lệ!',,Pass
+TC_LOGIN_04,Sai Email hoặc Mật khẩu,"Email: sai_email@gmail.com
+Pass: saipassword","B1: Nhập Email/Pass sai
+B2: Click 'Đăng nhập'",Hiển thị thông báo: 'Tài khoản hoặc mật khẩu không chính xác!',Đúng thông báo: 'Tài khoản hoặc mật khẩu không chính xác!',,Pass
+TC_LOGIN_05,Tài khoản bị khóa (Status = 0),"Email: banneduser@gmail.com
+Pass: 123456Aa","B1: Nhập thông tin tài khoản đã bị admin khóa
+B2: Click 'Đăng nhập'",Hiển thị thông báo: 'Tài khoản của bạn đã bị khóa! Vui lòng liên hệ quản trị viên.',Đúng thông báo: 'Tài khoản của bạn đã bị khóa! Vui lòng liên hệ quản trị viên.',,Pass
+TC_LOGIN_06,Email chưa xác thực OTP,"Email: unverified@gmail.com
+Pass: 123456Aa","B1: Nhập thông tin tài khoản chưa verify OTP
+B2: Click 'Đăng nhập'",Hiển thị thông báo: 'Email của bạn chưa được xác thực! Vui lòng kiểm tra hộp thư.',Đúng thông báo: 'Email của bạn chưa được xác thực! Vui lòng kiểm tra hộp thư.',,Pass

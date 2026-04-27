@@ -1,6 +1,7 @@
 package org.example.filter;
 
 import org.example.model.auth.Account;
+import org.example.utils.RoleConstant;
 
 import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;
@@ -47,18 +48,17 @@ public class AdminFilter implements Filter {
         // 2. Kiểm tra Role
         int roleId = user.getRoleId();
 
-        // Admin (roleId=1) → Cho phép vào /admin/*
-        if (roleId == 1) {
+        // Admin (RoleConstant.ADMIN) → Cho phép vào /admin/*
+        if (roleId == RoleConstant.ADMIN) {
             chain.doFilter(request, response);
             return;
         }
 
-        // Nếu là Manager (2), Staff (3) hoặc các role khác → Không được vào khu vực Admin
-        // Redirect về trang chủ hoặc trang riêng của họ
-        if (roleId == 2) {
+        // Nếu là Manager, Staff hoặc các role khác → Không được vào khu vực Admin
+        if (roleId == RoleConstant.MANAGER) {
             resp.sendRedirect(req.getContextPath() + "/manager/products");
-        } else if (roleId == 3) {
-            resp.sendRedirect(req.getContextPath() + "/staff/voucher");
+        } else if (roleId == RoleConstant.STAFF) {
+            resp.sendRedirect(req.getContextPath() + "/staff/orders");
         } else {
             resp.sendRedirect(req.getContextPath() + "/home");
         }

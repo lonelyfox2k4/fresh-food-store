@@ -1,6 +1,7 @@
 package org.example.filter;
 
 import org.example.model.auth.Account;
+import org.example.utils.RoleConstant;
 
 import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;
@@ -47,8 +48,8 @@ public class StaffFilter implements Filter {
         // 2. Kiểm tra Role
         int roleId = user.getRoleId();
 
-        // Admin (1), Manager (2), và Staff (3) → Được phép vào /staff/*
-        if (roleId == 1 || roleId == 2 || roleId == 3) {
+        // Admin, Manager, và Staff → Được phép vào /staff/*
+        if (roleId == RoleConstant.ADMIN || roleId == RoleConstant.MANAGER || roleId == RoleConstant.STAFF) {
             chain.doFilter(request, response);
             return;
         }

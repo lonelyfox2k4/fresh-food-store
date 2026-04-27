@@ -1,6 +1,7 @@
 package org.example.filter;
 
 import org.example.model.auth.Account;
+import org.example.utils.RoleConstant;
 
 import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;
@@ -46,8 +47,8 @@ public class ManagerFilter implements Filter {
             return;
         }
 
-        // 3. Cho phép Admin (1) và Manager (2)
-        if (user.getRoleId() == 1 || user.getRoleId() == 2) {
+        // 3. Cho phép Admin và Manager
+        if (user.getRoleId() == RoleConstant.ADMIN || user.getRoleId() == RoleConstant.MANAGER) {
             chain.doFilter(request, response);
         } else {
             // Không có quyền -> về trang chủ

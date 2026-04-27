@@ -117,8 +117,10 @@ public class ChatbotController extends HttpServlet {
 
         // Logic 3: Voucher / Khuyến mãi
         if (message.contains("khuyến mãi") || message.contains("voucher") || message.contains("giảm giá") || message.contains("mã")) {
+            if (user == null) {
+                return "Bạn ơi, hãy đăng nhập để mình kiểm tra xem tài khoản của bạn có nhận được mã giảm giá bí mật nào không nha! 🎁✨";
+            }
             List<Voucher> vouchers = voucherDAO.getActiveVouchers();
-            if (vouchers.isEmpty()) return "Tiếc quá, hiện tại mình chưa có mã giảm giá mới. Bạn quay lại thăm mình sau nha! 🥺";
             StringBuilder sb = new StringBuilder("Aha! Mình đang giữ mấy mã giảm giá siêu hời cho bạn đây:\n");
             for (Voucher v : vouchers) {
                 String type = (v.getDiscountType() == 1) ? v.getDiscountValue() + "%" : NumberFormat.getCurrencyInstance(new Locale("vi", "VN")).format(v.getDiscountValue()).replace("₫", "VNĐ");
@@ -145,9 +147,8 @@ public class ChatbotController extends HttpServlet {
         // Logic 5: Hỏi về gía / tìm kiếm
         if (message.contains("giá") || message.contains("tìm") || message.contains("mua") || message.contains("bao nhiêu")) {
             String keyword = message
-                    .replace("mức", "").replace("hỏi", "").replace("giá", "")
-                    .replace("tìm", "").replace("mua", "").replace("bao nhiêu", "")
-                    .replace("cho", "").replace("tiền", "").replace("của", "").trim();
+                    .replaceAll("(?i)\\b(mức|hỏi|giá|tìm|mua|bao nhiêu|cho|tiền|của|món|loại)\\b", "")
+                    .trim();
 
             if (keyword.isEmpty()) {
                 return "Bạn muốn tìm giá món nào thì nhắn tên món đó cho mình biết với nha! (Vd: 'Giá thịt heo')";

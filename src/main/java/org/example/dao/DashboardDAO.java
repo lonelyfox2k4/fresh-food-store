@@ -40,10 +40,8 @@ public class DashboardDAO {
                 }
             }
 
-            // Calculate total revenue (Sum of totalAmount for paid orders, assuming paymentStatus = 1 or similar for completed)
-            // For now, let's just sum all paid orders (assuming paymentStatus > 0 means paid, or just sum all for total sales volume)
-            // Depending on status values, let's take all completed orders (e.g., paymentStatus = 1 or 2). We will sum all revenue to avoid 0 if no statuses match completely.
-            try (PreparedStatement ps = conn.prepareStatement("SELECT SUM(totalAmount) FROM dbo.Orders");
+            // Calculate total revenue (Chỉ tính các đơn hàng đã Hoàn thành - Status 5)
+            try (PreparedStatement ps = conn.prepareStatement("SELECT SUM(totalAmount) FROM dbo.Orders WHERE orderStatus = 5");
                  ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     totalRevenue = rs.getDouble(1);

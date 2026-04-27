@@ -9,6 +9,7 @@ import javax.servlet.http.*;
 import java.io.IOException;
 import org.example.utils.ValidationUtils;
 import org.example.utils.EmailUtils;
+import org.example.utils.RoleConstant;
 
 @WebServlet(urlPatterns = {"/login", "/register", "/logout"})
 public class AuthController extends HttpServlet {
@@ -94,16 +95,16 @@ public class AuthController extends HttpServlet {
             int roleId = acc.getRoleId();
             
             switch (roleId) {
-                case 1: // Admin
+                case RoleConstant.ADMIN:
                     resp.sendRedirect(contextPath + "/admin/dashboard");
                     break;
-                case 2: // Manager
+                case RoleConstant.MANAGER:
                     resp.sendRedirect(contextPath + "/manager/products");
                     break;
-                case 3: // Staff
+                case RoleConstant.STAFF:
                     resp.sendRedirect(contextPath + "/staff/orders");
                     break;
-                case 4: // Shipper
+                case RoleConstant.SHIPPER:
                     resp.sendRedirect(contextPath + "/shipper/orders");
                     break;
                 default: // Customer/Others

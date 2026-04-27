@@ -4,6 +4,7 @@ import org.example.dao.AccountDAO;
 import org.example.dao.OrderDAO;
 import org.example.dao.OrderItemDAO;
 import org.example.model.auth.Account;
+import org.example.utils.RoleConstant;
 import org.example.model.order.Order;
 import org.example.model.order.OrderItem;
 
@@ -47,7 +48,7 @@ public class StaffOrderServlet extends HttpServlet {
                     }
                     
                     // Lấy danh sách Shippers
-                    List<Account> shippers = accountDAO.getAccountsByRole(4);
+                    List<Account> shippers = accountDAO.getAccountsByRole(RoleConstant.SHIPPER);
                     
                     request.setAttribute("orderList", orders);
                     request.setAttribute("shipperList", shippers);

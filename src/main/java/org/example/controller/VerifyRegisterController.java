@@ -2,6 +2,7 @@ package org.example.controller;
 
 import org.example.dao.AccountDAO;
 import org.example.model.auth.Account;
+import org.example.utils.RoleConstant;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -56,17 +57,17 @@ public class VerifyRegisterController extends HttpServlet {
 
             AccountDAO dao = new AccountDAO();
 
-            // 3. OTP ĐÚNG -> LƯU VÀO DATABASE
+            // 3. OTP ĐÚNG -> LƯU VÀO DATABASE TRONG 1 BƯỚC
             boolean success = dao.insertAccount(
-                    5, // Role Customer
+                    RoleConstant.CUSTOMER,
                     tempUser.getEmail(),
                     tempUser.getPasswordHash(),
                     tempUser.getFullName(),
-                    tempUser.getPhone()
+                    tempUser.getPhone(),
+                    true // Đã xác thực (Verified)
             );
 
             if (success) {
-                dao.verifyEmail(tempUser.getEmail());
 
                 // Xóa dữ liệu tạm trong session
                 session.removeAttribute("registerOtp");

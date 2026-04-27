@@ -30,8 +30,11 @@ public class AccountDAO {
     }
 
     public boolean insertAccount(int roleId, String email, String password, String fullName, String phone) {
-        // Mặc định emailVerified là 0 khi đăng ký mới
-        String sql = "INSERT INTO dbo.Accounts (roleId, email, passwordHash, fullName, phone, status, emailVerified) VALUES (?, ?, ?, ?, ?, 1, 0)";
+        return insertAccount(roleId, email, password, fullName, phone, false);
+    }
+
+    public boolean insertAccount(int roleId, String email, String password, String fullName, String phone, boolean emailVerified) {
+        String sql = "INSERT INTO dbo.Accounts (roleId, email, passwordHash, fullName, phone, status, emailVerified) VALUES (?, ?, ?, ?, ?, 1, ?)";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             String hashedPassword = encodePassword(password);
@@ -40,6 +43,7 @@ public class AccountDAO {
             ps.setString(3, hashedPassword);
             ps.setString(4, fullName);
             ps.setString(5, phone);
+            ps.setInt(6, emailVerified ? 1 : 0);
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
