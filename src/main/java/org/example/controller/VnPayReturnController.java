@@ -61,7 +61,7 @@ public class VnPayReturnController extends HttpServlet {
             } else {
                 // Payment Failed or Cancelled - Release Inventory
                 if (user != null) {
-                    orderDAO.cancelOrder(orderId, user.getAccountId());
+                    orderDAO.systemCancelOrder(orderId, "Thanh toán qua VNPAY thất bại hoặc bị hủy");
                 }
                 
                 session.setAttribute("checkoutError", "Thanh toán không thành công hoặc đã bị hủy. Mã lỗi: " + vnp_ResponseCode);

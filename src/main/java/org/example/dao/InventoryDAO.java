@@ -38,8 +38,8 @@ public class InventoryDAO {
                 "WHERE pp.status = 1 AND p.status = 1 " +
                 "ORDER BY p.productName ASC, pp.packWeightGram ASC";
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 ProductPackOption option = new ProductPackOption();
                 option.setProductPackId(rs.getLong("productPackId"));
@@ -57,9 +57,11 @@ public class InventoryDAO {
 
     public List<GoodsReceiptView> getGoodsReceiptList() {
         List<GoodsReceiptView> list = new ArrayList<>();
-        String sql = "SELECT gr.receiptId, gr.receiptCode, gr.supplierId, s.supplierName, s.phone, gr.receivedAt, gr.status, gr.note, " +
+        String sql = "SELECT gr.receiptId, gr.receiptCode, gr.supplierId, s.supplierName, s.phone, gr.receivedAt, gr.status, gr.note, "
+                +
                 "(SELECT COUNT(*) FROM dbo.GoodsReceiptItems gri WHERE gri.receiptId = gr.receiptId) AS totalLines, " +
-                "(SELECT ISNULL(SUM(gri.quantityReceived), 0) FROM dbo.GoodsReceiptItems gri WHERE gri.receiptId = gr.receiptId) AS totalQuantity, " +
+                "(SELECT ISNULL(SUM(gri.quantityReceived), 0) FROM dbo.GoodsReceiptItems gri WHERE gri.receiptId = gr.receiptId) AS totalQuantity, "
+                +
                 "CASE WHEN EXISTS ( " +
                 "   SELECT 1 " +
                 "   FROM dbo.GoodsReceiptItems gri " +
@@ -67,14 +69,15 @@ public class InventoryDAO {
                 "   WHERE gri.receiptId = gr.receiptId AND ( " +
                 "       ib.quantityReserved > 0 OR " +
                 "       EXISTS (SELECT 1 FROM dbo.OrderItemAllocations oia WHERE oia.batchId = ib.batchId) OR " +
-                "       EXISTS (SELECT 1 FROM dbo.InventoryTransactions it WHERE it.batchId = ib.batchId AND (it.transactionType <> ? OR ISNULL(it.referenceType, '') <> 'RECEIPT')) " +
+                "       EXISTS (SELECT 1 FROM dbo.InventoryTransactions it WHERE it.batchId = ib.batchId AND (it.transactionType <> ? OR ISNULL(it.referenceType, '') <> 'RECEIPT')) "
+                +
                 "   ) " +
                 ") THEN 0 ELSE 1 END AS editableFlag " +
                 "FROM dbo.GoodsReceipts gr " +
                 "JOIN dbo.Suppliers s ON gr.supplierId = s.supplierId " +
                 "ORDER BY gr.receivedAt DESC, gr.receiptId DESC";
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, TRANSACTION_TYPE_RECEIPT);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -103,12 +106,13 @@ public class InventoryDAO {
     }
 
     public GoodsReceiptView getGoodsReceiptDetail(long receiptId) {
-        String headerSql = "SELECT gr.receiptId, gr.receiptCode, gr.supplierId, s.supplierName, s.phone, gr.receivedAt, gr.status, gr.note " +
+        String headerSql = "SELECT gr.receiptId, gr.receiptCode, gr.supplierId, s.supplierName, s.phone, gr.receivedAt, gr.status, gr.note "
+                +
                 "FROM dbo.GoodsReceipts gr " +
                 "JOIN dbo.Suppliers s ON gr.supplierId = s.supplierId " +
                 "WHERE gr.receiptId = ?";
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(headerSql)) {
+                PreparedStatement ps = conn.prepareStatement(headerSql)) {
             ps.setLong(1, receiptId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (!rs.next()) {
@@ -172,8 +176,10 @@ public class InventoryDAO {
         List<InventoryBatchView> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder(
                 "SELECT ib.batchId, ib.receiptItemId, ib.quantityOnHand, ib.quantityReserved, ib.status, " +
-                        "gri.receiptId, gri.productPackId, gri.batchCode, gri.manufactureDate, gri.expiryDate, gri.unitCost, gri.note, " +
-                        "gr.receiptCode, gr.receivedAt, s.supplierId, s.supplierName, pp.productId, pp.packWeightGram, p.productName " +
+                        "gri.receiptId, gri.productPackId, gri.batchCode, gri.manufactureDate, gri.expiryDate, gri.unitCost, gri.note, "
+                        +
+                        "gr.receiptCode, gr.receivedAt, s.supplierId, s.supplierName, pp.productId, pp.packWeightGram, p.productName "
+                        +
                         "FROM dbo.InventoryBatches ib " +
                         "JOIN dbo.GoodsReceiptItems gri ON ib.receiptItemId = gri.receiptItemId " +
                         "JOIN dbo.GoodsReceipts gr ON gri.receiptId = gr.receiptId " +
@@ -188,8 +194,8 @@ public class InventoryDAO {
         sql.append("ORDER BY gri.expiryDate ASC, gr.receivedAt DESC, ib.batchId DESC");
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql.toString());
-             ResultSet rs = ps.executeQuery()) {
+                PreparedStatement ps = conn.prepareStatement(sql.toString());
+                ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 list.add(mapBatchRow(rs));
             }
@@ -201,8 +207,10 @@ public class InventoryDAO {
 
     public InventoryBatchView getInventoryBatchDetail(long batchId) {
         String sql = "SELECT ib.batchId, ib.receiptItemId, ib.quantityOnHand, ib.quantityReserved, ib.status, " +
-                "gri.receiptId, gri.productPackId, gri.batchCode, gri.manufactureDate, gri.expiryDate, gri.unitCost, gri.note, " +
-                "gr.receiptCode, gr.receivedAt, s.supplierId, s.supplierName, pp.productId, pp.packWeightGram, p.productName " +
+                "gri.receiptId, gri.productPackId, gri.batchCode, gri.manufactureDate, gri.expiryDate, gri.unitCost, gri.note, "
+                +
+                "gr.receiptCode, gr.receivedAt, s.supplierId, s.supplierName, pp.productId, pp.packWeightGram, p.productName "
+                +
                 "FROM dbo.InventoryBatches ib " +
                 "JOIN dbo.GoodsReceiptItems gri ON ib.receiptItemId = gri.receiptItemId " +
                 "JOIN dbo.GoodsReceipts gr ON gri.receiptId = gr.receiptId " +
@@ -211,7 +219,7 @@ public class InventoryDAO {
                 "JOIN dbo.Products p ON pp.productId = p.productId " +
                 "WHERE ib.batchId = ?";
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, batchId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (!rs.next()) {
@@ -272,11 +280,13 @@ public class InventoryDAO {
                             throw new IllegalStateException("Thiếu batch của dòng nhập hiện có.");
                         }
                         updateInventoryBatch(conn, batchId, line.getQuantityReceived());
-                        replaceReceiptTransaction(conn, batchId, form.getReceiptId(), accountId, line.getQuantityReceived());
+                        replaceReceiptTransaction(conn, batchId, form.getReceiptId(), accountId,
+                                line.getQuantityReceived());
                     } else {
                         long receiptItemId = insertReceiptItem(conn, form.getReceiptId(), line);
                         long batchId = insertInventoryBatch(conn, receiptItemId, line.getQuantityReceived());
-                        replaceReceiptTransaction(conn, batchId, form.getReceiptId(), accountId, line.getQuantityReceived());
+                        replaceReceiptTransaction(conn, batchId, form.getReceiptId(), accountId,
+                                line.getQuantityReceived());
                     }
                 }
 
@@ -336,7 +346,8 @@ public class InventoryDAO {
 
     private List<GoodsReceiptItemView> getReceiptItems(Connection conn, long receiptId) throws SQLException {
         List<GoodsReceiptItemView> items = new ArrayList<>();
-        String sql = "SELECT gri.receiptItemId, gri.productPackId, gri.batchCode, gri.manufactureDate, gri.expiryDate, gri.quantityReceived, gri.unitCost, gri.note, " +
+        String sql = "SELECT gri.receiptItemId, gri.productPackId, gri.batchCode, gri.manufactureDate, gri.expiryDate, gri.quantityReceived, gri.unitCost, gri.note, "
+                +
                 "ib.batchId, ib.quantityOnHand, ib.quantityReserved, pp.packWeightGram, p.productName " +
                 "FROM dbo.GoodsReceiptItems gri " +
                 "LEFT JOIN dbo.InventoryBatches ib ON gri.receiptItemId = ib.receiptItemId " +
@@ -382,7 +393,8 @@ public class InventoryDAO {
                 "WHERE gri.receiptId = ? AND (" +
                 "ib.quantityReserved > 0 OR " +
                 "EXISTS (SELECT 1 FROM dbo.OrderItemAllocations oia WHERE oia.batchId = ib.batchId) OR " +
-                "EXISTS (SELECT 1 FROM dbo.InventoryTransactions it WHERE it.batchId = ib.batchId AND (it.transactionType <> ? OR ISNULL(it.referenceType, '') <> 'RECEIPT'))" +
+                "EXISTS (SELECT 1 FROM dbo.InventoryTransactions it WHERE it.batchId = ib.batchId AND (it.transactionType <> ? OR ISNULL(it.referenceType, '') <> 'RECEIPT'))"
+                +
                 ")";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, receiptId);
@@ -430,7 +442,8 @@ public class InventoryDAO {
 
     private List<InventoryTransactionView> getBatchTransactions(Connection conn, long batchId) throws SQLException {
         List<InventoryTransactionView> list = new ArrayList<>();
-        String sql = "SELECT it.inventoryTransactionId, it.transactionType, it.quantity, it.referenceType, it.referenceId, it.performedByAccountId, it.note, it.transactionAt, a.fullName " +
+        String sql = "SELECT it.inventoryTransactionId, it.transactionType, it.quantity, it.referenceType, it.referenceId, it.performedByAccountId, it.note, it.transactionAt, a.fullName "
+                +
                 "FROM dbo.InventoryTransactions it " +
                 "LEFT JOIN dbo.Accounts a ON it.performedByAccountId = a.accountId " +
                 "WHERE it.batchId = ? " +
@@ -461,7 +474,8 @@ public class InventoryDAO {
     }
 
     private long insertReceipt(Connection conn, GoodsReceiptForm form, long accountId) throws SQLException {
-        String sql = "INSERT INTO dbo.GoodsReceipts (receiptCode, supplierId, receivedByAccountId, receivedAt, status, note) " +
+        String sql = "INSERT INTO dbo.GoodsReceipts (receiptCode, supplierId, receivedByAccountId, receivedAt, status, note) "
+                +
                 "VALUES (?, ?, ?, ?, 1, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, form.getReceiptCode());
@@ -480,7 +494,8 @@ public class InventoryDAO {
     }
 
     private long insertReceiptItem(Connection conn, long receiptId, GoodsReceiptLineForm line) throws SQLException {
-        String sql = "INSERT INTO dbo.GoodsReceiptItems (receiptId, productPackId, batchCode, manufactureDate, expiryDate, quantityReceived, unitCost, note) " +
+        String sql = "INSERT INTO dbo.GoodsReceiptItems (receiptId, productPackId, batchCode, manufactureDate, expiryDate, quantityReceived, unitCost, note) "
+                +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setLong(1, receiptId);
@@ -520,9 +535,11 @@ public class InventoryDAO {
         throw new SQLException("Không thể tạo batch tồn kho.");
     }
 
-    private void replaceReceiptTransaction(Connection conn, long batchId, long receiptId, long accountId, int quantity) throws SQLException {
+    private void replaceReceiptTransaction(Connection conn, long batchId, long receiptId, long accountId, int quantity)
+            throws SQLException {
         deleteReceiptTransaction(conn, batchId, receiptId);
-        String sql = "INSERT INTO dbo.InventoryTransactions (batchId, transactionType, quantity, referenceType, referenceId, performedByAccountId, note) " +
+        String sql = "INSERT INTO dbo.InventoryTransactions (batchId, transactionType, quantity, referenceType, referenceId, performedByAccountId, note) "
+                +
                 "VALUES (?, ?, ?, 'RECEIPT', ?, ?, N'Nhập kho từ phiếu nhập')";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, batchId);
@@ -605,7 +622,8 @@ public class InventoryDAO {
     }
 
     private void deleteReceiptItem(Connection conn, long receiptItemId) throws SQLException {
-        try (PreparedStatement ps = conn.prepareStatement("DELETE FROM dbo.GoodsReceiptItems WHERE receiptItemId = ?")) {
+        try (PreparedStatement ps = conn
+                .prepareStatement("DELETE FROM dbo.GoodsReceiptItems WHERE receiptItemId = ?")) {
             ps.setLong(1, receiptItemId);
             ps.executeUpdate();
         }
@@ -630,13 +648,14 @@ public class InventoryDAO {
         item.setExpired(days < 0);
         item.setExpiringSoon(days >= 0 && days <= EXPIRING_SOON_DAYS);
     }
+
     public int getAvailableStockByPackId(long productPackId) {
         String sql = "SELECT SUM(ib.quantityOnHand - ib.quantityReserved) AS availableStock " +
                 "FROM dbo.InventoryBatches ib " +
                 "JOIN dbo.GoodsReceiptItems gri ON ib.receiptItemId = gri.receiptItemId " +
                 "WHERE gri.productPackId = ? AND ib.status = 1 AND gri.expiryDate >= CAST(GETDATE() AS DATE)";
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, productPackId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {

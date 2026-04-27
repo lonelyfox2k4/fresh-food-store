@@ -11,7 +11,7 @@ import javax.servlet.http.*;
 import java.io.IOException;
 import java.util.List;
 
-@WebServlet(urlPatterns = {"/orders", "/orders/detail", "/orders/cancel", "/order-success"})
+@WebServlet(urlPatterns = {"/orders", "/orders/detail", "/order-success"})
 public class OrderController extends HttpServlet {
 
     private final OrderDAO orderDAO = new OrderDAO();
@@ -35,9 +35,6 @@ public class OrderController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
-        if ("/orders/cancel".equals(req.getServletPath())) {
-            handleCancel(req, resp);
-        }
     }
 
     // ── Order history ─────────────────────────────────────────────────────────
@@ -112,22 +109,6 @@ public class OrderController extends HttpServlet {
         }
     }
 
-    // ── Cancel order ──────────────────────────────────────────────────────────
-
-    private void handleCancel(HttpServletRequest req, HttpServletResponse resp)
-            throws IOException {
-        Account user = getUser(req);
-        try {
-            long orderId = Long.parseLong(req.getParameter("orderId"));
-            boolean ok   = orderDAO.cancelOrder(orderId, user.getAccountId());
-            if (ok) {
-                req.getSession().setAttribute("orderMsg", "success:Đơn hàng đã được hủy thành công.");
-            } else {
-                req.getSession().setAttribute("orderMsg", "error:Không thể hủy đơn hàng này (đã được xử lý).");
-            }
-        } catch (NumberFormatException ignored) {}
-        resp.sendRedirect(req.getContextPath() + "/orders");
-    }
 
     private Account getUser(HttpServletRequest req) {
         return (Account) req.getSession().getAttribute("user");

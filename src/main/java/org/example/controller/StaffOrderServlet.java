@@ -16,7 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 
-@WebServlet(name = "StaffOrderServlet", urlPatterns = {"/staff/orders"})
+@WebServlet(name = "StaffOrderServlet", urlPatterns = { "/staff/orders" })
 public class StaffOrderServlet extends HttpServlet {
 
     private OrderDAO orderDAO;
@@ -31,9 +31,11 @@ public class StaffOrderServlet extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         String action = request.getParameter("action");
-        if (action == null) action = "list";
+        if (action == null)
+            action = "list";
 
         try {
             switch (action) {
@@ -62,10 +64,10 @@ public class StaffOrderServlet extends HttpServlet {
                         orders = orderDAO.getAllOrdersPaginated(offset, pageSize);
                         totalOrders = orderDAO.countAllOrders();
                     }
-                    
+
                     int totalPages = (int) Math.ceil((double) totalOrders / pageSize);
-                    
-                    // Lấy danh sách Shippers
+
+                    // Lấy danh sách Shippers sử dụng RoleConstant mới
                     List<Account> shippers = accountDAO.getAccountsByRole(RoleConstant.SHIPPER);
                     
                     request.setAttribute("orderList", orders);
@@ -73,10 +75,10 @@ public class StaffOrderServlet extends HttpServlet {
                     request.setAttribute("currentPage", page);
                     request.setAttribute("totalPages", totalPages);
                     request.setAttribute("pageSize", pageSize);
-                    
+
                     request.getRequestDispatcher("/staff/order-list.jsp").forward(request, response);
                     break;
-                    
+
                 case "detail":
                     long orderId = Long.parseLong(request.getParameter("id"));
                     Order order = orderDAO.getOrderById(orderId);
@@ -100,10 +102,11 @@ public class StaffOrderServlet extends HttpServlet {
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
         String action = request.getParameter("action");
-        
+
         if (action == null) {
             response.sendRedirect("orders?action=list");
             return;
@@ -111,29 +114,27 @@ public class StaffOrderServlet extends HttpServlet {
 
         try {
             long orderId = Long.parseLong(request.getParameter("orderId"));
-            
+
             switch (action) {
                 case "confirm":
                     // Chuyển orderStatus = 2 (Đã xác nhận / Chờ đóng gói)
                     orderDAO.updateOrderStatus(orderId, (byte) 2);
                     response.sendRedirect("orders?action=list&msg=confirmed");
                     break;
-                    
+
                 case "ready":
                     // Chuyển orderStatus = 3 (Đóng gói xong)
-                    // Logic trong DAO sẽ gỡ bỏ shipperId để đẩy đơn lên sàn tự do
                     orderDAO.updateOrderStatus(orderId, (byte) 3);
                     response.sendRedirect("orders?action=list&msg=packed");
                     break;
-                    
+
                 case "assignShipper":
                     // Gán shipper
                     String shipperIdStr = request.getParameter("shipperId");
                     if (shipperIdStr != null && !shipperIdStr.trim().isEmpty()) {
                         long shipperId = Long.parseLong(shipperIdStr);
                         Order order = orderDAO.getOrderById(orderId);
-                        
-                        // Chỉ gán được khi đơn chưa hoàn thành/hủy (Tránh gán vào đơn Status 5 hoặc 6)
+
                         if (order != null && order.getOrderStatus() < 5) {
                             orderDAO.assignShipper(orderId, shipperId);
                             response.sendRedirect("orders?action=list&msg=shipper_assigned");
@@ -144,21 +145,17 @@ public class StaffOrderServlet extends HttpServlet {
                         response.sendRedirect("orders?action=list&error=missing_shipper");
                     }
                     break;
-                    
+
                 case "updatePayment":
-                    // Cập nhật paymentStatus (VD: 2 = Đã thanh toán trong scale mới)
                     byte paymentStatus = Byte.parseByte(request.getParameter("paymentStatus"));
                     orderDAO.updatePaymentStatus(orderId, paymentStatus);
                     response.sendRedirect("orders?action=list&msg=payment_updated");
                     break;
-                    
+
                 case "complete":
-                    // Chuyển orderStatus = 5 (Hoàn thành)
                     orderDAO.updateOrderStatus(orderId, (byte) 5);
                     response.sendRedirect("orders?action=list&msg=completed");
                     break;
-                    
-
 
                 default:
                     response.sendRedirect("orders?action=list");

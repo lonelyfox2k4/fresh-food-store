@@ -227,6 +227,15 @@
 <div class="fixed-bottom sticky-action-bar z-3">
     <div class="container px-xl-5">
         <c:choose>
+            <c:when test="${empty order.shipperId}">
+                <form action="orders" method="post" class="m-0 w-100" onsubmit="return confirm('Bạn chắc chắn muốn nhận đơn hàng này chứ?');">
+                    <input type="hidden" name="action" value="claim">
+                    <input type="hidden" name="id" value="${order.orderId}">
+                    <button class="btn btn-primary w-100 fw-bold py-3 fs-5 rounded-pill shadow-lg d-flex justify-content-center align-items-center">
+                        <i class="bi bi-hand-thumbs-up-fill me-2 fs-4"></i> XÁC NHẬN NHẬN ĐƠN NÀY
+                    </button>
+                </form>
+            </c:when>
             <c:when test="${order.shippingStatus == 1}">
                 <form action="orders" method="post" class="m-0 w-100">
                     <input type="hidden" name="action" value="startShipping">

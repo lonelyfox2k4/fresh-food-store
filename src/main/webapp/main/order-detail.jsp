@@ -92,15 +92,6 @@
                 </div>
             </div>
 
-            <c:if test="${order.orderStatus == 1}">
-                <form action="${pageContext.request.contextPath}/orders/cancel" method="post" 
-                      onsubmit="return confirm('Hủy đơn hàng này? Thao tác không thể hoàn tác.')">
-                    <input type="hidden" name="orderId" value="${order.orderId}">
-                    <button type="submit" class="btn btn-outline-danger btn-sm fw-bold">
-                        <i class="fa-solid fa-rectangle-xmark me-1"></i> Hủy đơn hàng này
-                    </button>
-                </form>
-            </c:if>
         </div>
 
         <%-- Right: Summary & Recipient --%>

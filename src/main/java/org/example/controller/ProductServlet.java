@@ -101,14 +101,15 @@ public class ProductServlet extends HttpServlet {
             long id = Long.parseLong(request.getParameter("id"));
             String statusParam = request.getParameter("status");
             System.out.println("Toggle Status - ID: " + id + ", Status Param: " + statusParam);
-            
+
             // Parse status - có thể là "true"/"false" hoặc "1"/"0"
-            boolean newStatus = statusParam != null && (statusParam.equalsIgnoreCase("true") || statusParam.equals("1"));
+            boolean newStatus = statusParam != null
+                    && (statusParam.equalsIgnoreCase("true") || statusParam.equals("1"));
             System.out.println("New Status Value: " + newStatus);
-            
+
             boolean updated = productDAO.updateStatus(id, newStatus);
             System.out.println("Update Result: " + updated);
-            
+
             response.sendRedirect("products");
         } catch (Exception e) {
             System.out.println("Error in toggleProductStatus: " + e.getMessage());

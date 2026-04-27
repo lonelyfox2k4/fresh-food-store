@@ -151,7 +151,8 @@ public class ProductDAO {
     private BigDecimal fetchDiscountPercent(Connection conn, int policyId, int daysRemaining) {
         if (daysRemaining < 0)
             return BigDecimal.ZERO;
-        // Logic: Lấy quy tắc có minDaysRemaining lớn nhất mà vẫn nhỏ hơn hoặc bằng số ngày còn lại
+        // Logic: Lấy quy tắc có minDaysRemaining lớn nhất mà vẫn nhỏ hơn hoặc bằng số
+        // ngày còn lại
         String sql = "SELECT TOP 1 sellPricePercent FROM dbo.ExpiryPricingPolicyRules " +
                 "WHERE policyId = ? AND minDaysRemaining <= ? " +
                 "ORDER BY minDaysRemaining DESC";
@@ -211,15 +212,18 @@ public class ProductDAO {
 
     private int fetchTotalStock(Connection conn, long productId) {
         String sql = "SELECT ISNULL(SUM(ib.quantityOnHand - ib.quantityReserved), 0) FROM dbo.InventoryBatches ib " +
-                     "JOIN dbo.GoodsReceiptItems gri ON ib.receiptItemId = gri.receiptItemId " +
-                     "JOIN dbo.ProductPacks pp ON gri.productPackId = pp.productPackId " +
-                     "WHERE pp.productId = ? AND ib.status = 1 AND gri.expiryDate >= CAST(GETDATE() AS DATE)";
+                "JOIN dbo.GoodsReceiptItems gri ON ib.receiptItemId = gri.receiptItemId " +
+                "JOIN dbo.ProductPacks pp ON gri.productPackId = pp.productPackId " +
+                "WHERE pp.productId = ? AND ib.status = 1 AND gri.expiryDate >= CAST(GETDATE() AS DATE)";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, productId);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return rs.getInt(1);
+                if (rs.next())
+                    return rs.getInt(1);
             }
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return 0;
     }
 
@@ -291,15 +295,15 @@ public class ProductDAO {
 
     public ProductDTO getActiveProductById(long id) {
         String sql = "SELECT p.*, b.manufactureDate, b.expiryDate FROM dbo.Products p " +
-                     "OUTER APPLY ( " +
-                     "    SELECT TOP 1 gri.manufactureDate, gri.expiryDate " +
-                     "    FROM dbo.ProductPacks pp " +
-                     "    JOIN dbo.GoodsReceiptItems gri ON pp.productPackId = gri.productPackId " +
-                     "    WHERE pp.productId = p.productId " +
-                     "    AND gri.expiryDate >= CAST(GETDATE() AS DATE) " +
-                     "    ORDER BY gri.expiryDate ASC " +
-                     ") AS b " +
-                     "WHERE p.productId = ? AND p.status = 1 AND b.expiryDate IS NOT NULL";
+                "OUTER APPLY ( " +
+                "    SELECT TOP 1 gri.manufactureDate, gri.expiryDate " +
+                "    FROM dbo.ProductPacks pp " +
+                "    JOIN dbo.GoodsReceiptItems gri ON pp.productPackId = gri.productPackId " +
+                "    WHERE pp.productId = p.productId " +
+                "    AND gri.expiryDate >= CAST(GETDATE() AS DATE) " +
+                "    ORDER BY gri.expiryDate ASC " +
+                ") AS b " +
+                "WHERE p.productId = ? AND p.status = 1 AND b.expiryDate IS NOT NULL";
         try (Connection conn = DBConnection.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, id);
@@ -546,13 +550,13 @@ public class ProductDAO {
     public List<Product> searchProductsByChatbot(String keyword) {
         List<Product> list = new ArrayList<>();
         String sql = "SELECT TOP 5 p.* FROM dbo.Products p " +
-                     "OUTER APPLY ( " +
-                     "    SELECT TOP 1 gri.expiryDate FROM dbo.ProductPacks pp " +
-                     "    JOIN dbo.GoodsReceiptItems gri ON pp.productPackId = gri.productPackId " +
-                     "    WHERE pp.productId = p.productId AND gri.expiryDate >= CAST(GETDATE() AS DATE) " +
-                     ") AS b " +
-                     "WHERE p.status = 1 AND p.productName LIKE ? AND b.expiryDate IS NOT NULL " +
-                     "ORDER BY p.productId DESC";
+                "OUTER APPLY ( " +
+                "    SELECT TOP 1 gri.expiryDate FROM dbo.ProductPacks pp " +
+                "    JOIN dbo.GoodsReceiptItems gri ON pp.productPackId = gri.productPackId " +
+                "    WHERE pp.productId = p.productId AND gri.expiryDate >= CAST(GETDATE() AS DATE) " +
+                ") AS b " +
+                "WHERE p.status = 1 AND p.productName LIKE ? AND b.expiryDate IS NOT NULL " +
+                "ORDER BY p.productId DESC";
         try (Connection conn = DBConnection.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setNString(1, "%" + keyword + "%");
@@ -569,22 +573,24 @@ public class ProductDAO {
     public List<Product> getNewestProducts(int limit) {
         List<Product> list = new ArrayList<>();
         String sql = "SELECT TOP (?) p.* FROM dbo.Products p " +
-                     "OUTER APPLY ( " +
-                     "    SELECT TOP 1 gri.expiryDate FROM dbo.ProductPacks pp " +
-                     "    JOIN dbo.GoodsReceiptItems gri ON pp.productPackId = gri.productPackId " +
-                     "    WHERE pp.productId = p.productId AND gri.expiryDate >= CAST(GETDATE() AS DATE) " +
-                     ") AS b " +
-                     "WHERE p.status = 1 AND b.expiryDate IS NOT NULL " +
-                     "ORDER BY p.createdAt DESC";
+                "OUTER APPLY ( " +
+                "    SELECT TOP 1 gri.expiryDate FROM dbo.ProductPacks pp " +
+                "    JOIN dbo.GoodsReceiptItems gri ON pp.productPackId = gri.productPackId " +
+                "    WHERE pp.productId = p.productId AND gri.expiryDate >= CAST(GETDATE() AS DATE) " +
+                ") AS b " +
+                "WHERE p.status = 1 AND b.expiryDate IS NOT NULL " +
+                "ORDER BY p.createdAt DESC";
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, limit);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     list.add(mapRowToProduct(rs));
                 }
             }
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return list;
     }
 }

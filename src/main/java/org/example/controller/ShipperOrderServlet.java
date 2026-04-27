@@ -30,8 +30,6 @@ public class ShipperOrderServlet extends HttpServlet {
         if (action == null) action = "list";
 
         Account user = (Account) request.getSession().getAttribute("user");
-        
-        // Mock fallback cho test nếu không đăng nhập (shipperId = 12 cho Shipper 2)
         long shipperId = (user != null) ? user.getAccountId() : 0L;
 
         try {
@@ -59,14 +57,24 @@ public class ShipperOrderServlet extends HttpServlet {
                     request.getSession().setAttribute("orderMsg", "danger:Không thể nhận đơn hàng này!");
                     response.sendRedirect("orders?action=list");
                 }
-            } else if ("detail".equals(action)) {
+            } else if ("detail".equals(action) || "available-detail".equals(action)) {
                 long orderId = Long.parseLong(request.getParameter("id"));
                 Order order = orderDAO.getOrderById(orderId);
-                // Security check: Only assigned shipper can view
-                if (order == null || order.getShipperId() == null || order.getShipperId() != shipperId) {
-                    response.sendRedirect("orders?action=list&error=unauthorized");
-                    return;
+                
+                // Security check for assigned orders
+                if ("detail".equals(action)) {
+                    if (order == null || order.getShipperId() == null || order.getShipperId() != shipperId) {
+                        response.sendRedirect("orders?action=list&error=unauthorized");
+                        return;
+                    }
+                } else {
+                    // Check for available orders
+                    if (order == null || order.getOrderStatus() != 3 || order.getShipperId() != null) {
+                        response.sendRedirect("orders?action=list&error=invalid_order");
+                        return;
+                    }
                 }
+                
                 List<OrderItem> items = new OrderItemDAO().getOrderItemsByOrderId(orderId);
                 request.setAttribute("order", order);
                 request.setAttribute("itemList", items);
@@ -94,7 +102,6 @@ public class ShipperOrderServlet extends HttpServlet {
         long currentShipperId = (user != null) ? user.getAccountId() : 0L;
 
         try {
-            // Lấy ID đơn hàng từ cả 2 nguồn tham số có thể có (id hoặc orderId)
             String idStr = request.getParameter("id");
             if (idStr == null) idStr = request.getParameter("orderId");
             
@@ -132,7 +139,6 @@ public class ShipperOrderServlet extends HttpServlet {
             long orderId = Long.parseLong(idStr);
             Order order = orderDAO.getOrderById(orderId);
 
-            // Security check: Only assigned shipper can update delivery status
             if (order == null || order.getShipperId() == null || order.getShipperId() != currentShipperId) {
                 response.sendRedirect("orders?action=list&error=unauthorized");
                 return;
@@ -144,13 +150,11 @@ public class ShipperOrderServlet extends HttpServlet {
                     request.getSession().setAttribute("orderMsg", "success:Bắt đầu giao hàng!");
                     response.sendRedirect("orders?action=list");
                     break;
-                    
                 case "delivered":
                     orderDAO.updateDeliverySuccess(orderId);
                     request.getSession().setAttribute("orderMsg", "success:Giao hàng thành công! Đã ghi nhận thanh toán.");
                     response.sendRedirect("orders?action=list");
                     break;
-                    
                 case "failed":
                     String failReason = request.getParameter("reason");
                     if (failReason != null && !failReason.isEmpty()) {
@@ -159,7 +163,6 @@ public class ShipperOrderServlet extends HttpServlet {
                     }
                     response.sendRedirect("orders?action=list");
                     break;
-
                 default:
                     response.sendRedirect("orders?action=list");
                     break;
