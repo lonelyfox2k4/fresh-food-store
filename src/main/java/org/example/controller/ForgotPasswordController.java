@@ -10,12 +10,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
-import java.security.SecureRandom; // Dùng cái này cho bảo mật
+import java.security.SecureRandom;
 
 @WebServlet("/forgot-password")
 public class ForgotPasswordController extends HttpServlet {
 
-    // Hàm tạo mật khẩu ngẫu nhiên có ký tự đặc biệt
     private String generateComplexPassword(int length) {
         String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
         SecureRandom random = new SecureRandom();
@@ -30,7 +29,7 @@ public class ForgotPasswordController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         HttpSession session = req.getSession();
-        session.removeAttribute("resetEmail"); // Xóa email cũ để ô nhập luôn trống khi mới vào
+        session.removeAttribute("resetEmail");
         req.getRequestDispatcher("/main/forgot-password.jsp").forward(req, resp);
     }
 
@@ -84,7 +83,6 @@ public class ForgotPasswordController extends HttpServlet {
             Long lastSentTime = (Long) session.getAttribute("lastOtpSentTime");
             long currentTime = System.currentTimeMillis();
 
-            // 1. Kiểm tra mã OTP có tồn tại không
             if (systemOtp == null) {
                 req.setAttribute("error", "Mã xác thực không tồn tại hoặc đã hết hạn!");
                 req.setAttribute("step", "send-otp");
@@ -92,9 +90,8 @@ public class ForgotPasswordController extends HttpServlet {
                 return;
             }
 
-            // 2. Kiểm tra thời hạn 2 phút (120,000 ms)
             if (lastSentTime != null && (currentTime - lastSentTime) > 120000) {
-                session.removeAttribute("otp"); // Xóa mã cũ
+                session.removeAttribute("otp");
                 req.setAttribute("error", "Mã OTP đã hết hạn (2 phút). Vui lòng yêu cầu mã mới!");
                 req.setAttribute("step", "send-otp");
                 req.getRequestDispatcher("/main/forgot-password.jsp").forward(req, resp);
@@ -102,19 +99,14 @@ public class ForgotPasswordController extends HttpServlet {
             }
 
             if (userOtp != null && userOtp.equals(systemOtp)) {
-                // 1. Tạo mật khẩu mới (Bản thô để gửi mail)
                 String newPass = generateComplexPassword(10);
 
-                // 2. MÃ HÓA mật khẩu trước khi lưu vào Database
-                // Sử dụng hàm encodePassword có sẵn trong AccountDAO của mày
                 String hashedPassword = dao.encodePassword(newPass);
 
-                // 3. Cập nhật bản ĐÃ MÃ HÓA vào DB
                 boolean isUpdated = dao.resetPassword(email, hashedPassword);
 
                 if (isUpdated) {
                     try {
-                        // 4. Gửi BẢN THÔ (newPass) qua email để người dùng biết mà nhập
                         EmailUtils.sendEmail(email, "Mật khẩu mới của bạn",
                                 "Xác thực thành công. Mật khẩu mới để đăng nhập là: " + newPass);
 

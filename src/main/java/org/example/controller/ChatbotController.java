@@ -80,7 +80,6 @@ public class ChatbotController extends HttpServlet {
                  + "Mình là **Bé Bot Tươi Xanh** đây, rất vui được gặp bạn! ✨\n\n" + helpGuide;
         }
 
-        // Logic 0: Kiểm tra đơn hàng
         if (message.contains("đơn hàng") || message.contains("đang ở đâu") || message.contains("giao chưa")) {
             if (user == null) {
                 return "Bạn ơi, bạn đăng nhập giúp mình để mình vào kho tìm đơn hàng của bạn mới được nha! 🔑✨";
@@ -98,7 +97,6 @@ public class ChatbotController extends HttpServlet {
             return sb.toString();
         }
 
-        // Logic 1: Hỏi về danh mục
         if (message.contains("danh mục") || message.contains("loại") || message.contains("category")) {
             List<Category> cats = categoryDAO.getAllActiveCategories();
             if (cats.isEmpty()) return "Dạ hiện tại kệ hàng nhà mình đang trống, bạn đợi mình xíu nha!";
@@ -110,12 +108,10 @@ public class ChatbotController extends HttpServlet {
             return sb.toString();
         }
 
-        // Logic 2: Hỏi về liên hệ
         if (message.contains("liên hệ") || message.contains("hotline") || message.contains("địa chỉ") || message.contains("cửa hàng")) {
             return "🏠 **Fresh Food Store** đây ạ!\n📍 Địa chỉ: 123 Đường ABC, Quận 1, TP.HCM\n📞 Hotline: 1900 1234 (Gọi mình ngay nếu cần nha!)\n✉️ Email: cskh@freshfood.vn\n\nRất mong được đón tiếp bạn tại cửa hàng!";
         }
 
-        // Logic 3: Voucher / Khuyến mãi
         if (message.contains("khuyến mãi") || message.contains("voucher") || message.contains("giảm giá") || message.contains("mã")) {
             if (user == null) {
                 return "Bạn ơi, hãy đăng nhập để mình kiểm tra xem tài khoản của bạn có nhận được mã giảm giá bí mật nào không nha! 🎁✨";
@@ -130,7 +126,6 @@ public class ChatbotController extends HttpServlet {
             return sb.toString();
         }
 
-        // Logic 4: Sản phẩm mới
         if (message.contains("mới") || message.contains("gợi ý") || message.contains("có gì ngon")) {
             List<Product> news = productDAO.getNewestProducts(3);
             if (news.isEmpty()) return "Hôm nay mình chưa có hàng mới về, nhưng đồ cũ vẫn rất tươi ngon đó nha!";
@@ -144,7 +139,6 @@ public class ChatbotController extends HttpServlet {
             return sb.toString();
         }
 
-        // Logic 5: Hỏi về gía / tìm kiếm
         if (message.contains("giá") || message.contains("tìm") || message.contains("mua") || message.contains("bao nhiêu")) {
             String keyword = message
                     .replaceAll("(?i)\\b(mức|hỏi|giá|tìm|mua|bao nhiêu|cho|tiền|của|món|loại)\\b", "")
@@ -168,7 +162,6 @@ public class ChatbotController extends HttpServlet {
             return sb.toString();
         }
 
-        // Logic 6: Câu chào
         if (message.equals("hi") || message.equals("hello") || message.contains("chào")) {
             return "Dạ chào bạn! Mình là **Bé Bot Tươi Xanh**, rất vui được hỗ trợ bạn ngày hôm nay ạ! ✨\n\n" + helpGuide;
         }

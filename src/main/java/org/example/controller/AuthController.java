@@ -71,21 +71,18 @@ public class AuthController extends HttpServlet {
             return;
         }
 
-        // Kiểm tra trạng thái tài khoản
         if (!acc.isStatus()) {
             req.setAttribute("errorMsg", "Tài khoản của bạn đã bị khóa! Vui lòng liên hệ quản trị viên.");
             req.getRequestDispatcher("/main/login.jsp").forward(req, resp);
             return;
         }
 
-        // Kiểm tra xác thực Email
         if (!acc.isEmailVerified()) {
             req.setAttribute("errorMsg", "Email của bạn chưa được xác thực! Vui lòng kiểm tra hộp thư.");
             req.getRequestDispatcher("/main/login.jsp").forward(req, resp);
             return;
         }
 
-        // Kiểm tra mật khẩu
         if (acc.getPasswordHash().equals(dao.encodePassword(password))) {
             req.changeSessionId();
             req.getSession().setAttribute("user", acc);
@@ -107,7 +104,7 @@ public class AuthController extends HttpServlet {
                 case RoleConstant.SHIPPER:
                     resp.sendRedirect(contextPath + "/shipper/orders");
                     break;
-                default: // Customer/Others
+                case RoleConstant.CUSTOMER:
                     resp.sendRedirect(contextPath + "/home");
                     break;
             }
@@ -123,35 +120,30 @@ public class AuthController extends HttpServlet {
         String phone = req.getParameter("phone");
         String password = req.getParameter("password");
 
-        // 1. Kiểm tra các trường bắt buộc không được để trống
         if (!ValidationUtils.isNonEmpty(name, email, password)) {
             req.setAttribute("errorMsg", "Vui lòng nhập đầy đủ các trường bắt buộc!");
             req.getRequestDispatcher("/main/register.jsp").forward(req, resp);
             return;
         }
 
-        // 2. Kiểm tra định dạng Email chuẩn
         if (!ValidationUtils.isValidEmail(email)) {
             req.setAttribute("errorMsg", "Email không đúng định dạng (VD: example@gmail.com)!");
             req.getRequestDispatcher("/main/register.jsp").forward(req, resp);
             return;
         }
 
-        // 3. Kiểm tra số điện thoại (nếu nhập thì phải đúng 10 số)
         if (phone != null && !phone.trim().isEmpty() && !ValidationUtils.isValidPhone(phone)) {
-            req.setAttribute("errorMsg", "Số điện thoại phải bao gồm đúng 10 chữ số!");
+            req.setAttribute("errorMsg", "Số điện thoại phải bắt đầu bằng số 0 và bao gồm đúng 10 chữ số!");
             req.getRequestDispatcher("/main/register.jsp").forward(req, resp);
             return;
         }
 
-        // 4. Kiểm tra Mật khẩu: Ít nhất 8 ký tự, có Hoa, Thường và Số
         if (!ValidationUtils.isValidPassword(password)) {
             req.setAttribute("errorMsg", "Mật khẩu phải từ 8 ký tự, bao gồm ít nhất 1 chữ hoa, 1 chữ thường và 1 số!");
             req.getRequestDispatcher("/main/register.jsp").forward(req, resp);
             return;
         }
 
-        // 5. Khôi phục luồng OTP (Bug 1)
         if (dao.getAccountByEmail(email) != null) {
             req.setAttribute("errorMsg", "Email này đã tồn tại trong hệ thống.");
             req.getRequestDispatcher("/main/register.jsp").forward(req, resp);
@@ -160,7 +152,7 @@ public class AuthController extends HttpServlet {
 
         Account tempUser = new Account();
         tempUser.setEmail(email);
-        tempUser.setPasswordHash(password); // Lưu mật khẩu thô để DAO tự băm khi lưu DB (Tránh lỗi double hash)
+        tempUser.setPasswordHash(password);
         tempUser.setFullName(name);
         tempUser.setPhone(phone);
         

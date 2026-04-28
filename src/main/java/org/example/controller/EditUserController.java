@@ -15,15 +15,13 @@ import java.net.URLEncoder;
 public class EditUserController extends HttpServlet {
     private AccountDAO dao = new AccountDAO();
 
-    // 1. Khi bấm nút "Sửa" ở bảng: Load dữ liệu cũ lên form
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         long id = Long.parseLong(req.getParameter("id"));
-        Account acc = dao.getAccountById(id); // Mày cần hàm này trong DAO
+        Account acc = dao.getAccountById(id);
         req.setAttribute("user", acc);
         req.getRequestDispatcher("/admin/edit.jsp").forward(req, resp);
     }
 
-    // 2. Khi bấm nút "Lưu" ở trang edit: Update vào DB
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");
         long id = Long.parseLong(req.getParameter("id"));
@@ -35,13 +33,11 @@ public class EditUserController extends HttpServlet {
         HttpSession session = req.getSession(false);
         Account currentUser = (session != null) ? (Account) session.getAttribute("user") : null;
 
-        // 1. Kiểm tra không để trống tên
         if (name == null || name.trim().isEmpty()) {
             resp.sendRedirect("users?error=" + URLEncoder.encode("Họ tên không được để trống", "UTF-8"));
             return;
         }
 
-        // 2. Kiểm tra số điện thoại (nếu có nhập)
         if (phone != null && !phone.trim().isEmpty() && !ValidationUtils.isValidPhone(phone)) {
             resp.sendRedirect("users?error=" + URLEncoder.encode("Số điện thoại không đúng định dạng (10 số)", "UTF-8"));
             return;
@@ -50,14 +46,12 @@ public class EditUserController extends HttpServlet {
         int roleId = Integer.parseInt(roleIdStr);
         boolean status = Boolean.parseBoolean(statusStr);
 
-        // Bảo vệ Admin: Nếu account là Admin, không cho phép đổi Role hoặc Status
         Account target = dao.getAccountById(id);
         if (target != null && target.getRoleId() == RoleConstant.ADMIN) {
             roleId = RoleConstant.ADMIN;      // Luôn là Admin
-            status = true;                    // Luôn là Active
+            status = true;
         }
 
-        // CHỐNG TỰ SÁT: Admin không được tự khóa chính mình hoặc tự hạ quyền của mình
         if (currentUser != null && currentUser.getAccountId() == id) {
             if (!status || roleId != currentUser.getRoleId()) {
                 resp.sendRedirect("users?error=" + URLEncoder.encode("Bạn không thể tự khóa tài khoản hoặc tự thay đổi quyền của chính mình!", "UTF-8"));
@@ -65,11 +59,9 @@ public class EditUserController extends HttpServlet {
             }
         }
 
-        // Gọi hàm update trong DAO
         boolean success = dao.updateAccountAdmin(id, name, phone, roleId, status);
 
         if (success) {
-            // Gửi email thông báo nếu có sự thay đổi vai trò
             if (target != null && target.getRoleId() != roleId) {
                 String roleName = getRoleName(roleId);
                 String subject = "[Fresh Food Store] Thông báo thay đổi vai trò tài khoản";
@@ -80,7 +72,7 @@ public class EditUserController extends HttpServlet {
                 try {
                     EmailUtils.sendEmail(target.getEmail(), subject, content);
                 } catch (Exception e) {
-                    e.printStackTrace(); // Log lỗi gửi mail nhưng không làm gián đoạn flow
+                    e.printStackTrace();
                 }
             }
             resp.sendRedirect("users?msg=" + URLEncoder.encode("Cập nhật thành công", "UTF-8"));

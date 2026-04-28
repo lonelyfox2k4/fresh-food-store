@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  table { border-collapse: collapse; width: 100%; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 13px; }
+  th, td { border: 1px solid #bcbcbc; text-align: left; padding: 12px; vertical-align: top; line-height: 1.6; }
+  th { background-color: #2c3e50; color: white; text-transform: uppercase; }
+  tr:nth-child(even) { background-color: #f9f9f9; }
+  .step-list { margin: 0; padding-left: 20px; }
+  .step-list li { margin-bottom: 5px; }
+</style>
+</head>
+<body>
+<h2 style="color: #2c3e50;">Detailed Test Plan: User Registration (10 Scenarios)</h2>
+<table>
+  <tr>
+    <th style="width: 7%;">ID</th>
+    <th style="width: 15%;">Test Scenario</th>
+    <th style="width: 38%;">Test Procedure (Detailed Actions)</th>
+    <th style="width: 25%;">Expected Result</th>
+    <th style="width: 15%;">Pre-conditions</th>
+  </tr>
+  <tr>
+    <td><b>REG_01</b></td>
+    <td>Successful Registration</td>
+    <td>
+      <ol class="step-list">
+        <li>Open the web browser (Chrome/Edge).</li>
+        <li>Enter the URL: <code>localhost:8080/fresh-food-store/register</code>.</li>
+        <li>Click on the <b>Full Name</b> field and type "Nguyen Van A".</li>
+        <li>Click on the <b>Email</b> field and type a new email "testuser@gmail.com".</li>
+        <li>Click on the <b>Phone</b> field and type "0912345678".</li>
+        <li>Click on the <b>Password</b> field and type "Abc123456".</li>
+        <li>Click the <b>Register</b> button.</li>
+        <li>Open a new tab and log in to the test email account.</li>
+        <li>Open the latest email from "Fresh Food Store" and copy the 6-digit OTP.</li>
+        <li>Return to the website and paste the OTP into the verification box.</li>
+        <li>Click the <b>Verify</b> button.</li>
+      </ol>
+    </td>
+    <td>
+      - System displays a popup or message: "Xác thực thành công!"<br>
+      - Page automatically redirects to <code>/login</code>.<br>
+      - New record for "testuser@gmail.com" appears in the database.
+    </td>
+    <td>- Browser is working.<br>- Internet connection active.<br>- Database is running.</td>
+  </tr>
+  <tr>
+    <td><b>REG_02</b></td>
+    <td>Register with Existing Email</td>
+    <td>
+      <ol class="step-list">
+        <li>Navigate to the Register page.</li>
+        <li>Type an email address that is already registered in the system (e.g., "admin@gmail.com").</li>
+        <li>Fill in other fields with valid dummy data.</li>
+        <li>Click the <b>Register</b> button.</li>
+      </ol>
+    </td>
+    <td>
+      - System stops the registration process.<br>
+      - Red error message appears: "Email này đã tồn tại trong hệ thống."<br>
+      - No OTP is sent to the email address.
+    </td>
+    <td>Target email must exist in the <code>Accounts</code> table.</td>
+  </tr>
+  <tr>
+    <td><b>REG_03</b></td>
+    <td>Empty Required Fields</td>
+    <td>
+      <ol class="step-list">
+        <li>Navigate to the Register page.</li>
+        <li>Leave the <b>Full Name</b> field blank.</li>
+        <li>Fill in Email, Phone, and Password.</li>
+        <li>Click the <b>Register</b> button.</li>
+      </ol>
+    </td>
+    <td>
+      - Browser shows a tooltip: "Please fill out this field."<br>
+      - Or system displays error: "Vui lòng điền đầy đủ thông tin!"<br>
+      - Page does not refresh or submit.
+    </td>
+    <td>HTML5 validation active.</td>
+  </tr>
+  <tr>
+    <td><b>REG_04</b></td>
+    <td>Invalid Email Format</td>
+    <td>
+      <ol class="step-list">
+        <li>Navigate to the Register page.</li>
+        <li>Type "invalid-email-format" (no @ symbol) in the <b>Email</b> box.</li>
+        <li>Fill in other fields correctly.</li>
+        <li>Click the <b>Register</b> button.</li>
+      </ol>
+    </td>
+    <td>
+      - System displays validation error: "Email không đúng định dạng!"<br>
+      - User stays on the registration page.
+    </td>
+    <td>ValidationUtils logic active.</td>
+  </tr>
+  <tr>
+    <td><b>REG_05</b></td>
+    <td>Invalid Phone Format</td>
+    <td>
+      <ol class="step-list">
+        <li>Navigate to the Register page.</li>
+        <li>Type '1234567890' (Starts with 1 instead of 0) in the <b>Phone</b> box.</li>
+        <li>Fill in other fields correctly.</li>
+        <li>Click the <b>Register</b> button.</li>
+      </ol>
+    </td>
+    <td>
+      - System displays error: "Số điện thoại phải bắt đầu bằng số 0 và bao gồm đúng 10 chữ số!"<br>
+      - Data is not processed.
+    </td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><b>REG_06</b></td>
+    <td>Weak Password Violation</td>
+    <td>
+      <ol class="step-list">
+        <li>Navigate to the Register page.</li>
+        <li>Type "simple" (all lowercase, no numbers) in the <b>Password</b> box.</li>
+        <li>Fill in other fields correctly.</li>
+        <li>Click the <b>Register</b> button.</li>
+      </ol>
+    </td>
+    <td>
+      - System displays error: "Mật khẩu phải từ 8 ký tự, bao gồm ít nhất 1 chữ hoa, 1 chữ thường và 1 số!"
+    </td>
+    <td>ValidationUtils rules applied.</td>
+  </tr>
+  <tr>
+    <td><b>REG_07</b></td>
+    <td>Resend OTP Cooldown Check</td>
+    <td>
+      <ol class="step-list">
+        <li>Complete the registration form and click <b>Register</b>.</li>
+        <li>Wait for the OTP page to load.</li>
+        <li>Immediately click the <b>Gửi lại mã</b> (Resend) button within 5 seconds.</li>
+      </ol>
+    </td>
+    <td>
+      - System blocks the request.<br>
+      - Message appears: "Vui lòng đợi [X] giây nữa để yêu cầu mã mới."
+    </td>
+    <td>ResendOtpController cooldown: 60s.</td>
+  </tr>
+  <tr>
+    <td><b>REG_08</b></td>
+    <td>OTP Code Expiration</td>
+    <td>
+      <ol class="step-list">
+        <li>Perform registration to receive the OTP code.</li>
+        <li>Stay on the OTP verification page for exactly 130 seconds.</li>
+        <li>Type the correct OTP code and click <b>Verify</b>.</li>
+      </ol>
+    </td>
+    <td>
+      - System displays error: "Mã xác thực đã hết hạn (2 phút). Vui lòng đăng ký lại!"<br>
+      - Redirects user back to the Register page.
+    </td>
+    <td>Session expiry: 120,000ms.</td>
+  </tr>
+  <tr>
+    <td><b>REG_09</b></td>
+    <td>Maximum OTP Failures</td>
+    <td>
+      <ol class="step-list">
+        <li>Enter the registration flow to reach the OTP page.</li>
+        <li>Type "000000" and click <b>Verify</b>.</li>
+        <li>Repeat Step 2 four more times (Total 5 times).</li>
+      </ol>
+    </td>
+    <td>
+      - On the 5th attempt, system displays: "Bạn đã nhập sai mã OTP quá 5 lần. Vui lòng đăng ký lại!"<br>
+      - Verification session is destroyed.
+    </td>
+    <td>Max retry logic: 5.</td>
+  </tr>
+  <tr>
+    <td><b>REG_10</b></td>
+    <td>Sanitization of Name Field (XSS)</td>
+    <td>
+      <ol class="step-list">
+        <li>In the <b>Full Name</b> field, type: <code>&lt;script&gt;alert('Hacked')&lt;/script&gt;</code>.</li>
+        <li>Complete registration and verify OTP.</li>
+        <li>Admin logs in and views the user list.</li>
+      </ol>
+    </td>
+    <td>
+      - No alert box appears in the Admin's browser.<br>
+      - The script string is displayed as plain text or cleaned.
+    </td>
+    <td>Admin account exists to view list.</td>
+  </tr>
+</table>
+</body>
+</html>

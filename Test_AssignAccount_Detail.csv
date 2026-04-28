@@ -1,0 +1,28 @@
+"Test Case ID";"Test Case Description";"Test Case Procedure";"Expected Results";"Pre-conditions"
+"TC_ASN_01";"Admin Successfully Assigns Account";"1. Login as Admin
+2. Go to /admin/assign
+3. Select Role (Staff/Shipper)
+4. Enter Name and unique Email
+5. Click 'Assign'";"- System displays 'Assign success'
+- Record created with default pass 'FreshFood123'
+- Email marked as Verified
+- Notification email sent";"Logged in as Admin (Role 1)"
+"TC_ASN_02";"Assign with Existing Email";"1. Enter an email already used by a customer
+2. Click 'Assign'";"- System displays error: Email already used
+- No new record created";""
+"TC_ASN_03";"Admin Updates User Status";"1. Go to /admin/users
+2. Locate user
+3. Click 'Ban/Unban' button
+4. Verify status in list";"- Status toggled in DB
+- List shows new status
+- Banned user cannot login";"Target is not an Admin"
+"TC_ASN_04";"Admin Self-Ban Protection";"1. Find own account or another Admin in list
+2. Attempt to Ban or Change Role
+3. Click Save";"- System displays protection error
+- Admin account remains unchanged";""
+"TC_ASN_05";"Email Notification on Role Change";"1. Go to /admin/edit
+2. Change Role (e.g., Staff to Manager)
+3. Click Save
+4. Check user email";"- Role updated in DB
+- Success email sent to user
+- Redirect to list with success msg";""

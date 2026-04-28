@@ -10,8 +10,8 @@ public class ValidationUtils {
     // Regex cho Mật khẩu: Ít nhất 8 ký tự, 1 chữ hoa, 1 chữ thường, 1 số
     private static final String PASSWORD_REGEX = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$";
     
-    // Regex cho Số điện thoại: Đúng 10 chữ số
-    private static final String PHONE_REGEX = "^[0-9]{10}$";
+    // Regex cho Số điện thoại: Bắt đầu bằng 0 và đủ 10 chữ số
+    private static final String PHONE_REGEX = "^0[0-9]{9}$";
 
     /**
      * Kiểm tra Email hợp lệ

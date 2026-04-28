@@ -1,0 +1,41 @@
+"Test Case ID","Test Case Description","Test Case Procedure","Expected Results","Pre-conditions"
+"TC_REG_01","Successful User Registration (Happy Path)","1. Navigate to /register.
+2. Enter valid Name, Email, Phone, and Password.
+3. Click 'Register'.
+4. Enter the correct 6-digit OTP received via email.
+5. Click 'Verify'.","- System displays success message.
+- User is redirected to /login.
+- Account record is created in DB with isVerified = true.","Email address is not previously registered."
+"TC_REG_02","Registration with Duplicate Email","1. Enter an email address that already exists in the Accounts table.
+2. Fill in other valid details.
+3. Click 'Register'.","- System displays error: 'Email này đã tồn tại trong hệ thống.'
+- No OTP is sent.
+- User remains on the registration page.","Target email exists in DB."
+"TC_REG_03","Registration with Weak Password","1. Enter a password that does not meet criteria (e.g., 'abc123').
+2. Click 'Register'.","- System displays error: 'Mật khẩu phải từ 8 ký tự, bao gồm ít nhất 1 chữ hoa, 1 chữ thường và 1 số!'","Logic defined in ValidationUtils."
+"TC_REG_04","Registration with Invalid Phone Format","1. Enter a phone number that is not exactly 10 digits (e.g., '12345').
+2. Click 'Register'.","- System displays error: 'Số điện thoại phải bao gồm đúng 10 chữ số!'",""
+"TC_REG_05","OTP Verification Timeout","1. Trigger OTP email.
+2. Wait for > 120 seconds (2 minutes).
+3. Enter the correct OTP and click 'Verify'.","- System displays error: 'Mã xác thực đã hết hạn (2 phút). Vui lòng đăng ký lại!'
+- Session attributes registerOtp and tempUser are removed.",""
+"TC_REG_06","Brute-force Protection (OTP Attempts)","1. Enter an incorrect OTP 5 times consecutively.","- On the 5th failure, system displays: 'Bạn đã nhập sai mã OTP quá 5 lần. Vui lòng đăng ký lại!'
+- Session is cleared; user is redirected to registration.","Handled in VerifyRegisterController."
+"TC_ASN_01","Successful Internal Account Assignment","1. Login as Admin.
+2. Go to /admin/assign.
+3. Select a Role (Staff/Shipper), enter Email and Full Name.
+4. Click 'Assign'.","- System displays 'Assign success'.
+- Account is created with default password 'FreshFood123'.
+- Email is auto-verified (verifyEmail called).
+- Notification email is sent to the target user.","User must have Admin role (Role 1)."
+"TC_ASN_02","Assign Account with Missing Fields","1. Leave 'Full Name' or 'Role' empty.
+2. Click 'Assign'.","- System displays error: 'Vui lòng nhập đầy đủ Họ tên, Email và chọn Vai trò!'",""
+"TC_ASN_03","Ban/Unban User Status Toggle","1. In User List, click the 'Ban/Unban' button for a Customer account.","- User status is toggled in DB.
+- Redirected back to user list with success message.","Target user is not an Admin."
+"TC_ASN_04","Admin Self-Ban Protection","1. Admin attempts to ban their own account.
+2. Or attempts to ban another Admin.","- System displays error: 'Không thể khóa tài khoản Quản trị viên!' or equivalent restriction.
+- Status remains unchanged.","Implemented in AdminController:71."
+"TC_ASN_05","Update User Role with Notification","1. Admin edits a user's role (e.g., Staff to Manager).
+2. Clicks 'Save'.","- Role ID is updated in DB.
+- Notification email is sent to the user detailing their new role.
+- Redirect to list with 'Cập nhật thành công'.","Handled in EditUserController."

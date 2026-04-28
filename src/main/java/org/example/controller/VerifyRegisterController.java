@@ -17,13 +17,11 @@ public class VerifyRegisterController extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        // Nếu khách cố tình vào link này bằng cách gõ URL thì đuổi về trang đăng ký
         req.getRequestDispatcher("/main/verify-register.jsp").forward(req, resp);
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        // 1. Fix lỗi tiếng Việt cho thông báo
         req.setCharacterEncoding("UTF-8");
         resp.setCharacterEncoding("UTF-8");
 
@@ -40,7 +38,6 @@ public class VerifyRegisterController extends HttpServlet {
             return;
         }
 
-        // 3. Kiểm tra thời hạn 2 phút (120,000 ms)
         Long lastSentTime = (Long) session.getAttribute("lastOtpSentTime");
         long currentTime = System.currentTimeMillis();
         if (lastSentTime != null && (currentTime - lastSentTime) > 120000) {
@@ -52,27 +49,22 @@ public class VerifyRegisterController extends HttpServlet {
             return;
         }
 
-        // 2. Kiểm tra mã OTP
         if (userOtp != null && userOtp.equals(systemOtp)) {
-
             AccountDAO dao = new AccountDAO();
-
-            // 3. OTP ĐÚNG -> LƯU VÀO DATABASE TRONG 1 BƯỚC
             boolean success = dao.insertAccount(
                     RoleConstant.CUSTOMER,
                     tempUser.getEmail(),
                     tempUser.getPasswordHash(),
                     tempUser.getFullName(),
                     tempUser.getPhone(),
-                    true // Đã xác thực (Verified)
+                    true
             );
 
             if (success) {
-
-                // Xóa dữ liệu tạm trong session
                 session.removeAttribute("registerOtp");
                 session.removeAttribute("tempUser");
                 session.removeAttribute("otpAttempts");
+                session.removeAttribute("lastOtpSentTime");
 
                 req.setAttribute("successMsg", "Xác thực thành công! Mời bạn đăng nhập.");
                 req.getRequestDispatcher("/main/login.jsp").forward(req, resp);
@@ -81,12 +73,13 @@ public class VerifyRegisterController extends HttpServlet {
                 req.getRequestDispatcher("/main/verify-register.jsp").forward(req, resp);
             }
         } else {
-            // OTP sai
+            // Trường hợp nhập SAI OTP
             attempts++;
             if (attempts >= 5) {
                 session.removeAttribute("registerOtp");
                 session.removeAttribute("tempUser");
                 session.removeAttribute("otpAttempts");
+                session.removeAttribute("lastOtpSentTime");
                 req.setAttribute("errorMsg", "Bạn đã nhập sai mã OTP quá 5 lần. Vui lòng đăng ký lại!");
                 req.getRequestDispatcher("/main/register.jsp").forward(req, resp);
             } else {

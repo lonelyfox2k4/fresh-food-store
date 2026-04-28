@@ -19,16 +19,14 @@ public class AdminController extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String path = req.getServletPath();
         if ("/admin/users".equals(path)) {
-            // Lấy dữ liệu từ các ô nhập/chọn trên giao diện
             String txtSearch = req.getParameter("search");
             String roleId = req.getParameter("roleId");
             String status = req.getParameter("status");
             String sortBy = req.getParameter("sortBy");
             String sortDir = req.getParameter("sortDir");
 
-            // Pagination params
             int page = 1;
-            int limit = 10; // Cố định 10 users / trang
+            int limit = 10;
             String pageParam = req.getParameter("page");
             if (pageParam != null && !pageParam.trim().isEmpty()) {
                 try {
@@ -38,11 +36,9 @@ public class AdminController extends HttpServlet {
             }
             int offset = (page - 1) * limit;
 
-            // Lấy tổng số user theo filter
             int totalRecords = dao.countUsers(txtSearch, roleId, status);
             int totalPages = (int) Math.ceil((double) totalRecords / limit);
 
-            // Gọi hàm tìm kiếm nâng cao với offset, limit
             List<Account> list = dao.searchUsers(txtSearch, roleId, status, sortBy, sortDir, offset, limit);
 
             req.setAttribute("users", list);
@@ -66,55 +62,46 @@ public class AdminController extends HttpServlet {
             long id = Long.parseLong(req.getParameter("id"));
             boolean status = Boolean.parseBoolean(req.getParameter("status"));
             
-            // Bảo vệ Admin: Kiểm tra xem user bị khóa có phải là Admin không
             Account target = dao.getAccountById(id);
             if (target != null && target.getRoleId() == 1) {
                 resp.sendRedirect("users?error=" + java.net.URLEncoder.encode("Không thể khóa tài khoản Quản trị viên!", "UTF-8"));
                 return;
             }
 
-            // Đảo ngược trạng thái hiện tại (Ban/Unban)
             dao.updateStatus(id, !status);
             resp.sendRedirect("users?msg=" + java.net.URLEncoder.encode("Cập nhật trạng thái thành công", "UTF-8"));
 
         } else if ("/admin/assign".equals(path)) {
-            // Logic "Create" trong CRUD: Admin cấp tài khoản mới
             String roleIdStr = req.getParameter("roleId");
             String email = req.getParameter("email");
             String name = req.getParameter("name");
             String phone = req.getParameter("phone");
 
-            // 1. Kiểm tra không để trống
             if (!ValidationUtils.isNonEmpty(roleIdStr, email, name)) {
                 req.setAttribute("error", "Vui lòng nhập đầy đủ Họ tên, Email và chọn Vai trò!");
                 req.getRequestDispatcher("/admin/assign.jsp").forward(req, resp);
                 return;
             }
 
-            // 2. Kiểm tra định dạng Email chuẩn
             if (!ValidationUtils.isValidEmail(email)) {
                 req.setAttribute("error", "Địa chỉ Email không đúng định dạng!");
                 req.getRequestDispatcher("/admin/assign.jsp").forward(req, resp);
                 return;
             }
 
-            // 3. Kiểm tra số điện thoại (nếu nhập)
             if (phone != null && !phone.trim().isEmpty() && !ValidationUtils.isValidPhone(phone)) {
-                req.setAttribute("error", "Số điện thoại phải bao gồm đúng 10 chữ số!");
+                req.setAttribute("error", "Số điện thoại phải bắt đầu bằng số 0 và bao gồm đúng 10 chữ số!");
                 req.getRequestDispatcher("/admin/assign.jsp").forward(req, resp);
                 return;
             }
 
             int roleId = Integer.parseInt(roleIdStr);
             String defaultPass = "FreshFood123";
-            // Mật khẩu mặc định mới đáp ứng tiêu chuẩn Hoa, Thường, Số
             boolean success = dao.insertAccount(roleId, email, defaultPass, name, phone);
             
             if (success) {
-                // Tự động xác thực email vì admin đã cấp thì coi như tin tưởng
                 dao.verifyEmail(email);
                 
-                // Gửi email thông báo cho người dùng
                 String subject = "Thông báo: Tài khoản của bạn tại Fresh Food Store đã được cấp";
                 String message = "Chào " + name + ",\n\n"
                         + "Admin đã cấp tài khoản cho bạn trên hệ thống Fresh Food Store.\n"
@@ -128,7 +115,6 @@ public class AdminController extends HttpServlet {
                     EmailUtils.sendEmail(email, subject, message);
                 } catch (Exception e) {
                     e.printStackTrace();
-                    // Vẫn cho redirect vì tài khoản đã tạo xong, chỉ là lỗi gửi mail thông báo
                 }
                 
                 resp.sendRedirect("users?msg=Assign success");
