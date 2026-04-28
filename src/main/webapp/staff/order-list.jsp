@@ -63,40 +63,6 @@
                                             placeholder="Tìm theo Mã đơn hoặc Tên khách..." value="${searchQuery}">
                                     </div>
                                 </div>
-<<<<<<< HEAD
-                                <div class="mt-1">
-                                    <c:choose>
-                                        <c:when test="${o.paymentStatus == 1}">
-                                            <span class="badge rounded-pill bg-success fw-normal"><i class="bi bi-credit-card-2-back"></i> Đã thanh toán Online</span>
-                                        </c:when>
-                                        <c:when test="${o.paymentStatus == 2}">
-                                            <c:choose>
-                                                <c:when test="${o.orderStatus == 5 or o.shippingStatus == 3}">
-                                                    <span class="badge rounded-pill bg-success fw-normal"><i class="bi bi-cash-coin"></i> Shipper đã thu</span>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <span class="badge rounded-pill bg-info text-dark fw-normal"><i class="bi bi-clock"></i> Đang giao COD</span>
-                                                </c:otherwise>
-                                            </c:choose>
-                                        </c:when>
-                                        <c:when test="${o.paymentStatus == 3}">
-                                            <span class="badge rounded-pill bg-primary fw-normal"><i class="bi bi-safe2"></i> Đã kết toán quỹ</span>
-                                        </c:when>
-
-                                        <c:otherwise>
-                                            <div class="text-muted small">
-                                                <i class="bi bi-clock"></i> Đã trả: 0 đ
-                                            </div>
-                                            <c:if test="${o.orderStatus != 6}">
-                                                <span class="badge rounded-pill bg-light text-dark border fw-normal text-muted"><i class="bi bi-clock"></i> Chưa thanh toán</span>
-                                            </c:if>
-                                            <c:if test="${o.orderStatus == 6}">
-                                                <span class="text-muted small italic">-- Đã hủy --</span>
-                                            </c:if>
-                                        </c:otherwise>
-                                    </c:choose>
-
-=======
                                 <div class="col-auto">
                                     <button type="submit"
                                         class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">Tìm kiếm</button>
@@ -106,7 +72,6 @@
                                             <i class="bi bi-x-lg"></i> Xóa lọc
                                         </a>
                                     </c:if>
->>>>>>> eb2bf60 (feat(shipper/staff): add order detail preview before claim, fix merge conflicts, add overloaded updatePaymentStatus)
                                 </div>
                                 <c:if test="${not empty searchQuery}">
                                     <div class="col-auto">
@@ -141,49 +106,7 @@
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
                     </c:if>
-<<<<<<< HEAD
-                    </tbody>
-                </table>
-            </div>
-            
-            <%-- Pagination --%>
-            <c:if test="${totalPages > 1}">
-                <div class="card-footer bg-white border-top-0 py-3">
-                    <nav aria-label="Page navigation">
-                        <ul class="pagination justify-content-center mb-0">
-                            <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
-                                <a class="page-link rounded-circle me-2" href="?action=list&page=${currentPage - 1}${not empty searchQuery ? '&query='.concat(searchQuery) : ''}" aria-label="Previous">
-                                    <i class="bi bi-chevron-left"></i>
-                                </a>
-                            </li>
-                            
-                            <c:forEach var="i" begin="1" end="${totalPages}">
-                                <c:choose>
-                                    <c:when test="${i == currentPage}">
-                                        <li class="page-item active"><span class="page-link rounded-circle me-2">${i}</span></li>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <li class="page-item"><a class="page-link rounded-circle me-2" href="?action=list&page=${i}${not empty searchQuery ? '&query='.concat(searchQuery) : ''}">${i}</a></li>
-                                    </c:otherwise>
-                                </c:choose>
-                            </c:forEach>
-                            
-                            <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
-                                <a class="page-link rounded-circle" href="?action=list&page=${currentPage + 1}${not empty searchQuery ? '&query='.concat(searchQuery) : ''}" aria-label="Next">
-                                    <i class="bi bi-chevron-right"></i>
-                                </a>
-                            </li>
-                        </ul>
-                    </nav>
-                </div>
-            </c:if>
-        </div>
-    </div>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
-=======
+
                     <c:if test="${not empty param.error}">
                         <div class="alert alert-danger border-0 shadow-sm alert-dismissible fade show">
                             <i class="bi bi-exclamation-triangle-fill me-2"></i>
@@ -501,11 +424,42 @@
                                     </tbody>
                                 </table>
                             </div>
+                            
+                            <%-- Pagination --%>
+                            <c:if test="${totalPages > 1}">
+                                <div class="card-footer bg-white border-top-0 py-3">
+                                    <nav aria-label="Page navigation">
+                                        <ul class="pagination justify-content-center mb-0">
+                                            <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
+                                                <a class="page-link rounded-circle me-2" href="?action=list&page=${currentPage - 1}${not empty searchQuery ? '&query='.concat(searchQuery) : ''}" aria-label="Previous">
+                                                    <i class="bi bi-chevron-left"></i>
+                                                </a>
+                                            </li>
+                                            
+                                            <c:forEach var="i" begin="1" end="${totalPages}">
+                                                <c:choose>
+                                                    <c:when test="${i == currentPage}">
+                                                        <li class="page-item active"><span class="page-link rounded-circle me-2">${i}</span></li>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <li class="page-item"><a class="page-link rounded-circle me-2" href="?action=list&page=${i}${not empty searchQuery ? '&query='.concat(searchQuery) : ''}">${i}</a></li>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </c:forEach>
+                                            
+                                            <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
+                                                <a class="page-link rounded-circle" href="?action=list&page=${currentPage + 1}${not empty searchQuery ? '&query='.concat(searchQuery) : ''}" aria-label="Next">
+                                                    <i class="bi bi-chevron-right"></i>
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </nav>
+                                </div>
+                            </c:if>
+
                         </div>
                     </div>
                 </div>
                 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
             </body>
-
             </html>
->>>>>>> eb2bf60 (feat(shipper/staff): add order detail preview before claim, fix merge conflicts, add overloaded updatePaymentStatus)

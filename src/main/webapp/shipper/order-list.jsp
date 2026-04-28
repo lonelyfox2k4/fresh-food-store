@@ -17,14 +17,6 @@
                         background-color: #f0f2f5;
                     }
 
-<<<<<<< HEAD
-<div class="dashboard-header">
-    <div class="container text-center">
-        <h3 class="mb-1">Xin chào, <c:out value="${sessionScope.user.fullName}" />!</h3>
-        <p class="mb-0 opacity-75">Hôm nay bạn muốn giao bao nhiêu đơn hàng?</p>
-    </div>
-</div>
-=======
                     .dashboard-header {
                         background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
                         color: white;
@@ -33,7 +25,6 @@
                         border-radius: 0 0 24px 24px;
                         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
                     }
->>>>>>> eb2bf60 (feat(shipper/staff): add order detail preview before claim, fix merge conflicts, add overloaded updatePaymentStatus)
 
                     .section-title {
                         font-weight: 800;
