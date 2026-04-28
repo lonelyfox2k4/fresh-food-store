@@ -11,7 +11,7 @@ import javax.servlet.http.*;
 import java.io.IOException;
 import java.util.List;
 
-@WebServlet(urlPatterns = {"/orders", "/orders/detail", "/order-success"})
+@WebServlet(urlPatterns = {"/orders", "/orders/detail", "/order-success", "/orders/cancel"})
 public class OrderController extends HttpServlet {
 
     private final OrderDAO orderDAO = new OrderDAO();
@@ -35,6 +35,41 @@ public class OrderController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
+        req.setCharacterEncoding("UTF-8");
+        if (getUser(req) == null) {
+            resp.sendRedirect(req.getContextPath() + "/login");
+            return;
+        }
+
+        if ("/orders/cancel".equals(req.getServletPath())) {
+            cancelOrder(req, resp);
+        }
+    }
+
+    private void cancelOrder(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Account user = getUser(req);
+        String orderIdStr = req.getParameter("orderId");
+        String cancelReason = req.getParameter("cancelReason");
+        
+        try {
+            long orderId = Long.parseLong(orderIdStr);
+            Order order = orderDAO.getOrderById(orderId); // Dùng getOrderById(orderId) thay vì 2 tham số vì DAO chỉ có hàm 1 tham số. 
+            // Wait, OrderDAO has getOrderById(long orderId)
+            
+            // Only allow cancelling if orderStatus == 1 (Pending) and it belongs to the user
+            if (order != null && order.getAccountId() == user.getAccountId() && order.getOrderStatus() == 1) {
+                if (cancelReason == null || cancelReason.trim().isEmpty()) {
+                    cancelReason = "Khách hàng hủy đơn";
+                }
+                orderDAO.updateOrderCancelReason(orderId, cancelReason);
+                req.getSession().setAttribute("orderMsg", "success:Hủy đơn hàng thành công!");
+            } else {
+                req.getSession().setAttribute("orderMsg", "danger:Không thể hủy đơn hàng này!");
+            }
+        } catch (NumberFormatException e) {
+            req.getSession().setAttribute("orderMsg", "danger:Lỗi dữ liệu!");
+        }
+        resp.sendRedirect(req.getContextPath() + "/orders");
     }
 
     // ── Order history ─────────────────────────────────────────────────────────

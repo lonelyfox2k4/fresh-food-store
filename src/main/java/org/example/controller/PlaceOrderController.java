@@ -78,8 +78,8 @@ public class PlaceOrderController extends HttpServlet {
 
         try {
             // --- 3. Create order ---
-            // Always clear cart immediately to prevent duplicate submissions
-            boolean shouldClearCart = true;
+            // Chỉ xóa giỏ hàng ngay lập tức nếu là thanh toán COD
+            boolean shouldClearCart = !"VNPAY".equalsIgnoreCase(paymentMethod);
             long orderId = orderDAO.createOrder(
                     accountId, recipientName, recipientPhone,
                     shippingAddress, note, cartItems, voucher, cartId, paymentMethod,
@@ -88,7 +88,9 @@ public class PlaceOrderController extends HttpServlet {
 
             // --- 4. Clean up session ---
             session.removeAttribute("appliedVoucher");
-            session.removeAttribute("cartCount");
+            if (shouldClearCart) {
+                session.removeAttribute("cartCount");
+            }
 
             // --- 5. Route by payment method ---
             if ("VNPAY".equalsIgnoreCase(paymentMethod)) {

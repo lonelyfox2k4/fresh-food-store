@@ -268,8 +268,6 @@ public class OrderDAO {
     // QUERY METHODS
     // ────────────────────────────────────────────────────────────────────────
 
-<<<<<<< HEAD
-=======
     public List<Order> getOrdersByAccount(long accountId) {
         List<Order> list = new ArrayList<>();
         String sql = "SELECT * FROM dbo.Orders WHERE accountId = ? ORDER BY placedAt DESC";
@@ -286,7 +284,6 @@ public class OrderDAO {
         return list;
     }
 
->>>>>>> eb2bf60 (feat(shipper/staff): add order detail preview before claim, fix merge conflicts, add overloaded updatePaymentStatus)
     public List<Order> getOrdersByAccountPaginated(long accountId, int offset, int limit) {
         List<Order> list = new ArrayList<>();
         String sql = "SELECT * FROM dbo.Orders WHERE accountId = ? " +
@@ -578,13 +575,8 @@ public class OrderDAO {
 
     public boolean updatePaymentStatus(long orderId, byte paymentStatus, byte orderStatus) {
         String sql = "UPDATE dbo.Orders SET paymentStatus = ?, orderStatus = ?, "
-<<<<<<< HEAD
                    + "paidAt = CASE WHEN ? IN (1, 2) THEN SYSUTCDATETIME() ELSE paidAt END "
                    + "WHERE orderId = ?";
-=======
-                + "paidAt = CASE WHEN ? = 2 THEN SYSUTCDATETIME() ELSE paidAt END "
-                + "WHERE orderId = ?";
->>>>>>> eb2bf60 (feat(shipper/staff): add order detail preview before claim, fix merge conflicts, add overloaded updatePaymentStatus)
         try (Connection conn = DBConnection.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setByte(1, paymentStatus);
@@ -606,13 +598,8 @@ public class OrderDAO {
 
     private void updatePaymentRecord(long orderId, byte status) throws SQLException {
         String sql = "UPDATE dbo.Payments SET paymentStatus = ?, "
-<<<<<<< HEAD
                    + "paidAt = CASE WHEN ? IN (1, 2) THEN SYSUTCDATETIME() ELSE paidAt END "
                    + "WHERE orderId = ?";
-=======
-                + "paidAt = CASE WHEN ? = 2 THEN SYSUTCDATETIME() ELSE paidAt END "
-                + "WHERE orderId = ?";
->>>>>>> eb2bf60 (feat(shipper/staff): add order detail preview before claim, fix merge conflicts, add overloaded updatePaymentStatus)
         try (Connection conn = DBConnection.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setByte(1, status);
@@ -821,7 +808,6 @@ public class OrderDAO {
         return list;
     }
 
-<<<<<<< HEAD
     public List<Order> getOrdersByShipper(long shipperId) {
         List<Order> list = new ArrayList<>();
         String sql = "SELECT * FROM dbo.Orders WHERE shipperId = ? ORDER BY placedAt DESC";
@@ -835,9 +821,6 @@ public class OrderDAO {
         return list;
     }
 
-
-=======
->>>>>>> eb2bf60 (feat(shipper/staff): add order detail preview before claim, fix merge conflicts, add overloaded updatePaymentStatus)
     public Order getOrderById(long orderId) {
         String sql = "SELECT * FROM dbo.Orders WHERE orderId = ?";
         try (Connection conn = DBConnection.getConnection();
@@ -873,8 +856,6 @@ public class OrderDAO {
         return false;
     }
 
-<<<<<<< HEAD
-=======
     public boolean updateShippingStatus(long orderId, byte status) {
         String sql = "UPDATE dbo.Orders SET shippingStatus = ? WHERE orderId = ?";
         try (Connection conn = DBConnection.getConnection();
@@ -888,7 +869,6 @@ public class OrderDAO {
         return false;
     }
 
->>>>>>> eb2bf60 (feat(shipper/staff): add order detail preview before claim, fix merge conflicts, add overloaded updatePaymentStatus)
     public boolean assignShipper(long orderId, long shipperId) {
         // Kiểm tra xem shipper có đang bận giao đơn nào không (shippingStatus = 2)
         if (isShipperBusy(shipperId))
@@ -954,28 +934,7 @@ public class OrderDAO {
         return list;
     }
 
-<<<<<<< HEAD
-    public boolean updatePaymentStatus(long orderId, byte paymentStatus) {
-        String sql = "UPDATE dbo.Orders SET paymentStatus = ?, "
-                   + "paidAt = CASE WHEN ? IN (1, 2) THEN SYSUTCDATETIME() ELSE paidAt END "
-                   + "WHERE orderId = ?";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setByte(1, paymentStatus);
-            ps.setByte(2, paymentStatus);
-            ps.setLong(3, orderId);
-            
-            int rows = ps.executeUpdate();
-            if (rows > 0) {
-                updatePaymentRecord(orderId, paymentStatus);
-            }
-            return rows > 0;
-        } catch (Exception e) { e.printStackTrace(); }
-        return false;
-    }
 
-=======
->>>>>>> eb2bf60 (feat(shipper/staff): add order detail preview before claim, fix merge conflicts, add overloaded updatePaymentStatus)
     public boolean updateDeliverySuccess(long orderId) {
         String sql = "UPDATE dbo.Orders SET shippingStatus = 3, orderStatus = 5, "
                 + "paymentStatus = CASE WHEN paymentStatus = 1 THEN 1 ELSE 2 END, "
@@ -1019,8 +978,6 @@ public class OrderDAO {
         return false;
     }
 
-<<<<<<< HEAD
-=======
     public boolean updateOrderNote(long orderId, String note) {
         String sql = "UPDATE dbo.Orders SET note = ? WHERE orderId = ?";
         try (Connection conn = DBConnection.getConnection();
@@ -1047,7 +1004,6 @@ public class OrderDAO {
         return false;
     }
 
->>>>>>> eb2bf60 (feat(shipper/staff): add order detail preview before claim, fix merge conflicts, add overloaded updatePaymentStatus)
     public java.util.Map<String, Object> getShipperStats(long shipperId) {
         java.util.Map<String, Object> stats = new java.util.HashMap<>();
         stats.put("totalOrders", 0);

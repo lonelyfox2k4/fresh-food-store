@@ -86,4 +86,19 @@ public class FeedbackDAO {
         }
         return false;
     }
+
+    public boolean updateResponse(long feedbackId, String responseText, long staffId) {
+        String sql = "UPDATE Feedbacks SET response = ?, respondedByAccountId = ?, " +
+                "status = 1, respondedAt = GETDATE() WHERE feedbackId = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, responseText);
+            ps.setLong(2, staffId);
+            ps.setLong(3, feedbackId);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 }

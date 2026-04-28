@@ -92,8 +92,9 @@
                                                 <li><hr class="dropdown-divider"></li>
                                                 <li>
                                                     <form action="${pageContext.request.contextPath}/orders/cancel" method="post" 
-                                                          onsubmit="return confirm('Bạn có chắc muốn hủy đơn hàng này?')">
+                                                          onsubmit="var reason = prompt('Nhập lý do hủy đơn hàng (tùy chọn):'); if(reason === null) return false; this.cancelReason.value = reason; return true;">
                                                         <input type="hidden" name="orderId" value="${order.orderId}">
+                                                        <input type="hidden" name="cancelReason" value="">
                                                         <button type="submit" class="dropdown-item text-danger">
                                                             <i class="fa-solid fa-rectangle-xmark me-2"></i>Hủy đơn
                                                         </button>
@@ -149,5 +150,6 @@
         });
     });
 </script>
+<jsp:include page="../components/toast-notifier.jsp"/>
 </body>
 </html>
