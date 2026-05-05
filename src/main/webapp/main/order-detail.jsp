@@ -10,6 +10,30 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
+    <style>
+        .rating-input .star-icon {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .rating-input input:checked ~ label .star-icon,
+        .rating-input label:hover ~ label .star-icon,
+        .rating-input label:hover .star-icon {
+            font-weight: 900 !important;
+            transform: scale(1.1);
+        }
+        /* Đảo ngược thứ tự để selector ~ hoạt động đúng */
+        .rating-input {
+            display: flex;
+            flex-direction: row-reverse;
+            justify-content: center;
+        }
+        .status-5 { background-color: #d1f2eb; color: #1abc9c; }
+        .text-brand { color: #00b894 !important; }
+        .btn-brand { background-color: #00b894; color: white; border: none; }
+        .btn-brand:hover { background-color: #00a383; color: white; }
+        .btn-outline-brand { border: 1px solid #00b894; color: #00b894; }
+        .btn-outline-brand:hover { background-color: #00b894; color: white; }
+    </style>
 </head>
 <body class="bg-light d-flex flex-column min-vh-100">
 <jsp:include page="../components/header.jsp"/>
@@ -63,6 +87,9 @@
                                 <th class="text-center">Đơn giá</th>
                                 <th class="text-center">SL</th>
                                 <th class="text-end pe-4">Thành tiền</th>
+                                <c:if test="${order.orderStatus == 5}">
+                                    <th class="text-center">Đánh giá</th>
+                                </c:if>
                             </tr>
                         </thead>
                         <tbody>
@@ -85,7 +112,80 @@
                                     <td class="text-end pe-4 fw-bold text-brand small">
                                         <fmt:formatNumber value="${item.lineTotalSnapshot}" pattern="###,###"/> ₫
                                     </td>
+                                    <c:if test="${order.orderStatus == 5}">
+                                        <td class="text-center">
+                                            <c:choose>
+                                                <c:when test="${item.reviewed}">
+                                                    <span class="badge bg-success-subtle text-success rounded-pill px-3 py-2">
+                                                        <i class="fas fa-check-circle me-1"></i> Đã đánh giá
+                                                    </span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <button class="btn btn-sm btn-outline-brand rounded-pill px-3" 
+                                                            data-bs-toggle="modal" 
+                                                            data-bs-target="#reviewModal${item.productId}">
+                                                        <i class="fas fa-star me-1"></i> Đánh giá
+                                                    </button>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </td>
+                                    </c:if>
                                 </tr>
+
+                                <%-- Modal Đánh giá cho từng sản phẩm --%>
+                                <c:if test="${order.orderStatus == 5}">
+                                    <div class="modal fade" id="reviewModal${item.productId}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered">
+                                            <div class="modal-content border-0 shadow-lg rounded-4">
+                                                <form action="${pageContext.request.contextPath}/review/add" method="POST">
+                                                    <input type="hidden" name="productId" value="${item.productId}">
+                                                    <input type="hidden" name="redirect" value="${pageContext.request.contextPath}/orders/detail?id=${order.orderId}">
+                                                    
+                                                    <div class="modal-header bg-brand text-white border-0 py-3">
+                                                        <h5 class="modal-title fw-bold">Đánh giá sản phẩm</h5>
+                                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body p-4">
+                                                        <div class="d-flex align-items-center gap-3 mb-4 p-2 bg-light rounded-3">
+                                                            <img src="${item.imageUrlSnapshot}" width="60" height="60" class="rounded-2 shadow-sm">
+                                                            <div class="fw-bold text-dark">${item.productNameSnapshot}</div>
+                                                        </div>
+                                                        
+                                                        <div class="mb-4 text-center">
+                                                            <label class="form-label d-block fw-bold text-secondary mb-3">Bạn thấy sản phẩm này thế nào?</label>
+                                                            <div class="rating-input d-flex justify-content-center gap-2 fs-2">
+                                                                <input type="radio" name="rating" value="5" id="star5_${item.productId}" class="btn-check" required>
+                                                                <label for="star5_${item.productId}" class="text-warning cursor-pointer"><i class="far fa-star star-icon"></i></label>
+                                                                
+                                                                <input type="radio" name="rating" value="4" id="star4_${item.productId}" class="btn-check">
+                                                                <label for="star4_${item.productId}" class="text-warning cursor-pointer"><i class="far fa-star star-icon"></i></label>
+                                                                
+                                                                <input type="radio" name="rating" value="3" id="star3_${item.productId}" class="btn-check">
+                                                                <label for="star3_${item.productId}" class="text-warning cursor-pointer"><i class="far fa-star star-icon"></i></label>
+                                                                
+                                                                <input type="radio" name="rating" value="2" id="star2_${item.productId}" class="btn-check">
+                                                                <label for="star2_${item.productId}" class="text-warning cursor-pointer"><i class="far fa-star star-icon"></i></label>
+                                                                
+                                                                <input type="radio" name="rating" value="1" id="star1_${item.productId}" class="btn-check">
+                                                                <label for="star1_${item.productId}" class="text-warning cursor-pointer"><i class="far fa-star star-icon"></i></label>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div class="mb-0">
+                                                            <label class="form-label fw-bold text-secondary small">Lời nhắn của bạn</label>
+                                                            <textarea name="comment" class="form-control border-2 shadow-none rounded-3" rows="4" 
+                                                                      placeholder="Hãy chia sẻ cảm nhận của bạn về chất lượng sản phẩm nhé..." required></textarea>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer border-0 p-4 pt-0">
+                                                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                                                        <button type="submit" class="btn btn-brand rounded-pill px-5 shadow">Gửi đánh giá ngay</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </c:if>
                             </c:forEach>
                         </tbody>
                     </table>
@@ -96,6 +196,21 @@
 
         <%-- Right: Summary & Recipient --%>
         <div class="col-lg-4">
+            <%-- Toast or Alert for success/error --%>
+            <c:if test="${not empty sessionScope.reviewSuccess}">
+                <div class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm border-0 mb-4">
+                    <i class="fas fa-check-circle me-2"></i> ${sessionScope.reviewSuccess}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <c:remove var="reviewSuccess" scope="session"/>
+            </c:if>
+            <c:if test="${not empty sessionScope.reviewError}">
+                <div class="alert alert-danger alert-dismissible fade show rounded-3 shadow-sm border-0 mb-4">
+                    <i class="fas fa-exclamation-circle me-2"></i> ${sessionScope.reviewError}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <c:remove var="reviewError" scope="session"/>
+            </c:if>
             <div class="bg-white p-4 rounded-3 shadow-sm mb-4">
                 <h6 class="fw-bold mb-3 border-bottom pb-2">
                     <i class="fa-solid fa-location-dot me-2 text-primary"></i>Thông tin giao hàng

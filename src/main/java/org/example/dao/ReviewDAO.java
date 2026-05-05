@@ -97,13 +97,14 @@ public class ReviewDAO {
     public boolean canReview(long accountId, long productId) {
         String sql = "SELECT 1 FROM dbo.Orders o " +
                      "JOIN dbo.OrderItems oi ON o.orderId = oi.orderId " +
-                     "WHERE o.accountId = ? AND oi.productId = ? AND o.orderStatus = 5";
+                     "WHERE o.accountId = ? AND oi.productId = ? AND o.orderStatus = 5 " +
+                     "AND NOT EXISTS (SELECT 1 FROM dbo.ProductReviews pr WHERE pr.accountId = o.accountId AND pr.productId = oi.productId)";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, accountId);
             ps.setLong(2, productId);
             try (ResultSet rs = ps.executeQuery()) {
-                return rs.next(); // Returns true if at least one delivered order exists
+                return rs.next(); 
             }
         } catch (Exception e) {
             e.printStackTrace();

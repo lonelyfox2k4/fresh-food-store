@@ -14,30 +14,34 @@ public class FeedbackDAO {
 
     public List<Feedback> searchFeedbacks(String keyword) {
         List<Feedback> list = new ArrayList<>();
+        // Query SIÊU TỐI GIẢN để đảm bảo hiện ra dữ liệu
         String sql = "SELECT * FROM (" +
+                "  /* Part 1: Đã có trong bảng Feedbacks */ " +
                 "  SELECT f.feedbackId, f.accountId, f.orderId, f.reviewId, f.content, " +
-                "  ISNULL(pr_link.rating, 0) as rating, " +
-                "  f.response, f.status, f.createdAt, f.respondedAt, f.updatedAt, a.fullName, o.orderCode, p_link.productName " +
-                "  FROM dbo.Feedbacks f " +
-                "  JOIN dbo.Accounts a ON f.accountId = a.accountId " +
-                "  LEFT JOIN dbo.Orders o ON f.orderId = o.orderId " +
-                "  LEFT JOIN dbo.ProductReviews pr_link ON f.reviewId = pr_link.reviewId " +
-                "  LEFT JOIN dbo.Products p_link ON pr_link.productId = p_link.productId " +
+                "  ISNULL(pr.rating, 0) as rating, f.response, f.status, f.createdAt, " +
+                "  f.respondedAt, f.updatedAt, a.fullName as customerName, o.orderCode, p.productName " +
+                "  FROM Feedbacks f " +
+                "  LEFT JOIN Accounts a ON f.accountId = a.accountId " +
+                "  LEFT JOIN Orders o ON f.orderId = o.orderId " +
+                "  LEFT JOIN ProductReviews pr ON f.reviewId = pr.reviewId " +
+                "  LEFT JOIN Products p ON pr.productId = p.productId " +
                 "  UNION ALL " +
-                "  SELECT CAST(NULL AS BIGINT) as feedbackId, pr.accountId, o.orderId, pr.reviewId, pr.comment as content, pr.rating, " +
-                "  NULL as response, 0 as status, pr.createdAt, NULL as respondedAt, NULL as updatedAt, a.fullName, o.orderCode, p.productName " +
-                "  FROM dbo.ProductReviews pr " +
-                "  JOIN dbo.Accounts a ON pr.accountId = a.accountId " +
-                "  LEFT JOIN dbo.OrderItems oi ON pr.sourceOrderItemId = oi.orderItemId " +
-                "  LEFT JOIN dbo.Orders o ON oi.orderId = o.orderId " +
-                "  LEFT JOIN dbo.Products p ON pr.productId = p.productId " +
-                "  WHERE NOT EXISTS (SELECT 1 FROM dbo.Feedbacks f2 WHERE f2.reviewId = pr.reviewId) " +
-                ") AS CombinedFeedbacks ";
+                "  /* Part 2: Chỉ có trong ProductReviews (Chưa phản hồi) */ " +
+                "  SELECT 0 as feedbackId, pr2.accountId, NULL as orderId, pr2.reviewId, pr2.comment as content, pr2.rating, " +
+                "  NULL as response, 0 as status, pr2.createdAt, NULL as respondedAt, NULL as updatedAt, " +
+                "  a2.fullName as customerName, NULL as orderCode, p2.productName " +
+                "  FROM ProductReviews pr2 " +
+                "  LEFT JOIN Accounts a2 ON pr2.accountId = a2.accountId " +
+                "  LEFT JOIN Products p2 ON pr2.productId = p2.productId " +
+                "  WHERE NOT EXISTS (SELECT 1 FROM Feedbacks f2 WHERE f2.reviewId = pr2.reviewId) " +
+                ") AS T ";
         
         if (keyword != null && !keyword.trim().isEmpty()) {
-            sql += "WHERE fullName LIKE ? OR content LIKE ? OR productName LIKE ? ";
+            sql += "WHERE customerName LIKE ? OR content LIKE ? OR productName LIKE ? ";
         }
         sql += "ORDER BY createdAt DESC";
+
+        System.out.println("DEBUG: Executing Feedback Query: " + sql);
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -47,38 +51,34 @@ public class FeedbackDAO {
                 ps.setString(2, pattern);
                 ps.setString(3, pattern);
             }
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                Feedback f = new Feedback();
-                f.setFeedbackId(rs.getLong("feedbackId"));
-                f.setAccountId(rs.getLong("accountId"));
-                
-                long rid = rs.getLong("reviewId");
-                f.setReviewId(rs.wasNull() ? null : rid);
-                
-                f.setCustomerName(rs.getString("fullName"));
-                f.setContent(rs.getString("content"));
-                f.setRating(rs.getInt("rating"));
-                f.setResponse(rs.getString("response"));
-                f.setStatus(rs.getByte("status"));
-                f.setCreatedAt(rs.getTimestamp("createdAt").toLocalDateTime());
-                if (rs.getTimestamp("respondedAt") != null) {
-                    f.setRespondedAt(rs.getTimestamp("respondedAt").toLocalDateTime());
-                }
-                if (rs.getTimestamp("updatedAt") != null) {
-                    f.setUpdatedAt(rs.getTimestamp("updatedAt").toLocalDateTime());
-                }
-                
-                long oId = rs.getLong("orderId");
-                if (!rs.wasNull()) {
-                    f.setOrderId(oId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Feedback f = new Feedback();
+                    f.setFeedbackId(rs.getLong("feedbackId"));
+                    f.setAccountId(rs.getLong("accountId"));
+                    f.setReviewId(rs.getObject("reviewId") != null ? rs.getLong("reviewId") : null);
+                    f.setCustomerName(rs.getString("customerName"));
+                    f.setContent(rs.getString("content"));
+                    f.setRating(rs.getInt("rating"));
+                    f.setResponse(rs.getString("response"));
+                    f.setStatus(rs.getByte("status"));
+                    
+                    Timestamp ct = rs.getTimestamp("createdAt");
+                    if (ct != null) f.setCreatedAt(ct.toLocalDateTime());
+                    
+                    Timestamp rt = rs.getTimestamp("respondedAt");
+                    if (rt != null) f.setRespondedAt(rt.toLocalDateTime());
+                    
                     f.setOrderCode(rs.getString("orderCode"));
+                    f.setProductName(rs.getString("productName"));
+                    list.add(f);
                 }
-
-                f.setProductName(rs.getString("productName"));
-                list.add(f);
             }
-        } catch (Exception e) { e.printStackTrace(); }
+            System.out.println("DEBUG: Found " + list.size() + " feedback/review records.");
+        } catch (Exception e) { 
+            System.err.println("DEBUG ERROR in FeedbackDAO: " + e.getMessage());
+            e.printStackTrace(); 
+        }
         return list;
     }
 

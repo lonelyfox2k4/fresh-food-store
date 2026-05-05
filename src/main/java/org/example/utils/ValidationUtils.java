@@ -38,6 +38,29 @@ public class ValidationUtils {
     }
 
     /**
+     * Kiểm tra nội dung có chứa từ ngữ nhạy cảm/thô tục không
+     */
+    public static boolean hasSensitiveWords(String text) {
+        if (text == null || text.trim().isEmpty()) return false;
+        
+        // Danh sách các từ nhạy cảm (Đã mở rộng đầy đủ hơn)
+        String[] sensitiveWords = {
+            "đm", "dm", "đmm", "dmm", "vcl", "vl", "vkl", "vcl", "vcc", "đệt",
+            "cl", "clm", "cmn", "cc", "ccl", "cặc", "lồn", "đit", "địt", "đjt",
+            "chó", "súc vật", "ngu", "đần", "mẹ mày", "bố mày", "con phò", "phò",
+            "điếm", "điên", "khùng", "hâm", "hấp", "tổ sư", "khốn nạn", "vô học"
+        };
+        
+        String lowerText = text.toLowerCase();
+        for (String word : sensitiveWords) {
+            if (lowerText.contains(word)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Kiểm tra danh sách các trường không được để trống
      */
     public static boolean isNonEmpty(String... fields) {

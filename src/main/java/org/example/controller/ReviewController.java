@@ -32,9 +32,11 @@ public class ReviewController extends HttpServlet {
                 req.getSession().setAttribute("reviewError", "Điểm đánh giá phải từ 1 đến 5 sao!");
             } else if (comment == null || comment.trim().isEmpty()) {
                 req.getSession().setAttribute("reviewError", "Vui lòng nhập nội dung đánh giá!");
+            } else if (org.example.utils.ValidationUtils.hasSensitiveWords(comment)) {
+                req.getSession().setAttribute("reviewError", "Nội dung đánh giá chứa từ ngữ không phù hợp. Vui lòng điều chỉnh lại!");
             } else {
                 if (!reviewDAO.canReview(user.getAccountId(), productId)) {
-                    req.getSession().setAttribute("reviewError", "Bạn chỉ có thể đánh giá sản phẩm sau khi đã mua và nhận hàng thành công!");
+                    req.getSession().setAttribute("reviewError", "Bạn đã đánh giá sản phẩm này hoặc chưa đủ điều kiện để đánh giá!");
                 } else {
                     boolean ok = reviewDAO.addReview(productId, user.getAccountId(), rating, comment.trim());
                     if (ok) {

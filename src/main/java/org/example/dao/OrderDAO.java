@@ -340,7 +340,12 @@ public class OrderDAO {
 
     public List<OrderItem> getOrderItemsByOrderId(long orderId) {
         List<OrderItem> list = new ArrayList<>();
-        String sql = "SELECT * FROM dbo.OrderItems WHERE orderId = ?";
+        // Query có kiểm tra xem item đã được đánh giá chưa
+        String sql = "SELECT oi.*, " +
+                     "CASE WHEN pr.reviewId IS NOT NULL THEN 1 ELSE 0 END as isReviewed " +
+                     "FROM dbo.OrderItems oi " +
+                     "LEFT JOIN dbo.ProductReviews pr ON oi.orderItemId = pr.sourceOrderItemId " +
+                     "WHERE oi.orderId = ?";
         try (Connection conn = DBConnection.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, orderId);
@@ -360,6 +365,7 @@ public class OrderDAO {
                     item.setLineSubtotalSnapshot(rs.getBigDecimal("lineSubtotalSnapshot"));
                     item.setLineDiscountSnapshot(rs.getBigDecimal("lineDiscountSnapshot"));
                     item.setLineTotalSnapshot(rs.getBigDecimal("lineTotalSnapshot"));
+                    item.setReviewed(rs.getInt("isReviewed") == 1);
                     list.add(item);
                 }
             }

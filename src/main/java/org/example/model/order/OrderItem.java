@@ -18,8 +18,12 @@ public class OrderItem {
     private BigDecimal lineSubtotalSnapshot;
     private BigDecimal lineDiscountSnapshot;
     private BigDecimal lineTotalSnapshot;
+    private boolean isReviewed;
 
     // Explicit getters/setters (fallback when Lombok annotation processing unavailable)
+    public boolean isReviewed() { return isReviewed; }
+    public void setReviewed(boolean reviewed) { isReviewed = reviewed; }
+
     public long getOrderItemId() { return orderItemId; }
     public void setOrderItemId(long orderItemId) { this.orderItemId = orderItemId; }
     public long getOrderId() { return orderId; }
