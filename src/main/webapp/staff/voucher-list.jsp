@@ -93,8 +93,8 @@
                                     <small class="text-muted small">Lượt đã dùng</small>
                                 </td>
                                 <td class="small">
-                                    <div class="mb-1"><i class="far fa-calendar-alt me-1 text-success"></i> ${v.startAt}</div>
-                                    <div class="text-danger"><i class="far fa-calendar-times me-1"></i> ${v.endAt}</div>
+                                    <div class="mb-1"><i class="far fa-calendar-alt me-1 text-success"></i> <script>document.write(new Date('${v.startAt}Z').toLocaleString('vi-VN', {year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'}));</script></div>
+                                    <div class="text-danger"><i class="far fa-calendar-times me-1"></i> <script>document.write(new Date('${v.endAt}Z').toLocaleString('vi-VN', {year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'}));</script></div>
                                 </td>
                                 <td>
                                     <c:choose>

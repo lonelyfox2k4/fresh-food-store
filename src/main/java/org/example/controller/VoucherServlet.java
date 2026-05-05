@@ -124,15 +124,21 @@ public class VoucherServlet extends HttpServlet {
                 }
                 
                 // Rule 4: Dates Logic
-                LocalDateTime start = LocalDateTime.parse(startAtStr.length() == 16 ? startAtStr + ":00" : startAtStr);
-                LocalDateTime end = LocalDateTime.parse(endAtStr.length() == 16 ? endAtStr + ":00" : endAtStr);
+                LocalDateTime startLocal = LocalDateTime.parse(startAtStr.length() == 16 ? startAtStr + ":00" : startAtStr);
+                LocalDateTime endLocal = LocalDateTime.parse(endAtStr.length() == 16 ? endAtStr + ":00" : endAtStr);
+                
+                // Convert VN time to UTC
+                java.time.ZonedDateTime startVn = startLocal.atZone(java.time.ZoneId.of("Asia/Ho_Chi_Minh"));
+                java.time.ZonedDateTime endVn = endLocal.atZone(java.time.ZoneId.of("Asia/Ho_Chi_Minh"));
+                LocalDateTime start = startVn.withZoneSameInstant(java.time.ZoneOffset.UTC).toLocalDateTime();
+                LocalDateTime end = endVn.withZoneSameInstant(java.time.ZoneOffset.UTC).toLocalDateTime();
                 
                 if (end.isBefore(start) || end.isEqual(start)) {
                     response.sendRedirect("voucher?action=create&error=invalid_dates");
                     return;
                 }
                 
-                if (start.isBefore(LocalDateTime.now().minusMinutes(5))) { // Allow 5min buffer for server lag
+                if (start.isBefore(LocalDateTime.now(java.time.ZoneOffset.UTC).minusMinutes(5))) { // Allow 5min buffer for server lag
                     response.sendRedirect("voucher?action=create&error=start_in_past");
                     return;
                 }

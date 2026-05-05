@@ -74,7 +74,7 @@
                     <h5 class="fw-bold mt-3 mb-0">Mã đơn: #${order.orderCode}</h5>
                     <div class="small text-muted mt-1">
                         <i class="bi bi-calendar3 me-1"></i>
-                        Đặt lúc: ${order.placedAt.toString().replace('T',' ').substring(0,16)}
+                        Đặt lúc: <script>document.write(new Date('${order.placedAt}Z').toLocaleString('vi-VN', {year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'}));</script>
                     </div>
                 </div>
 
@@ -104,7 +104,7 @@
                                         Đã nhận: <fmt:formatNumber value="${order.totalAmount}" type="number"/> đ
                                     </div>
                                     <div class="small mt-1 text-muted">
-                                        Lúc: ${not empty order.paidAt ? order.paidAt.toString().replace('T',' ').substring(0,16) : 'N/A'}
+                                        Lúc: <c:choose><c:when test="${not empty order.paidAt}"><script>document.write(new Date('${order.paidAt}Z').toLocaleString('vi-VN', {year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'}));</script></c:when><c:otherwise>N/A</c:otherwise></c:choose>
                                     </div>
                                 </c:when>
 

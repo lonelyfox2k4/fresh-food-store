@@ -51,15 +51,18 @@ public class FeedbackServlet extends HttpServlet {
         } catch (NumberFormatException e) { }
 
         String responseText = request.getParameter("responseText");
+        if (responseText == null || responseText.trim().length() < 10) {
+            response.sendRedirect("feedback?error=short_content");
+            return;
+        }
 
         // Lấy ID của Staff đang đăng nhập từ Session
         HttpSession session = request.getSession();
         Account staff = (Account) session.getAttribute("user");
 
-        long staffId = (staff != null) ? staff.getAccountId() : 1L; // Fallback về 1 nếu chưa login
+        long staffId = (staff != null) ? staff.getAccountId() : 1L;
 
-        if (feedbackDAO.saveResponse(feedbackId, reviewId, responseText, staffId, 0L)) {
-            // Trả lời xong thì quay lại trang danh sách kèm thông báo
+        if (feedbackDAO.saveResponse(feedbackId, reviewId, responseText.trim(), staffId, 0L)) {
             response.sendRedirect("feedback?msg=replied");
         } else {
             response.sendRedirect("feedback?error=failed");

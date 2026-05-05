@@ -556,17 +556,27 @@ public class OrderDAO {
 
     public boolean updatePaymentStatus(long orderId, byte paymentStatus) {
         String sql = "UPDATE dbo.Orders SET paymentStatus = ?, "
-                + "paidAt = CASE WHEN ? = 2 THEN SYSUTCDATETIME() ELSE paidAt END "
+                + "paidAt = CASE WHEN ? IN (1, 2) THEN SYSUTCDATETIME() ELSE paidAt END "
                 + "WHERE orderId = ?";
-        try (Connection conn = DBConnection.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setByte(1, paymentStatus);
-            ps.setByte(2, paymentStatus);
-            ps.setLong(3, orderId);
-
-            int affected = ps.executeUpdate();
-            updatePaymentRecord(orderId, paymentStatus);
-            return affected > 0;
+        try (Connection conn = DBConnection.getConnection()) {
+            if (conn == null) return false;
+            conn.setAutoCommit(false);
+            try {
+                try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                    ps.setByte(1, paymentStatus);
+                    ps.setByte(2, paymentStatus);
+                    ps.setLong(3, orderId);
+                    int affected = ps.executeUpdate();
+                    
+                    updatePaymentRecord(conn, orderId, paymentStatus);
+                    
+                    conn.commit();
+                    return affected > 0;
+                }
+            } catch (Exception e) {
+                conn.rollback();
+                throw e;
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -577,31 +587,37 @@ public class OrderDAO {
         String sql = "UPDATE dbo.Orders SET paymentStatus = ?, orderStatus = ?, "
                    + "paidAt = CASE WHEN ? IN (1, 2) THEN SYSUTCDATETIME() ELSE paidAt END "
                    + "WHERE orderId = ?";
-        try (Connection conn = DBConnection.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setByte(1, paymentStatus);
-            ps.setByte(2, orderStatus);
-            ps.setByte(3, paymentStatus);
-            ps.setLong(4, orderId);
+        try (Connection conn = DBConnection.getConnection()) {
+            if (conn == null) return false;
+            conn.setAutoCommit(false);
+            try {
+                try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                    ps.setByte(1, paymentStatus);
+                    ps.setByte(2, orderStatus);
+                    ps.setByte(3, paymentStatus);
+                    ps.setLong(4, orderId);
+                    int affected = ps.executeUpdate();
 
-            int affected = ps.executeUpdate();
+                    updatePaymentRecord(conn, orderId, paymentStatus);
 
-            // Also update the Payments table
-            updatePaymentRecord(orderId, paymentStatus);
-
-            return affected > 0;
+                    conn.commit();
+                    return affected > 0;
+                }
+            } catch (Exception e) {
+                conn.rollback();
+                throw e;
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
         return false;
     }
 
-    private void updatePaymentRecord(long orderId, byte status) throws SQLException {
+    private void updatePaymentRecord(Connection conn, long orderId, byte status) throws SQLException {
         String sql = "UPDATE dbo.Payments SET paymentStatus = ?, "
                    + "paidAt = CASE WHEN ? IN (1, 2) THEN SYSUTCDATETIME() ELSE paidAt END "
                    + "WHERE orderId = ?";
-        try (Connection conn = DBConnection.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setByte(1, status);
             ps.setByte(2, status);
             ps.setLong(3, orderId);
@@ -940,10 +956,27 @@ public class OrderDAO {
                 + "paymentStatus = CASE WHEN paymentStatus = 1 THEN 1 ELSE 2 END, "
                 + "paidAt = CASE WHEN paidAt IS NULL THEN SYSUTCDATETIME() ELSE paidAt END "
                 + "WHERE orderId = ?";
-        try (Connection conn = DBConnection.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setLong(1, orderId);
-            return ps.executeUpdate() > 0;
+        try (Connection conn = DBConnection.getConnection()) {
+            if (conn == null) return false;
+            conn.setAutoCommit(false);
+            try {
+                try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                    ps.setLong(1, orderId);
+                    int affected = ps.executeUpdate();
+                    
+                    // Lấy trạng thái thanh toán mới để đồng bộ sang bảng Payments
+                    Order order = getOrderById(orderId);
+                    if (order != null) {
+                        updatePaymentRecord(conn, orderId, order.getPaymentStatus());
+                    }
+                    
+                    conn.commit();
+                    return affected > 0;
+                }
+            } catch (Exception e) {
+                conn.rollback();
+                throw e;
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

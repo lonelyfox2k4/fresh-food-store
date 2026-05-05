@@ -145,7 +145,7 @@
                                                     <small class="text-muted"><i class="bi bi-telephone"></i>
                                                         ${o.recipientPhoneSnapshot}</small>
                                                     <div class="small text-muted">Đặt lúc:
-                                                        ${o.placedAt.toString().replace('T', ' ').substring(0, 16)}
+                                                        <script>document.write(new Date('${o.placedAt}Z').toLocaleString('vi-VN', {year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'}));</script>
                                                     </div>
                                                 </td>
                                                 <td style="max-width: 250px;">

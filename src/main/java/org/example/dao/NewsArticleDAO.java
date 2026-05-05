@@ -64,7 +64,7 @@ public class NewsArticleDAO {
     }
 
     public boolean createNews(NewsArticle news) {
-        String sql = "INSERT INTO NewsArticles (title, summary, content, imageUrl, status, createdByAccountId, createdAt, publishedAt) VALUES (?, ?, ?, ?, ?, ?, GETDATE(), ?)";
+        String sql = "INSERT INTO NewsArticles (title, summary, content, imageUrl, status, createdByAccountId, createdAt, publishedAt) VALUES (?, ?, ?, ?, ?, ?, SYSUTCDATETIME(), ?)";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, news.getTitle());
@@ -83,7 +83,7 @@ public class NewsArticleDAO {
     }
 
     public boolean updateNews(NewsArticle news) {
-        String sql = "UPDATE NewsArticles SET title=?, summary=?, content=?, imageUrl=?, status=?, updatedAt=GETDATE(), publishedAt=(CASE WHEN ?=2 AND publishedAt IS NULL THEN GETDATE() ELSE publishedAt END) WHERE newsId=?";
+        String sql = "UPDATE NewsArticles SET title=?, summary=?, content=?, imageUrl=?, status=?, updatedAt=SYSUTCDATETIME(), publishedAt=(CASE WHEN ?=2 AND publishedAt IS NULL THEN SYSUTCDATETIME() ELSE publishedAt END) WHERE newsId=?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, news.getTitle());
@@ -115,7 +115,7 @@ public class NewsArticleDAO {
     }
 
     public boolean updateStatus(long newsId, byte status) {
-        String sql = "UPDATE NewsArticles SET status = ?, publishedAt = (CASE WHEN ? = 2 THEN GETDATE() ELSE publishedAt END) WHERE newsId = ?";
+        String sql = "UPDATE NewsArticles SET status = ?, publishedAt = (CASE WHEN ? = 2 THEN SYSUTCDATETIME() ELSE publishedAt END) WHERE newsId = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setByte(1, status);

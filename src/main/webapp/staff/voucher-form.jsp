@@ -237,8 +237,9 @@
             }, false);
 
             // 3. AUTO-SET MIN DATES
-            const nowIso = new Date().toISOString().slice(0, 16);
-            if (!startInput.value) startInput.min = nowIso;
+            const nowForMin = new Date();
+            const localIsoString = new Date(nowForMin.getTime() - nowForMin.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+            if (!startInput.value) startInput.min = localIsoString;
         });
     </script>
 </body>

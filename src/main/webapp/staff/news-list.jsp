@@ -90,7 +90,7 @@
                                     </c:choose>
                                 </td>
                                 <td class="small text-muted">
-                                    <i class="far fa-calendar-alt me-1"></i> ${n.createdAt}
+                                    <i class="far fa-calendar-alt me-1"></i> <script>document.write(new Date('${n.createdAt}Z').toLocaleString('vi-VN', {year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'}));</script>
                                 </td>
                                 <td class="text-end pe-4">
                                     <div class="btn-group shadow-sm rounded-pill overflow-hidden">

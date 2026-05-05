@@ -48,6 +48,25 @@
     </div>
 
     <div class="container-fluid px-4 pb-5">
+        <c:if test="${param.msg == 'replied'}">
+            <div class="alert alert-success alert-dismissible fade show rounded-4 mb-4 shadow-sm border-0" role="alert">
+                <i class="fas fa-check-circle me-2"></i> <strong>Thành công!</strong> Phản hồi của bạn đã được lưu và gửi đến khách hàng.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        </c:if>
+        <c:if test="${param.error == 'short_content'}">
+            <div class="alert alert-danger alert-dismissible fade show rounded-4 mb-4 shadow-sm border-0" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i> <strong>Lỗi!</strong> Nội dung phản hồi quá ngắn (tối thiểu 10 ký tự).
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        </c:if>
+        <c:if test="${param.error == 'failed'}">
+            <div class="alert alert-danger alert-dismissible fade show rounded-4 mb-4 shadow-sm border-0" role="alert">
+                <i class="fas fa-times-circle me-2"></i> <strong>Lỗi!</strong> Không thể lưu phản hồi. Vui lòng thử lại sau.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        </c:if>
+
         <div class="user-table-card">
             <div class="card-body p-0">
                 <div class="table-responsive">
@@ -68,7 +87,7 @@
                                 <td class="ps-4">
                                     <div class="fw-bold text-dark fs-6 mb-1">${f.customerName}</div>
                                     <div class="d-flex align-items-center gap-2">
-                                        <small class="text-muted"><i class="far fa-clock me-1"></i> ${f.createdAt.toString().replace('T', ' ').substring(0, 16)}</small>
+                                        <small class="text-muted"><i class="far fa-clock me-1"></i> <script>document.write(new Date('${f.createdAt}Z').toLocaleString('vi-VN', {year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'}));</script></small>
                                         <c:choose>
                                             <c:when test="${not empty f.reviewId}">
                                                 <span class="badge bg-info-subtle text-info border border-info-subtle extra-small py-0 px-2" style="font-size: 0.65rem;">Đánh giá SP</span>
@@ -164,7 +183,7 @@
                                     </div>
                                     <div class="small text-muted">
                                         <strong>Khách hàng:</strong> ${f.customerName} <br>
-                                        <strong>Ngày gửi:</strong> ${f.createdAt}
+                                        <strong>Ngày gửi:</strong> <script>document.write(new Date('${f.createdAt}Z').toLocaleString('vi-VN', {year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'}));</script>
                                     </div>
                                 </div>
                                 <div class="col-md-6 ps-md-4">
@@ -187,17 +206,56 @@
                             
                             <div class="mb-0">
                                 <label class="form-label fw-bold text-secondary text-uppercase small">Nội dung phản hồi (Staff)</label>
-                                <textarea name="responseText" class="form-control border-2 shadow-none" rows="6" 
-                                          placeholder="Nhập lời cảm ơn hoặc giải đáp thắc mắc tại đây..." 
-                                          required style="border-radius: 12px;">${f.response}</textarea>
-                                <div class="mt-2 text-muted x-small">
-                                    <i class="fas fa-info-circle me-1"></i> Phản hồi sẽ được gửi qua email cho khách hàng và hiển thị trên web.
-                                </div>
+                                
+                                <c:choose>
+                                    <c:when test="${not empty f.response}">
+                                        <!-- Chế độ XEM khi đã có phản hồi -->
+                                        <div id="viewMode${f.feedbackId > 0 ? f.feedbackId : 'rv'.concat(f.reviewId)}">
+                                            <div class="p-3 bg-white border rounded-4 mb-2 fw-medium shadow-sm" style="white-space: pre-wrap; min-height: 100px;">${f.response}</div>
+                                            <div class="mt-2 d-flex justify-content-between align-items-center">
+                                                <div class="text-muted x-small">
+                                                    <i class="fas fa-clock me-1"></i> Gửi lúc: 
+                                                    <script>document.write(new Date('${f.respondedAt}Z').toLocaleString('vi-VN'));</script>
+                                                    <c:if test="${not empty f.updatedAt}">
+                                                        <span class="text-info fw-bold ms-2">
+                                                            <i class="fas fa-edit me-1"></i> (Đã chỉnh sửa lúc: <script>document.write(new Date('${f.updatedAt}Z').toLocaleString('vi-VN'));</script>)
+                                                        </span>
+                                                    </c:if>
+                                                </div>
+                                                <button type="button" class="btn btn-sm btn-brand-outline rounded-pill px-3" 
+                                                        onclick="toggleEditMode('${f.feedbackId > 0 ? f.feedbackId : 'rv'.concat(f.reviewId)}')">
+                                                    <i class="fas fa-pencil-alt me-1"></i> Chỉnh sửa
+                                                </button>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Chế độ SỬA (ẩn mặc định) -->
+                                        <div id="editMode${f.feedbackId > 0 ? f.feedbackId : 'rv'.concat(f.reviewId)}" style="display: none;">
+                                            <textarea name="responseText" class="form-control border-2 shadow-none" rows="6" 
+                                                      placeholder="Nhập lời cảm ơn hoặc giải đáp thắc mắc tại đây..." 
+                                                      required minlength="10" style="border-radius: 12px;">${f.response}</textarea>
+                                            <div class="mt-2 text-muted x-small">
+                                                <i class="fas fa-info-circle me-1"></i> Đang chỉnh sửa phản hồi...
+                                            </div>
+                                        </div>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <!-- Chế độ TRẢ LỜI MỚI -->
+                                        <textarea name="responseText" class="form-control border-2 shadow-none" rows="6" 
+                                                  placeholder="Nhập lời cảm ơn hoặc giải đáp thắc mắc tại đây..." 
+                                                  required minlength="10" style="border-radius: 12px;"></textarea>
+                                        <div class="mt-2 text-muted x-small">
+                                            <i class="fas fa-info-circle me-1"></i> Phản hồi sẽ được gửi qua email cho khách hàng và hiển thị trên web.
+                                        </div>
+                                    </c:otherwise>
+                                </c:choose>
                             </div>
                         </div>
                         <div class="modal-footer border-top-0 p-4 pt-0">
                             <button type="button" class="btn btn-light px-4 rounded-pill" data-bs-dismiss="modal">Đóng</button>
-                            <button type="submit" class="btn btn-brand px-5 rounded-pill shadow">
+                            <button type="submit" id="submitBtn${f.feedbackId > 0 ? f.feedbackId : 'rv'.concat(f.reviewId)}" 
+                                    class="btn btn-brand px-5 rounded-pill shadow" 
+                                    style="${not empty f.response ? 'display: none;' : ''}">
                                 <i class="fas fa-paper-plane me-2"></i>Gửi phản hồi ngay
                             </button>
                         </div>
@@ -208,5 +266,24 @@
     </c:forEach>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleEditMode(id) {
+            document.getElementById('viewMode' + id).style.display = 'none';
+            document.getElementById('editMode' + id).style.display = 'block';
+            document.getElementById('submitBtn' + id).style.display = 'inline-block';
+            document.getElementById('submitBtn' + id).innerHTML = '<i class="fas fa-save me-2"></i>Cập nhật phản hồi';
+        }
+        
+        // Ngăn chặn submit nếu chỉ có khoảng trắng
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                const textarea = this.querySelector('textarea[name="responseText"]');
+                if (textarea && textarea.value.trim().length < 10) {
+                    alert('Nội dung phản hồi phải có ít nhất 10 ký tự!');
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
 </body>
 </html>

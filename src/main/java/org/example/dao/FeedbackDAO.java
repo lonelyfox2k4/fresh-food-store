@@ -13,14 +13,14 @@ public class FeedbackDAO {
         String sql = "SELECT * FROM (" +
                 "  SELECT f.feedbackId, f.accountId, f.orderId, f.reviewId, f.content, " +
                 "  ISNULL(pr_link.rating, 0) as rating, " +
-                "  f.response, f.status, f.createdAt, f.respondedAt, a.fullName, o.orderCode " +
+                "  f.response, f.status, f.createdAt, f.respondedAt, f.updatedAt, a.fullName, o.orderCode " +
                 "  FROM dbo.Feedbacks f " +
                 "  JOIN dbo.Accounts a ON f.accountId = a.accountId " +
                 "  LEFT JOIN dbo.Orders o ON f.orderId = o.orderId " +
                 "  LEFT JOIN dbo.ProductReviews pr_link ON f.reviewId = pr_link.reviewId " +
                 "  UNION ALL " +
                 "  SELECT CAST(NULL AS BIGINT) as feedbackId, pr.accountId, o.orderId, pr.reviewId, pr.comment as content, pr.rating, " +
-                "  NULL as response, 0 as status, pr.createdAt, NULL as respondedAt, a.fullName, o.orderCode " +
+                "  NULL as response, 0 as status, pr.createdAt, NULL as respondedAt, NULL as updatedAt, a.fullName, o.orderCode " +
                 "  FROM dbo.ProductReviews pr " +
                 "  JOIN dbo.Accounts a ON pr.accountId = a.accountId " +
                 "  LEFT JOIN dbo.OrderItems oi ON pr.sourceOrderItemId = oi.orderItemId " +
@@ -47,6 +47,9 @@ public class FeedbackDAO {
                 if (rs.getTimestamp("respondedAt") != null) {
                     f.setRespondedAt(rs.getTimestamp("respondedAt").toLocalDateTime());
                 }
+                if (rs.getTimestamp("updatedAt") != null) {
+                    f.setUpdatedAt(rs.getTimestamp("updatedAt").toLocalDateTime());
+                }
                 
                 long oId = rs.getLong("orderId");
                 if (!rs.wasNull()) {
@@ -61,9 +64,12 @@ public class FeedbackDAO {
 
     public boolean saveResponse(long feedbackId, Long reviewId, String responseText, long staffId, long accountId) {
         if (feedbackId > 0) {
-            // Update existing feedback
+            // Update existing feedback (Handle initial reply vs Edit)
             String sql = "UPDATE Feedbacks SET response = ?, respondedByAccountId = ?, " +
-                    "status = 1, respondedAt = GETDATE() WHERE feedbackId = ?";
+                    "status = 1, " +
+                    "updatedAt = CASE WHEN status = 1 THEN SYSUTCDATETIME() ELSE updatedAt END, " +
+                    "respondedAt = CASE WHEN status = 0 THEN SYSUTCDATETIME() ELSE respondedAt END " +
+                    "WHERE feedbackId = ?";
             try (Connection conn = DBConnection.getConnection();
                  PreparedStatement ps = conn.prepareStatement(sql)) {
                 ps.setString(1, responseText);
@@ -74,7 +80,7 @@ public class FeedbackDAO {
         } else if (reviewId != null) {
             // Create new feedback record for a review
             String sql = "INSERT INTO Feedbacks (accountId, reviewId, content, response, status, respondedByAccountId, respondedAt, createdAt) " +
-                    "SELECT accountId, reviewId, comment, ?, 1, ?, GETDATE(), GETDATE() " +
+                    "SELECT accountId, reviewId, comment, ?, 1, ?, SYSUTCDATETIME(), SYSUTCDATETIME() " +
                     "FROM ProductReviews WHERE reviewId = ?";
             try (Connection conn = DBConnection.getConnection();
                  PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -89,7 +95,7 @@ public class FeedbackDAO {
 
     public boolean updateResponse(long feedbackId, String responseText, long staffId) {
         String sql = "UPDATE Feedbacks SET response = ?, respondedByAccountId = ?, " +
-                "status = 1, respondedAt = GETDATE() WHERE feedbackId = ?";
+                "status = 1, respondedAt = SYSUTCDATETIME() WHERE feedbackId = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, responseText);
