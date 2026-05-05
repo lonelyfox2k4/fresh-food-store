@@ -164,7 +164,11 @@
                                     </c:choose>
                                 </td>
                                 <td class="text-end">
-                                    <button class="action-btn me-1" onclick="editCategory(${c.categoryId}, '${c.categoryName}', ${c.status})" title="Chỉnh sửa">
+                                    <button class="action-btn me-1" 
+                                            data-id="${c.categoryId}" 
+                                            data-name="<c:out value='${c.categoryName}'/>" 
+                                            data-status="${c.status}" 
+                                            onclick="editCategory(this)" title="Chỉnh sửa">
                                         <i class="bi bi-pencil-square"></i>
                                     </button>
                                     <a href="categories?action=delete&id=${c.categoryId}" class="action-btn delete" title="Ẩn phân loại" onclick="return confirm('Bạn có muốn ẩn phân loại này khỏi danh mục bán hàng?')">
@@ -208,11 +212,12 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        function editCategory(id, name, status) {
-            document.getElementById('catId').value = id;
-            document.getElementById('catName').value = name;
-            document.getElementById('catStatus').checked = status;
-            new bootstrap.Modal(document.getElementById('categoryModal')).show();
+        function editCategory(btn) {
+            document.getElementById('catId').value = btn.getAttribute('data-id');
+            document.getElementById('catName').value = btn.getAttribute('data-name');
+            document.getElementById('catStatus').checked = btn.getAttribute('data-status') === 'true';
+            var myModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('categoryModal'));
+            myModal.show();
         }
     </script>
 </body>

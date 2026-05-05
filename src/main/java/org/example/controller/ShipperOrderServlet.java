@@ -30,7 +30,11 @@ public class ShipperOrderServlet extends HttpServlet {
         if (action == null) action = "list";
 
         Account user = (Account) request.getSession().getAttribute("user");
-        long shipperId = (user != null) ? user.getAccountId() : 0L;
+        if (user == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+        long shipperId = user.getAccountId();
 
         try {
             if ("list".equals(action)) {
@@ -99,7 +103,11 @@ public class ShipperOrderServlet extends HttpServlet {
         }
 
         Account user = (Account) request.getSession().getAttribute("user");
-        long currentShipperId = (user != null) ? user.getAccountId() : 0L;
+        if (user == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+        long currentShipperId = user.getAccountId();
 
         try {
             String idStr = request.getParameter("id");

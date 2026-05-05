@@ -5,6 +5,7 @@ import org.example.utils.DBConnection;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -17,7 +18,7 @@ public class AccountDAO {
     public String encodePassword(String password) {
         try {
             MessageDigest md = MessageDigest.getInstance("MD5");
-            md.update(password.getBytes());
+            md.update(password.getBytes(StandardCharsets.UTF_8));
             byte[] digest = md.digest();
             StringBuilder sb = new StringBuilder();
             for (byte b : digest) {

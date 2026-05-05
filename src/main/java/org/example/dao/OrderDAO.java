@@ -965,10 +965,17 @@ public class OrderDAO {
                     int affected = ps.executeUpdate();
                     
                     // Lấy trạng thái thanh toán mới để đồng bộ sang bảng Payments
-                    Order order = getOrderById(orderId);
-                    if (order != null) {
-                        updatePaymentRecord(conn, orderId, order.getPaymentStatus());
+                    byte newPaymentStatus = 0;
+                    try (PreparedStatement ps2 = conn.prepareStatement("SELECT paymentStatus FROM dbo.Orders WHERE orderId = ?")) {
+                        ps2.setLong(1, orderId);
+                        try (ResultSet rs = ps2.executeQuery()) {
+                            if (rs.next()) {
+                                newPaymentStatus = rs.getByte(1);
+                            }
+                        }
                     }
+                    
+                    updatePaymentRecord(conn, orderId, newPaymentStatus);
                     
                     conn.commit();
                     return affected > 0;

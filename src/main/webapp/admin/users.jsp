@@ -67,53 +67,18 @@
             </nav>
             <h2 class="fw-800 mb-0">Quản lý người dùng</h2>
         </div>
-        <a href="${pageContext.request.contextPath}/admin/assign" class="btn btn-brand shadow-sm">
-            <i class="fas fa-plus-circle me-2"></i> Cấp tài khoản mới
-        </a>
+        <div class="d-flex gap-2">
+            <a href="${pageContext.request.contextPath}/admin/export-users" class="btn btn-outline-success shadow-sm">
+                <i class="fas fa-file-excel me-2"></i> Xuất danh sách
+            </a>
+            <a href="${pageContext.request.contextPath}/admin/assign" class="btn btn-brand shadow-sm">
+                <i class="fas fa-plus-circle me-2"></i> Cấp tài khoản mới
+            </a>
+        </div>
     </div>
 </div>
 
 <div class="container pb-5">
-    <!-- Quick Stats -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-3">
-            <div class="stat-card">
-                <div class="stat-icon bg-brand-light text-brand"><i class="fas fa-users"></i></div>
-                <div>
-                    <div class="text-muted small fw-600">Tổng User</div>
-                    <div class="fw-800 fs-5">${totalRecords}</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stat-card">
-                <div class="stat-icon bg-success bg-opacity-10 text-success"><i class="fas fa-user-check"></i></div>
-                <div>
-                    <div class="text-muted small fw-600">Đang hoạt động</div>
-                    <div class="fw-800 fs-5">${userStats.active}</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stat-card">
-                <div class="stat-icon bg-info bg-opacity-10 text-info"><i class="fas fa-user-shield"></i></div>
-                <div>
-                    <div class="text-muted small fw-600">Admin/Manager</div>
-                    <div class="fw-800 fs-5">${userStats.adminManager}</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stat-card">
-                <div class="stat-icon bg-danger bg-opacity-10 text-danger"><i class="fas fa-user-slash"></i></div>
-                <div>
-                    <div class="text-muted small fw-600">Bị khóa</div>
-                    <div class="fw-800 fs-5">${userStats.banned}</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Filters -->
     <div class="filter-section shadow-sm">
         <form action="users" method="get" class="row g-3 align-items-center">

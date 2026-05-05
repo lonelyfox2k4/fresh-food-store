@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import org.example.dao.AccountDAO;
 import org.example.model.auth.Account;
 import org.example.utils.GoogleUtils;
+import org.example.utils.AuthUtils;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -30,9 +31,14 @@ public class LoginGoogleController extends HttpServlet {
         String accessToken = GoogleUtils.getToken(code);
         JsonObject googleUser = GoogleUtils.getUserInfo(accessToken);
 
+        if (googleUser == null || !googleUser.has("email")) {
+            resp.sendRedirect("login?error=google_auth_failed");
+            return;
+        }
+
         String email = googleUser.get("email").getAsString();
-        String name = googleUser.get("name").getAsString();
-        String googleId = googleUser.get("id").getAsString();
+        String name = googleUser.has("name") ? googleUser.get("name").getAsString() : "Google User";
+        String googleId = googleUser.has("id") ? googleUser.get("id").getAsString() : googleUser.get("sub").getAsString();
 
         AccountDAO dao = new AccountDAO();
         Account acc = dao.getAccountByEmail(email);
@@ -47,7 +53,7 @@ public class LoginGoogleController extends HttpServlet {
 
         // 4. LƯU LIÊN KẾT GOOGLE (Để bảng AccountGoogleLinks nảy số)
         if (acc != null) {
-            // Tự động xác thực email nếu login qua Google (Trường hợp tài khoản đã tồn tại từ trước nhưng chưa verify)
+            // Tự động xác thực email nếu login qua Google
             if (!acc.isEmailVerified()) {
                 dao.verifyEmail(email);
                 acc.setEmailVerified(true);
@@ -61,30 +67,7 @@ public class LoginGoogleController extends HttpServlet {
             }
 
             dao.linkGoogleAccount(acc.getAccountId(), googleId, email);
-
-            // 5. Thiết lập session và chuyển trang
-            req.getSession().setAttribute("user", acc);
-            
-            String contextPath = req.getContextPath();
-            int roleId = acc.getRoleId();
-            
-            switch (roleId) {
-                case 1: // Admin
-                    resp.sendRedirect(contextPath + "/admin/dashboard");
-                    break;
-                case 2: // Manager
-                    resp.sendRedirect(contextPath + "/manager/products");
-                    break;
-                case 3: // Staff
-                    resp.sendRedirect(contextPath + "/staff/orders");
-                    break;
-                case 4: // Shipper
-                    resp.sendRedirect(contextPath + "/shipper/orders");
-                    break;
-                default: // Customer/Others
-                    resp.sendRedirect(contextPath + "/home");
-                    break;
-            }
+            AuthUtils.handleLoginSuccess(acc, req, resp);
         } else {
             // Trường hợp hy hữu không tạo được acc
             resp.sendRedirect("login");

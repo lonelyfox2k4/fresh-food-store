@@ -10,6 +10,7 @@ import java.io.IOException;
 import org.example.utils.ValidationUtils;
 import org.example.utils.EmailUtils;
 import org.example.utils.RoleConstant;
+import org.example.utils.AuthUtils;
 
 @WebServlet(urlPatterns = {"/login", "/register", "/logout"})
 public class AuthController extends HttpServlet {
@@ -84,30 +85,7 @@ public class AuthController extends HttpServlet {
         }
 
         if (acc.getPasswordHash().equals(dao.encodePassword(password))) {
-            req.changeSessionId();
-            req.getSession().setAttribute("user", acc);
-            req.getSession().setAttribute("cartCount", cartDAO.countCartLines(acc.getAccountId()));
-            
-            String contextPath = req.getContextPath();
-            int roleId = acc.getRoleId();
-            
-            switch (roleId) {
-                case RoleConstant.ADMIN:
-                    resp.sendRedirect(contextPath + "/admin/dashboard");
-                    break;
-                case RoleConstant.MANAGER:
-                    resp.sendRedirect(contextPath + "/manager/products");
-                    break;
-                case RoleConstant.STAFF:
-                    resp.sendRedirect(contextPath + "/staff/orders");
-                    break;
-                case RoleConstant.SHIPPER:
-                    resp.sendRedirect(contextPath + "/shipper/orders");
-                    break;
-                case RoleConstant.CUSTOMER:
-                    resp.sendRedirect(contextPath + "/home");
-                    break;
-            }
+            AuthUtils.handleLoginSuccess(acc, req, resp);
         } else {
             req.setAttribute("errorMsg", "Tài khoản hoặc mật khẩu không chính xác!");
             req.getRequestDispatcher("/main/login.jsp").forward(req, resp);
