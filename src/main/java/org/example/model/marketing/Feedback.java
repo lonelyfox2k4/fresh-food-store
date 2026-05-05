@@ -24,5 +24,6 @@ public class Feedback {
     private LocalDateTime updatedAt;
     private int rating;
     private String orderCode;
+    private String productName;
     private List<OrderItem> itemList;
 }

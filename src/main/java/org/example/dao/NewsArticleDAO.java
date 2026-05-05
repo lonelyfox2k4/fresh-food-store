@@ -31,16 +31,30 @@ public class NewsArticleDAO {
     }
 
     public List<NewsArticle> getAllNews() {
+        return searchNews(null);
+    }
+
+    public List<NewsArticle> searchNews(String keyword) {
         List<NewsArticle> list = new ArrayList<>();
-        String sql = "SELECT * FROM NewsArticles ORDER BY createdAt DESC";
+        StringBuilder sql = new StringBuilder("SELECT * FROM NewsArticles ");
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append("WHERE title LIKE ? OR summary LIKE ? ");
+        }
+        sql.append("ORDER BY createdAt DESC");
+        
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                list.add(extractNewsFromResultSet(rs));
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                String pattern = "%" + keyword.trim() + "%";
+                ps.setString(1, pattern);
+                ps.setString(2, pattern);
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(extractNewsFromResultSet(rs));
+                }
             }
         } catch (Exception e) {
-            System.err.println("[NewsArticleDAO] Error in getAllNews: " + e.getMessage());
             e.printStackTrace();
         }
         return list;

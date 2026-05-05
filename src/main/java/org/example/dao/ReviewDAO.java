@@ -43,13 +43,22 @@ public class ReviewDAO {
     }
 
     public boolean addReview(long productId, long accountId, byte rating, String comment) {
-        String sql = "INSERT INTO dbo.ProductReviews (productId, accountId, rating, comment) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO dbo.ProductReviews (productId, accountId, rating, comment, sourceOrderItemId) " +
+                     "VALUES (?, ?, ?, ?, (" +
+                     "  SELECT TOP 1 oi.orderItemId " +
+                     "  FROM dbo.OrderItems oi " +
+                     "  JOIN dbo.Orders o ON oi.orderId = o.orderId " +
+                     "  WHERE o.accountId = ? AND oi.productId = ? AND o.orderStatus = 5 " +
+                     "  ORDER BY o.placedAt DESC" +
+                     "))";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, productId);
             ps.setLong(2, accountId);
             ps.setByte(3, rating);
             ps.setString(4, comment);
+            ps.setLong(5, accountId);
+            ps.setLong(6, productId);
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();

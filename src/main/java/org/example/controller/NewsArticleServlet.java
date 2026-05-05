@@ -20,7 +20,15 @@ public class NewsArticleServlet extends HttpServlet {
         if (action == null) action = "list";
 
         if ("list".equals(action)) {
-            request.setAttribute("newsList", newsDAO.getAllNews());
+            String search = request.getParameter("search");
+            List<NewsArticle> list;
+            if (search != null && !search.trim().isEmpty()) {
+                list = newsDAO.searchNews(search.trim());
+                request.setAttribute("searchKeyword", search);
+            } else {
+                list = newsDAO.getAllNews();
+            }
+            request.setAttribute("newsList", list);
             request.getRequestDispatcher("/staff/news-list.jsp").forward(request, response);
         }
         // Cả tạo và sửa đều dùng chung news-form.jsp

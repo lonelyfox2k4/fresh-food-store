@@ -9,26 +9,44 @@ import java.util.List;
 public class FeedbackDAO {
 
     public List<Feedback> getAllFeedbacks() {
+        return searchFeedbacks(null);
+    }
+
+    public List<Feedback> searchFeedbacks(String keyword) {
         List<Feedback> list = new ArrayList<>();
         String sql = "SELECT * FROM (" +
                 "  SELECT f.feedbackId, f.accountId, f.orderId, f.reviewId, f.content, " +
                 "  ISNULL(pr_link.rating, 0) as rating, " +
-                "  f.response, f.status, f.createdAt, f.respondedAt, f.updatedAt, a.fullName, o.orderCode " +
+                "  f.response, f.status, f.createdAt, f.respondedAt, f.updatedAt, a.fullName, o.orderCode, p_link.productName " +
                 "  FROM dbo.Feedbacks f " +
                 "  JOIN dbo.Accounts a ON f.accountId = a.accountId " +
                 "  LEFT JOIN dbo.Orders o ON f.orderId = o.orderId " +
                 "  LEFT JOIN dbo.ProductReviews pr_link ON f.reviewId = pr_link.reviewId " +
+                "  LEFT JOIN dbo.Products p_link ON pr_link.productId = p_link.productId " +
                 "  UNION ALL " +
                 "  SELECT CAST(NULL AS BIGINT) as feedbackId, pr.accountId, o.orderId, pr.reviewId, pr.comment as content, pr.rating, " +
-                "  NULL as response, 0 as status, pr.createdAt, NULL as respondedAt, NULL as updatedAt, a.fullName, o.orderCode " +
+                "  NULL as response, 0 as status, pr.createdAt, NULL as respondedAt, NULL as updatedAt, a.fullName, o.orderCode, p.productName " +
                 "  FROM dbo.ProductReviews pr " +
                 "  JOIN dbo.Accounts a ON pr.accountId = a.accountId " +
                 "  LEFT JOIN dbo.OrderItems oi ON pr.sourceOrderItemId = oi.orderItemId " +
                 "  LEFT JOIN dbo.Orders o ON oi.orderId = o.orderId " +
+                "  LEFT JOIN dbo.Products p ON pr.productId = p.productId " +
                 "  WHERE NOT EXISTS (SELECT 1 FROM dbo.Feedbacks f2 WHERE f2.reviewId = pr.reviewId) " +
-                ") AS CombinedFeedbacks ORDER BY createdAt DESC";
+                ") AS CombinedFeedbacks ";
+        
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql += "WHERE fullName LIKE ? OR content LIKE ? OR productName LIKE ? ";
+        }
+        sql += "ORDER BY createdAt DESC";
+
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                String pattern = "%" + keyword.trim() + "%";
+                ps.setString(1, pattern);
+                ps.setString(2, pattern);
+                ps.setString(3, pattern);
+            }
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 Feedback f = new Feedback();
@@ -56,6 +74,8 @@ public class FeedbackDAO {
                     f.setOrderId(oId);
                     f.setOrderCode(rs.getString("orderCode"));
                 }
+
+                f.setProductName(rs.getString("productName"));
                 list.add(f);
             }
         } catch (Exception e) { e.printStackTrace(); }

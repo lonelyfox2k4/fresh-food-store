@@ -17,7 +17,15 @@ public class FeedbackServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        List<Feedback> feedbackList = feedbackDAO.getAllFeedbacks();
+        String search = request.getParameter("search");
+        List<Feedback> feedbackList;
+        
+        if (search != null && !search.trim().isEmpty()) {
+            feedbackList = feedbackDAO.searchFeedbacks(search.trim());
+            request.setAttribute("searchKeyword", search);
+        } else {
+            feedbackList = feedbackDAO.getAllFeedbacks();
+        }
         
         // Fetch order items for each feedback linked to an order
         for (Feedback f : feedbackList) {

@@ -32,22 +32,48 @@
             <div>
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb mb-1">
-                        <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/staff/news">Marketing</a></li>
+                        <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/staff/feedback">Đối tác & CSKH</a></li>
                         <li class="breadcrumb-item active">Phản hồi</li>
                     </ol>
                 </nav>
-                <h2 class="fw-800 mb-0">Chăm sóc Khách hàng</h2>
-                <p class="text-white-50 small mb-0 mt-1">Lắng nghe ý kiến và giải đáp thắc mắc từ khách hàng.</p>
-            </div>
             <div class="d-flex gap-2">
                 <a href="feedback" class="btn btn-brand-outline shadow-sm rounded-pill bg-white text-dark">
-                    <i class="fas fa-sync-alt"></i> Làm mới
+                    <i class="fas fa-sync-alt me-2"></i> Làm mới
                 </a>
             </div>
         </div>
     </div>
 
     <div class="container-fluid px-4 pb-5">
+        <%-- Search Bar (Matches Order Style) --%>
+        <div class="card border-0 shadow-sm rounded-4 mb-4 mt-3">
+            <div class="card-body p-3">
+                <form action="feedback" method="get" class="row g-2 align-items-center m-0">
+                    <div class="col-md-5 col-lg-4">
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0 rounded-start-pill px-3">
+                                <i class="bi bi-search text-muted"></i>
+                            </span>
+                            <input type="text" name="search" class="form-control bg-light border-start-0 rounded-end-pill py-2" 
+                                   placeholder="Tìm khách, nội dung, SP..." value="${searchKeyword}">
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">Tìm kiếm</button>
+                        <c:if test="${not empty searchKeyword}">
+                            <a href="feedback" class="btn btn-outline-secondary rounded-pill px-3 ms-1">
+                                <i class="bi bi-x-lg"></i> Xóa lọc
+                            </a>
+                        </c:if>
+                    </div>
+                    <c:if test="${not empty searchKeyword}">
+                        <div class="col-auto">
+                            <span class="text-muted small ms-2">Tìm thấy <strong>${feedbackList.size()}</strong> kết quả</span>
+                        </div>
+                    </c:if>
+                </form>
+            </div>
+        </div>
         <c:if test="${param.msg == 'replied'}">
             <div class="alert alert-success alert-dismissible fade show rounded-4 mb-4 shadow-sm border-0" role="alert">
                 <i class="fas fa-check-circle me-2"></i> <strong>Thành công!</strong> Phản hồi của bạn đã được lưu và gửi đến khách hàng.
@@ -74,7 +100,6 @@
                         <thead>
                         <tr>
                             <th class="ps-4">Khách hàng</th>
-                            <th>Đơn hàng</th>
                             <th>Nội dung đánh giá</th>
                             <th>Xếp hạng</th>
                             <th>Trạng thái</th>
@@ -98,17 +123,15 @@
                                         </c:choose>
                                     </div>
                                 </td>
-                                <td>
-                                    <c:choose>
-                                        <c:when test="${not empty f.orderCode}">
-                                            <a href="orders?action=detail&id=${f.orderId}&from=feedback" class="badge bg-primary-subtle text-primary text-decoration-none py-2 px-3 border border-primary-subtle">
-                                                <i class="fas fa-receipt me-1"></i> #${f.orderCode}
-                                            </a>
-                                        </c:when>
-                                        <c:otherwise><span class="text-muted small">Khách vãng lai</span></c:otherwise>
-                                    </c:choose>
-                                </td>
+
                                 <td style="max-width: 350px;">
+                                    <c:if test="${not empty f.productName}">
+                                        <div class="mb-1">
+                                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle extra-small py-1 px-2" style="font-size: 0.7rem;">
+                                                <i class="fas fa-tag me-1"></i> ${f.productName}
+                                            </span>
+                                        </div>
+                                    </c:if>
                                     <div class="text-truncate-2 small text-dark fw-500" title="${f.content}">
                                         ${f.content}
                                     </div>
@@ -142,7 +165,7 @@
                         </c:forEach>
                         <c:if test="${empty feedbackList}">
                             <tr>
-                                <td colspan="6" class="text-center py-5 text-muted">
+                                <td colspan="5" class="text-center py-5 text-muted">
                                     <i class="bi bi-chat-left-dots fs-1 d-block mb-3 opacity-25"></i>
                                     Chưa có phản hồi nào từ khách hàng.
                                 </td>

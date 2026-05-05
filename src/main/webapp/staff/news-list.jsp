@@ -28,11 +28,9 @@
                     </ol>
                 </nav>
                 <h2 class="fw-800 mb-0">Quản lý Bài viết & Tin tức</h2>
-                <p class="text-white-50 small mb-0 mt-1">Đăng tin khuyến mãi và cập nhật xu hướng thực phẩm sạch.</p>
-            </div>
             <div class="d-flex gap-2">
                 <a href="${pageContext.request.contextPath}/staff/news" class="btn btn-brand-outline shadow-sm rounded-pill bg-white text-dark">
-                    <i class="fas fa-sync-alt"></i> Làm mới
+                    <i class="fas fa-sync-alt me-2"></i> Làm mới
                 </a>
                 <a href="${pageContext.request.contextPath}/staff/news?action=create" class="btn btn-brand shadow-sm rounded-pill">
                     <i class="fas fa-plus-circle me-2"></i> Soạn bài mới
@@ -42,6 +40,36 @@
     </div>
 
     <div class="container-fluid px-4 pb-5">
+        <%-- Search Bar (Matches Order Style) --%>
+        <div class="card border-0 shadow-sm rounded-4 mb-4 mt-3">
+            <div class="card-body p-3">
+                <form action="${pageContext.request.contextPath}/staff/news" method="get" class="row g-2 align-items-center m-0">
+                    <input type="hidden" name="action" value="list">
+                    <div class="col-md-5 col-lg-4">
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0 rounded-start-pill px-3">
+                                <i class="bi bi-search text-muted"></i>
+                            </span>
+                            <input type="text" name="search" class="form-control bg-light border-start-0 rounded-end-pill py-2" 
+                                   placeholder="Tìm tiêu đề tin tức..." value="${searchKeyword}">
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">Tìm kiếm</button>
+                        <c:if test="${not empty searchKeyword}">
+                            <a href="news?action=list" class="btn btn-outline-secondary rounded-pill px-3 ms-1">
+                                <i class="bi bi-x-lg"></i> Xóa lọc
+                            </a>
+                        </c:if>
+                    </div>
+                    <c:if test="${not empty searchKeyword}">
+                        <div class="col-auto">
+                            <span class="text-muted small ms-2">Tìm thấy <strong>${newsList.size()}</strong> kết quả</span>
+                        </div>
+                    </c:if>
+                </form>
+            </div>
+        </div>
         <div class="user-table-card">
             <div class="card-body p-0">
                 <div class="table-responsive">
